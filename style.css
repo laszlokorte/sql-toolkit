@@ -1,0 +1,223 @@
+* {
+	box-sizing: border-box;
+}
+
+html {
+	font-family: sans-serif;
+	line-height: 1.4;
+}
+
+a {
+	color: #1557A3;
+}
+
+table {
+    table-layout: fixed;
+}
+
+thead th {
+	text-align: left;
+	border-bottom: 1px solid #555;
+	font-weight: 400;
+	white-space: nowrap;
+	min-width: 1em;
+	padding-right: 0.5em;
+}
+
+tfoot td {
+	text-align: left;
+	border-top: 1px solid #555;
+	font-weight: 400;
+	white-space: nowrap;
+	min-width: 1em;
+	padding-right: 0.5em;
+}
+
+table {
+	min-width: 100%;
+	border-collapse: collapse;
+}
+
+dt {
+	font-weight: 600;
+}
+
+.whitespaced {
+	white-space: pre-wrap;
+}
+
+.empty {
+	color: #aaa;
+}
+
+.disabled {
+	color: #888;
+}
+
+.no-data {
+	font-size: 1.6em;
+	color: #aaa;
+	font-weight: 600;
+	padding: 0.5em 0;
+	background: #eee;
+}
+
+tbody td {
+	padding-top: 0.3em;
+	padding-bottom: 0.3em;
+	vertical-align: top;
+	border-bottom: 1px solid transparent;
+}
+
+tbody tr:nth-child(2n) td {
+	background-color: #fafafa;
+}
+
+tr.state-selected > td {
+	background-color: #ffffaa !important;
+	border-bottom-color: #eeee99;
+}
+
+svg {
+	max-width: 300px;
+}
+
+.sql {
+	background-color: #303030;
+	color: #fafafa;
+	white-space: pre-wrap;
+	font-family: monospace;
+	max-height: 10em;
+	overflow: auto;
+	padding: 5px;
+}
+
+.json {
+	background-color: #303030;
+	color: #fafafa;
+	white-space: pre-wrap;
+	font-family: monospace;
+	overflow: auto;
+	padding: 5px;
+}
+
+.color {
+	font-family: monospace;
+}
+
+
+
+.json-small {
+	background-color: #303030;
+	color: #fafafa;
+	white-space: pre-wrap;
+	font-family: monospace;
+	overflow: auto;
+	padding: 2px;
+	border-radius: 3px;
+}
+
+body .debug {
+	display: none;
+}
+
+body.debug .debug {
+	display: block;
+}
+.hyper {
+	font-size: 1.3em;
+	text-decoration: none;
+}
+
+.menu {
+	position: absolute;
+	left: 2%;
+	top: 0;
+	width: 20%;
+}
+
+.content {
+	position: absolute;
+	left: 24%;
+	top: 0;
+	padding-top: 2em;
+	right: 2%;
+	overflow: scroll;
+}
+
+
+.prop-list:after {
+  content: '';
+  display: block;
+  clear: both;
+}
+.prop-list dt {
+  float: left;
+  clear: left;
+  padding-top: 0.4em;
+  margin-right: 1em;
+  font-weight: bold;
+  font-weight: normal;
+  text-align: right;
+  min-width: 8em;
+}
+.prop-list dt:after {
+	content: ':';
+}
+.prop-list dd {
+  padding-top: 0.4em;
+  margin-left: 8em;
+  color: #555;
+  min-height: 1.7em;
+}
+
+.nav-group-title {
+	margin: 0;
+}
+
+.nav-list {
+	margin: 0;
+	list-style: none;
+	padding: 0;
+}
+
+.sort {
+	font-size: 12px;
+	text-decoration: none;
+}
+
+.searchbox {
+	float: right;
+}
+
+.fill-label {
+	position: relative;
+}
+
+.fill-label > label {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	top: 0;
+	text-align: center;
+}
+
+li a.state-active {
+	background-color: #eee;
+}
+
+.login-panel {
+	margin: 5% auto;
+	max-width: 30em;
+}
+
+.child-records {
+	padding: 0.5em 1em;
+	border: 3px solid #f0f0f0;
+	margin: 1em 0;
+}
+
+.child-records > :first-child {
+	margin-top: 0;
+}

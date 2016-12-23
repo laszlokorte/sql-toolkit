@@ -1,0 +1,16 @@
+{
+    "name": "laszlokorte/sql-Schema",
+    "type": "project",
+    "autoload": {
+        "psr-4": {"LaszloKorte\\": "src/LaszloKorte/"}
+    },
+    "authors": [
+        {
+            "name": "Laszlo Korte",
+            "email": "me@laszlokorte.de"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^4.0"
+    }
+}
