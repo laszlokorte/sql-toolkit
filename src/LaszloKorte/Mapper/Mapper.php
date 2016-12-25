@@ -11,4 +11,12 @@ class Mapper {
 		$this->mapperDefinition = $mapperDefinition;
 	}
 
+	public function type(Identifier $name) {
+		return new Type($name, $this);
+	}
+
+	public function __get($name) {
+		return $this->type(new Identifier($name));
+	}
+
 }

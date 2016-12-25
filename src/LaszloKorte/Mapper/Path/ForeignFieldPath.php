@@ -5,11 +5,15 @@ namespace LaszloKorte\Mapper\Path;
 use LaszloKorte\Mapper\Field;
 
 class ForeignFieldPath implements FieldPath {
-	private $tablePath;
+	private $relationshipPath;
 	private $field;
 
-	public function __construct(TablePath $tablePath, Field $field) {
-		$this->tablePath = $tablePath;
+	public function __construct(RelationshipPath $relationshipPath, Field $field) {
+		$this->relationshipPath = $relationshipPath;
 		$this->field = $field;
+	}
+
+	public function getRootType() {
+		
 	}
 }

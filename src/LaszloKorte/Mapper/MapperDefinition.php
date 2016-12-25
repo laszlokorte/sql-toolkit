@@ -11,4 +11,15 @@ class MapperDefinition {
 		$this->types = new IdentifierMap();
 	}
 
+	public function defineType(Identifier $name) {
+		$t = new TypeDefinition($name);
+
+		$this->types[$name] = $t;
+
+		return $t;
+	}
+
+	public function getTypeDefinition(Identifier $name) {
+		return $this->types[$name];
+	}
 }

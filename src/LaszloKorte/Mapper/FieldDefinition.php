@@ -1,6 +1,6 @@
 <?php
 
-namespace LaszloKorte\Mapper\Property;
+namespace LaszloKorte\Mapper;
 
 class FieldDefinition {
 	private $columnName;

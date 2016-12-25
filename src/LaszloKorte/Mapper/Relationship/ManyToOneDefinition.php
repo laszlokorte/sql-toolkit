@@ -13,7 +13,7 @@ class ManyToOneDefinition {
 	
 	private $inverseId;
 
-	public function __construct(Identifier $targetTypeName) {
+	public function __construct(Identifier $targetTypeName, Identifier $inverseId = NULL) {
 		$this->targetTypeName = $targetTypeName;
 		$this->inverseId = $inverseId;
 	}

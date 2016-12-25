@@ -13,4 +13,8 @@ class OwnFieldPath implements FieldPath {
 		$this->targetType = $targetType;
 		$this->field;
 	}
+
+	public function getRootType() {
+		
+	}
 }

@@ -2,6 +2,9 @@
 
 namespace LaszloKorte\Mapper;
 
+use LaszloKorte\Mapper\Collection\LazyCollection;
+use LaszloKorte\Mapper\Query\Query;
+
 class Type {
 	private $typeName;
 	private $mapperDefinition;
@@ -11,19 +14,15 @@ class Type {
 		$this->mapperDefinition = $mapperDefinition;
 	}
 
-	public function new() {
-
-	}
-
 	public function find() {
-
+		return new LazyCollection(new Query($this));
 	}
 
-	public function field($name) {
-		
+	public function field(Identifier $name) {
+		return new Field($this->typeName, $fieldName, $this->mapperDefinition);
 	}
 
-	public function rel($name) {
+	public function rel(Identifier $name) {
 		
 	}
 

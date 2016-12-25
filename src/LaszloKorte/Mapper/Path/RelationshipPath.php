@@ -24,4 +24,8 @@ class RelationshipPath implements Path {
 	public function rel($name) {
 		
 	}
+
+	public function getRootType() {
+		
+	}
 }

@@ -8,7 +8,7 @@ class Iterator implements SPLIterator {
 	private $collection;
 	private $currentIndex;
 
-	public function __construct(Collection $collection) {
+	public function __construct(LazyCollection $collection) {
 		$this->collection = $collection;
 		$this->currentIndex = 0;
 	}
