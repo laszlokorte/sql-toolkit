@@ -25,6 +25,7 @@
 	use LaszloKorte\Schema\DatabaseId;
 	use LaszloKorte\Schema\SchemaBuilder;
 	use LaszloKorte\Schema\ColumnType;
+	use LaszloKorte\Schema\ForeignKey;
 
 	require __DIR__ . '/vendor/autoload.php';
 
@@ -563,7 +564,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 					continue;
 				} else {
 					$sql = 
-						buildTableQuery($sourceTable, true);
+						buildTableQuery($sourceTable, $assoc);
 					$stmt = $connection->prepare($sql);
 				}
 
@@ -572,9 +573,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$page = (int)($_GET[(string)$sourceTable->getName()]['page']);
 				$stmt->bindValue(':offset', $page * $limit, PDO::PARAM_INT);
 				$stmt->bindValue(':limit', $limit + 1, PDO::PARAM_INT);
-				foreach($assoc->getOwnColumns() AS $cix => $c) {
-					$otherColumn = $assoc->getForeignColumns()[$cix];
-					$stmt->bindValue(':'.$c->getName(), $data->{$tableName.'_'.$otherColumn->getName()});
+				foreach($assoc->getForeignColumns() AS $cix => $c) {
+					$stmt->bindValue(':'.$assoc->getName().'_'.$c->getName(), $data->{$tableName.'_'.$c->getName()});
 				}
 				echo "<div class='sql debug'>$sql</div>";
 				$stmt->execute();
@@ -803,9 +803,11 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 		// echo "</a>";
 		echo "</th>";
 	}
-	$colCount += 2;
-	echo "<th>Actions</th>";
-	echo "<th class=fill-label><label><input type=checkbox data-select='all'></label></th>";
+	if($table->hasPrimaryKeys()) {
+		$colCount += 2;
+		echo "<th>Actions</th>";
+		echo "<th class=fill-label><label><input type=checkbox data-select='all'></label></th>";
+	}
 	echo "</tr>";
 	echo "</thead>";
 
@@ -825,10 +827,12 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 		echo "<td>";
 		echo "</td>";
 	}
-	echo "<td></td>";
-	echo "<td>";
-	echo "<select><option /><option>Delete</option></select>";
-	echo "</td>";
+	if($table->hasPrimaryKeys()) {
+		echo "<td></td>";
+		echo "<td>";
+		echo "<select><option /><option>Delete</option></select>";
+		echo "</td>";
+	}
 	echo "</tr>";
 	echo "</tfoot>";
 
@@ -942,13 +946,15 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 				}
 				echo "</td>";
 			}
-			echo "<td>";
-			$idQ = buildIdQuery($table, $row, $targetName);
-			echo "<a title=edit href='?table=$tableName&amp;$idQ&amp;action=edit'>&#x270E;</a> ";
-			echo "<a title=delete href='?table=$tableName&amp;$idQ&amp;action=delete'>&#x2715;</a> ";
-			echo "<a title=copy href='?table=$tableName&amp;$idQ&amp;action=copy'>&#x2398;</a> ";
-			echo "</td>";
-			echo "<td class=fill-label><label><input type=checkbox data-select /></label></td>";
+			if($table->hasPrimaryKeys()) {
+				echo "<td>";
+				$idQ = buildIdQuery($table, $row, $targetName);
+				echo "<a title=edit href='?table=$tableName&amp;$idQ&amp;action=edit'>&#x270E;</a> ";
+				echo "<a title=delete href='?table=$tableName&amp;$idQ&amp;action=delete'>&#x2715;</a> ";
+				echo "<a title=copy href='?table=$tableName&amp;$idQ&amp;action=copy'>&#x2398;</a> ";
+				echo "</td>";
+				echo "<td class=fill-label><label><input type=checkbox data-select /></label></td>";
+			}
 		echo "</tr>";
 	}
 	echo "</tbody>";
@@ -1009,7 +1015,7 @@ function buildTableQuery($table, $single = false) {
 
 	$tables[] = $table->getName();
 
-	if($single) {
+	if($single === TRUE) {
 		foreach($table->primaryKeys() AS $pk) {
 			$conditions[] = $table->getName() . '.' . $pk->getName() . ' = :'.$pk->getName();
 		}
@@ -1033,15 +1039,23 @@ function buildTableQuery($table, $single = false) {
 		foreach($targetTable->columns() AS $targetCol) {
 			$columns []= $fk->getName() . '.' . $targetCol->getName()  . ' AS ' . $fk->getName() . '_' . $targetCol->getName();
 		}
+
+		if($single && $single instanceof ForeignKey && $single == $fk) {
+			foreach($single->getForeignColumns() AS $s) {
+				$conditions[] = $single->getName() . '.' . $s->getName() . ' = :' . $single->getName() . '_' . $s->getName();
+			}
+		}
 	}
 
 	foreach ($table->columns() as $col) {
 		$columns []= $table->getName() . '.' . $col->getName() . ' AS ' . $table->getName() . '_' . $col->getName();
 	}
 
-	return sprintf("SELECT \n\t%s \nFROM\n\t%s\n%s \nWHERE \n\t%s \nORDER BY %s \nLIMIT :limit \nOFFSET :offset",implode(", \n\t", $columns), implode(', ', $tables), empty($joins) ? '' : "LEFT JOIN\n\t" . implode("\nLEFT JOIN\n\t", $joins), implode(' AND ', $conditions) ?: '1', implode(',', array_map(function($c) use ($table) {
+	$order = $table->hasPrimaryKeys() ? implode(',', array_map(function($c) use ($table) {
 		return $table->getName() . '_' . $c->getName();
-	}, $table->primaryKeys())));
+	}, $table->primaryKeys())) : '1';
+
+	return sprintf("SELECT \n\t%s \nFROM\n\t%s\n%s \nWHERE \n\t%s \nORDER BY %s \nLIMIT :limit \nOFFSET :offset",implode(", \n\t", $columns), implode(', ', $tables), empty($joins) ? '' : "LEFT JOIN\n\t" . implode("\nLEFT JOIN\n\t", $joins), implode(' AND ', $conditions) ?: '1', $order);
 }
 
 function buildIdQuery($table, $data, $fkName = NULL, $prefix = 'id') {
@@ -1063,7 +1077,7 @@ function getIdFromQuery($table, $params) {
 	$pks = $table->primaryKeys();
 
 	if(count($pks) === 1) {
-		return $params;
+		return ['id' => $params];
 	}
 
 	$result = [];
