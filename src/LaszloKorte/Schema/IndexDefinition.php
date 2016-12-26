@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema;
 
-class IndexDefinition {
+final class IndexDefinition {
 	const TYPE_UNIQUE = 'UNIQUE';
 	const TYPE_KEY = 'KEY';
 

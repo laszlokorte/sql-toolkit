@@ -4,11 +4,11 @@ namespace LaszloKorte\Mapper\Query\Condition;
 
 use LaszloKorte\Mapper\Record\Record;
 
-final class Top implements Predicate {
+final class Bottom implements Predicate {
 	use OperatorTrait;
 
 	public function evalFor(Record $record) {
-		return TRUE;
+		return FALSE;
 	}
 
 	public function getRootType() {
@@ -16,6 +16,6 @@ final class Top implements Predicate {
 	}
 
 	public function _not() {
-		return new Bottom();
+		return new Top();
 	}
 }

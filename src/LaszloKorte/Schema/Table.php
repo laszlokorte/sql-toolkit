@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema;
 
-class Table {
+final class Table {
 	private $schemaDefinition;
 	private $tableName;
 

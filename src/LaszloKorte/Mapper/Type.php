@@ -8,7 +8,7 @@ use LaszloKorte\Mapper\Query\Query;
 use LaszloKorte\Mapper\Path\OwnFieldPath;
 use LaszloKorte\Mapper\Path\RelationshipPath;
 
-class Type {
+final class Type {
 	private $typeName;
 	private $mapper;
 
@@ -60,8 +60,8 @@ class Type {
 		return $this->path(new Identifier($fieldOrRelationName));
 	}
 
-	public function query(Query $query) {
-
+	public function resultForQuery(Query $query) {
+		return $this->mapper->resultForQuery($query);
 	}
 
 	public function keyFromValues($values) {

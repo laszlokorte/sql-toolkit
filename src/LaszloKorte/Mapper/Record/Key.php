@@ -2,8 +2,8 @@
 
 namespace LaszloKorte\Mapper\Record;
 
-class Key {
-	private $values;
+final class Key {
+	private $type;
 	private $keyValues;
 
 	public function __construct(Type $type, $keyValues = NULL) {

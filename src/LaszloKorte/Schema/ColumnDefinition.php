@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema;
 
-class ColumnDefinition {
+final class ColumnDefinition {
 	private $dataType;
 	private $allowNull;
 	private $defaultValue;

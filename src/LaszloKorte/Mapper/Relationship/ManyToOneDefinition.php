@@ -4,7 +4,7 @@ namespace LaszloKorte\Mapper\Relationship;
 
 use LaszloKorte\Mapper\Identifier;
 
-class ManyToOneDefinition {
+final class ManyToOneDefinition {
 
 	private $targetTypeName;
 

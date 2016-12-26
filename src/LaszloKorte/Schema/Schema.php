@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema;
 
-class Schema {
+final class Schema {
 	private $schemaDefinition;
 
 	public function __construct(SchemaDefinition $schemaDefinition) {

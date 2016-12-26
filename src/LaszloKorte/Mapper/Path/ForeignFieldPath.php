@@ -4,7 +4,7 @@ namespace LaszloKorte\Mapper\Path;
 
 use LaszloKorte\Mapper\Field;
 
-class ForeignFieldPath implements FieldPath {
+final class ForeignFieldPath implements FieldPath {
 	use FieldDSLTrait;
 	private $relationshipPath;
 	private $field;

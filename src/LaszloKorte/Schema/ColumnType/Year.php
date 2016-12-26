@@ -3,7 +3,7 @@
 namespace LaszloKorte\Schema\ColumnType;
 
 
-class Year implements ColumnType {
+final class Year implements ColumnType {
 	public function __construct($length = 2) {
 		$this->length = $length;
 	}

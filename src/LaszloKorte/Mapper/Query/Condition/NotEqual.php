@@ -5,7 +5,7 @@ namespace LaszloKorte\Mapper\Query\Condition;
 use LaszloKorte\Mapper\Record\Record;
 use LaszloKorte\Mapper\Query\Condition\Value\Value;
 
-final class GreaterThan implements Predicate {
+final class NotEqual implements Predicate {
 	use OperatorTrait;
 
 	private $valueA;
@@ -24,7 +24,8 @@ final class GreaterThan implements Predicate {
 		return NULL;
 	}
 
+
 	public function _not() {
-		return new LessThanOrEqual($this->valueA, $this->valueB);
+		return new Equal($this->valueA, $this->valueB);
 	}
 }

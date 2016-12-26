@@ -9,7 +9,7 @@ use LaszloKorte\Mapper\Query\Query;
 use LaszloKorte\Mapper\Query\Condition\Predicate;
 use LaszloKorte\Mapper\Query\Ordering;
 
-class FetchedCollection implements Collection {
+final class FetchedCollection implements Collection {
 	private $query;
 	private $rows;
 	private $cache;

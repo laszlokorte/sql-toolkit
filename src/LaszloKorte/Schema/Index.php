@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema;
 
-class Index {
+final class Index {
 	private $schemaDefinition;
 	private $tableName;
 	private $indexName;

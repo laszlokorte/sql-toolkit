@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema\ColumnType;
 
-class Floating implements ColumnType, Serialable {
+final class Floating implements ColumnType, Serialable {
 
 	public function __construct($bits) {
 		$this->bits = $bits;

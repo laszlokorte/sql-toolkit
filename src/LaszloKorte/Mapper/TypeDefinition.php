@@ -5,7 +5,7 @@ namespace LaszloKorte\Mapper;
 use LaszloKorte\Mapper\Relationship\OneToManyDefinition;
 use LaszloKorte\Mapper\Relationship\ManyToOneDefinition;
 
-class TypeDefinition {
+final class TypeDefinition {
 	private $tableName;
 	private $primaryKey;
 	private $fields;

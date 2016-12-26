@@ -6,7 +6,7 @@ use LaszloKorte\Mapper\Query\Condition\Top;
 use LaszloKorte\Mapper\Query\Condition\Predicate;
 use LaszloKorte\Mapper\Type;
 
-class Query {
+final class Query {
 	private $type;
 	private $condition;
 	private $limit = NULL;

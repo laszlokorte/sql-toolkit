@@ -4,7 +4,7 @@ namespace LaszloKorte\Mapper\Collection;
 
 use Iterator as SPLIterator;
 
-class Iterator implements SPLIterator {
+final class Iterator implements SPLIterator {
 	private $collection;
 	private $currentIndex;
 

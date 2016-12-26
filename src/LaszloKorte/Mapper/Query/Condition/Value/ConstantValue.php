@@ -4,7 +4,7 @@ namespace LaszloKorte\Mapper\Query\Condition\Value;
 
 use LaszloKorte\Mapper\Record\Record;
 
-class ConstantValue implements Value {
+final class ConstantValue implements Value {
 
 	private $value;
 

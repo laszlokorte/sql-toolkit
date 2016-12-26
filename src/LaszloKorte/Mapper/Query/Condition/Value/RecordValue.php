@@ -5,7 +5,7 @@ namespace LaszloKorte\Mapper\Query\Condition\Value;
 use LaszloKorte\Mapper\Record\Record;
 use LaszloKorte\Mapper\Path\FieldPath;
 
-class RecordValue implements Value {
+final class RecordValue implements Value {
 
 	private $path;
 

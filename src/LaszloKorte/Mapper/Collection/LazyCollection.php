@@ -9,7 +9,7 @@ use LaszloKorte\Mapper\Query\Query;
 use LaszloKorte\Mapper\Query\Condition\Predicate;
 use LaszloKorte\Mapper\Query\Ordering;
 
-class LazyCollection implements Collection {
+final class LazyCollection implements Collection {
 	private $query;
 
 	public function __construct(Query $query) {
@@ -88,5 +88,9 @@ class LazyCollection implements Collection {
 
 	public function toArray() {
 
+	}
+
+	public function getResult() {
+		return $this->getType()->resultforQuery($this->query);
 	}
 }

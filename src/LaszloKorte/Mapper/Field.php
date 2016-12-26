@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Mapper;
 
-class Field {
+final class Field {
 	private $typeName;
 	private $fieldName;
 	private $mapper;

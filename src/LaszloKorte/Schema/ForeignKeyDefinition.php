@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema;
 
-class ForeignKeyDefinition {
+final class ForeignKeyDefinition {
 	private $ownTableName;
 	private $foreignTableName; 
 	private $ownColumns;

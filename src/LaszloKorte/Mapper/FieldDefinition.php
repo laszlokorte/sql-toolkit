@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Mapper;
 
-class FieldDefinition {
+final class FieldDefinition {
 	private $columnName;
 	private $validators = [];
 

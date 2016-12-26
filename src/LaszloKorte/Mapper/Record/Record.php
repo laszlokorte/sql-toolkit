@@ -4,7 +4,7 @@ namespace LaszloKorte\Mapper\Record;
 
 use LaszloKorte\Mapper\Collection\Collection;
 
-class Record {
+final class Record {
 	private $key;
 	private $fields;
 	private $collection;

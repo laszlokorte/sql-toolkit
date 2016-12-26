@@ -6,8 +6,14 @@ use LaszloKorte\Mapper\Query\Condition\Predicate;
 use LaszloKorte\Mapper\Query\Condition\OperatorTrait;
 use LaszloKorte\Mapper\Record\Record;
 
-class Negation implements Predicate {
+final class Negation implements Predicate {
 	use OperatorTrait;
+
+	private $operand;
+
+	public function __construct(Predicate $operand) {
+		$this->operand = $operand;
+	}
 
 	public function evalFor(Record $record) {
 
@@ -15,5 +21,9 @@ class Negation implements Predicate {
 
 	public function getRootType() {
 		return NULL;
+	}
+
+	public function _not() {
+		return $this->operand;
 	}
 }

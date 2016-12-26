@@ -5,7 +5,7 @@ namespace LaszloKorte\Schema;
 use LaszloKorte\Schema\ColumnType\ColumnType;
 use LaszloKorte\Schema\ColumnType\Serialable;
 
-class TableDefinition {
+final class TableDefinition {
 	private $columnDefinitions;
 	private $comment;
 

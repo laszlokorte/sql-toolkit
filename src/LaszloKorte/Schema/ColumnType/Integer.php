@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema\ColumnType;
 
-class Integer implements ColumnType, Serialable {
+final class Integer implements ColumnType, Serialable {
 	private $unsigned;
 
 	public function __construct($bits, $unsigned) {

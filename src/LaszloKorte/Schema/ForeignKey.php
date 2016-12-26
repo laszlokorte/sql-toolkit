@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema;
 
-class ForeignKey {
+final class ForeignKey {
 	private $schemaDefinition;
 	private $keyName;
 

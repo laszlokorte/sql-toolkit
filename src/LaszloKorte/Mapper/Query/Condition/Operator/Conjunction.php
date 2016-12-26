@@ -6,8 +6,16 @@ use LaszloKorte\Mapper\Query\Condition\Predicate;
 use LaszloKorte\Mapper\Query\Condition\OperatorTrait;
 use LaszloKorte\Mapper\Record\Record;
 
-class Conjunction implements Predicate {
+final class Conjunction implements Predicate {
 	use OperatorTrait;
+
+	private $lhs;
+	private $rhs;
+
+	public function __construct(Predicate $lhs, Predicate $rhs) {
+		$this->lhs = $lhs;
+		$this->rhs = $rhs;
+	}
 
 	public function evalFor(Record $record) {
 		

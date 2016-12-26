@@ -5,7 +5,7 @@ namespace LaszloKorte\Mapper\Query;
 use LaszloKorte\Mapper\Record\Record;
 use LaszloKorte\Mapper\Path\FieldPath;
 
-class Ordering {
+final class Ordering {
 	const ASC = 'DIRECTION_ASC';
 	const DESC = 'DIRECTION_DESC';
 	

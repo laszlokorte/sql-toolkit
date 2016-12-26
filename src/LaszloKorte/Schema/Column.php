@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema;
 
-class Column {
+final class Column {
 	private $schemaDefinition;
 	private $tableName;
 	private $columnName;

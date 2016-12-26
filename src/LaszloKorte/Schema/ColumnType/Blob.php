@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema\ColumnType;
 
-class Blob implements ColumnType {
+final class Blob implements ColumnType {
 	public function __construct($length, $binary) {
 		$this->length = $length;
 		$this->binary = $binary;

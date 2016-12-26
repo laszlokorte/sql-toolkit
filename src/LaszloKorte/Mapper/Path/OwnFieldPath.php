@@ -5,7 +5,7 @@ namespace LaszloKorte\Mapper\Path;
 use LaszloKorte\Mapper\Field;
 use LaszloKorte\Mapper\Type;
 
-class OwnFieldPath implements FieldPath {
+final class OwnFieldPath implements FieldPath {
 	use FieldDSLTrait;
 	private $targetType;
 	private $field;

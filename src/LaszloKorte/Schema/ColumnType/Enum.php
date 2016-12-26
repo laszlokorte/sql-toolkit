@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema\ColumnType;
 
-class Enum implements ColumnType, Enumerable {
+final class Enum implements ColumnType, Enumerable {
 	public function __construct($name, $multi, $options) {
 		$this->name = $name;
 		$this->multi = $multi;

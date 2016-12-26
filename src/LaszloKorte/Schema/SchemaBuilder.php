@@ -6,7 +6,7 @@ use LaszloKorte\Schema\ColumnType;
 
 use PDO;
 
-class SchemaBuilder {
+final class SchemaBuilder {
 	public function buildSchemaFor(PDO $connection, $databaseName) {
 		$def = new SchemaDefinition();
 

@@ -3,7 +3,7 @@
 namespace LaszloKorte\Mapper;
 
 
-class MapperDefinition {
+final class MapperDefinition {
 
 	private $types;
 

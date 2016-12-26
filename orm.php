@@ -5,7 +5,7 @@ use LaszloKorte\Schema\DatabaseId;
 use LaszloKorte\Schema\SchemaBuilder;
 use LaszloKorte\Schema\ColumnType;
 
-use LaszloKorte\Mapper\DataSource;
+use LaszloKorte\Mapper\DataSource\DataSource;
 use LaszloKorte\Mapper\Query\Operator;
 use LaszloKorte\Mapper\MapperDefinition;
 use LaszloKorte\Mapper\Mapper;
@@ -52,9 +52,15 @@ $timeslot = $mapper->timeslot;
 $startTime = $timeslot->start_time;
 $endTime = $timeslot->end_time;
 
-$result = $timeslot->find()
+$collection = $timeslot->find()
 	->filter($startTime->eq('100')->or($endTime->eq('100')))
-	->expand($startTime->eq(42))
+	->expand($startTime->eq(42)->not())
 	->orderBy($startTime->asc(), $endTime->desc())
 	->take(20)
 	->skip(10);
+
+$result = $collection->getResult();
+
+foreach($result AS $row) {
+	var_dump($row);
+} 

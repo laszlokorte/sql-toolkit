@@ -4,8 +4,7 @@ namespace LaszloKorte\Mapper\Relationship;
 
 use LaszloKorte\Mapper\Identifier;
 
-class OneToManyDefinition {
-	
+final class OneToManyDefinition {
 	private $targetTypeName;
 
 	private $ownKeyColumns;

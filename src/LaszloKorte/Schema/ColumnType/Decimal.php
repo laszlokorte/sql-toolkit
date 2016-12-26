@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema\ColumnType;
 
-class Decimal implements ColumnType {
+final class Decimal implements ColumnType {
 
 	public function __construct($totalDigits, $decimalPlaces) {
 		$this->totalDigits = $totalDigits;

@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema\ColumnType;
 
-class DateTime implements ColumnType {
+final class DateTime implements ColumnType {
 	public function __toString() {
 		return 'datetime';
 	}

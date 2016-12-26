@@ -5,7 +5,7 @@ namespace LaszloKorte\Mapper\Relationship;
 use LaszloKorte\Mapper\Identifier;
 use LaszloKorte\Mapper\Mapper;
 
-class ManyToOne implements Relationship {
+final class ManyToOne implements Relationship {
 	
 	private $typeName;
 	private $relationshipName;

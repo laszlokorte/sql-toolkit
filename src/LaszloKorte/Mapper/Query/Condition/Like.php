@@ -3,15 +3,15 @@
 namespace LaszloKorte\Mapper\Query\Condition;
 
 use LaszloKorte\Mapper\Record\Record;
-use LaszloKorte\Mapper\Query\Condition\Value\Value;
+use LaszloKorte\Mapper\Query\Condition\Value\ConstantValue;
 
-final class GreaterThan implements Predicate {
+final class Like implements Predicate {
 	use OperatorTrait;
 
 	private $valueA;
 	private $valueB;
 
-	public function __construct(Value $valueA, Value $valueB) {
+	public function __construct(Value $valueA, ConstantValue $valueB) {
 		$this->valueA = $valueA;
 		$this->valueB = $valueB;
 	}
@@ -22,9 +22,5 @@ final class GreaterThan implements Predicate {
 
 	public function getRootType() {
 		return NULL;
-	}
-
-	public function _not() {
-		return new LessThanOrEqual($this->valueA, $this->valueB);
 	}
 }

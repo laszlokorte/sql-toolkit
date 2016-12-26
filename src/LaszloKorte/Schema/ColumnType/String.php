@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema\ColumnType;
 
-class String implements ColumnType {
+final class String implements ColumnType {
 	public function __construct($length, $varLength) {
 		$this->length = $length;
 		$this->varLength = $varLength;

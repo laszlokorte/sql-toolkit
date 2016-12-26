@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Mapper;
 
-class Identifier {
+final class Identifier {
 	private $name;
 
 	public function __construct($name) {

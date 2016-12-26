@@ -4,7 +4,7 @@ namespace LaszloKorte\Mapper\Path;
 
 use LaszloKorte\Mapper\Type;
 
-class RelationshipPath implements Path {
+final class RelationshipPath implements Path {
 	private $targetType;
 	private $relationships = [];
 
