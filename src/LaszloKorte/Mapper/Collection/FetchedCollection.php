@@ -6,7 +6,7 @@ use LaszloKorte\Mapper\Type;
 use LaszloKorte\Mapper\Record\Record;
 use LaszloKorte\Mapper\Record\Identifier;
 use LaszloKorte\Mapper\Query\Query;
-use LaszloKorte\Mapper\Query\Condition;
+use LaszloKorte\Mapper\Query\Condition\Predicate;
 use LaszloKorte\Mapper\Query\Ordering;
 
 class FetchedCollection implements Collection {
@@ -25,18 +25,18 @@ class FetchedCollection implements Collection {
 	}
 
 	private function deriveFromQuery(Query $query) {
-		return new Collection($query);
+		return new FetchedCollection($query);
 	}
 
-	public function filter(Condition $cond) {
+	public function filter(Predicate $cond) {
 		return $this->deriveFromQuery(clone $this->query);
 	}
 
-	public function expand(Condition $cond) {
+	public function expand(Predicate $cond) {
 		return $this->deriveFromQuery(clone $this->query);
 	}
 
-	public function orderBy(Ordering $cond) {
+	public function orderBy(Ordering ...$orderings) {
 		return $this->deriveFromQuery(clone $this->query);
 	}
 
@@ -84,5 +84,9 @@ class FetchedCollection implements Collection {
 			return;
 		}
 		$this->rows = $this->getType()->query($this->query);
+	}
+
+	public function toArray() {
+		
 	}
 }

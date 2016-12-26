@@ -3,6 +3,7 @@
 namespace LaszloKorte\Mapper\Query;
 
 use LaszloKorte\Mapper\Query\Condition\Top;
+use LaszloKorte\Mapper\Query\Condition\Predicate;
 use LaszloKorte\Mapper\Type;
 
 class Query {
@@ -12,9 +13,12 @@ class Query {
 	private $offset = 0;
 	private $ordering = [];
 
-	public function __construct(Type $type) {
+	public function __construct(Type $type, Predicate $condition = NULL, $limit = NULL, $offset = 0, Ordering ...$orderings) {
 		$this->type = $type;
-		$this->condition = new Top();
+		$this->condition = is_null($condition) ? new Top() : $condition;
+		$this->limit = $limit;
+		$this->offset = $offset;
+		$this->ordering = is_null($ordering) ? [] : $ordering;
 	}
 
 	public function __clone() {
@@ -39,5 +43,49 @@ class Query {
 
 	public function getCondition() {
 		return $this->condition;
+	}
+
+	public function withCondition(Predicate $condition) {
+		return new self(
+			$this->type,
+			$condition,
+			$this->limit,
+			$this->offset,
+			...$this->ordering
+		);
+	}
+
+	public function withOrder(Ordering ...$orderings) {
+		return new self(
+			$this->type,
+			$this->condition,
+			$this->limit,
+			$this->offset,
+			...$orderings
+		);
+	}
+
+	public function withLimit($limit) {
+		return new self(
+			$this->type,
+			$this->condition,
+			$limit,
+			$this->offset,
+			...$this->ordering
+		);
+	}
+
+	public function withOffset($offset) {
+		return new self(
+			$this->type,
+			$this->condition,
+			$this->limit,
+			$offset,
+			...$this->ordering
+		);
+	}
+
+	public function isStrictSubsetOf(Query $other) {
+		return false;
 	}
 }

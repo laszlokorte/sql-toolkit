@@ -34,6 +34,7 @@
 
 
 	$connection = new PDO('mysql:host=directus.dev;port=3306;dbname=ishl;charset=utf8', 'ishl', 'ishl', [
+			PDO::ATTR_TIMEOUT => 2,
 			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 			PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
 	   		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,

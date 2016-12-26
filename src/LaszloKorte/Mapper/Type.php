@@ -5,13 +5,16 @@ namespace LaszloKorte\Mapper;
 use LaszloKorte\Mapper\Collection\LazyCollection;
 use LaszloKorte\Mapper\Query\Query;
 
+use LaszloKorte\Mapper\Path\OwnFieldPath;
+use LaszloKorte\Mapper\Path\RelationshipPath;
+
 class Type {
 	private $typeName;
-	private $mapperDefinition;
+	private $mapper;
 
-	public function __construct(Identifier $typeName, MapperDefinition $mapperDefinition) {
+	public function __construct(Identifier $typeName, Mapper $mapper) {
 		$this->typeName = $typeName;
-		$this->mapperDefinition = $mapperDefinition;
+		$this->mapper = $mapper;
 	}
 
 	public function find() {
@@ -19,15 +22,42 @@ class Type {
 	}
 
 	public function field(Identifier $name) {
-		return new Field($this->typeName, $fieldName, $this->mapperDefinition);
+		$def = $this->def();
+		if ($def->hasField($name)) {		
+			return new Field($this->typeName, $name, $this->mapper);
+		} else {
+			throw new \Exception(sprintf("Type '%s' has no field of name '%s' defined.", $this->typeName, $name));
+		}
 	}
 
 	public function rel(Identifier $name) {
-		
+		$def = $this->def();
+		if ($def->hasParentRelationship($name)) {
+			return new ManyToOne($this->typeName, $name, $this->mapper);
+		} else if ($def->hasChildRelationship($name)) {
+			return new OneToMany($this->typeName, $name, $this->mapper);
+		} else {
+			throw new \Exception(sprintf("Type '%s' has no relationship of name '%s' defined.", $this->typeName, $name));
+		}
+	}
+
+	public function path(Identifier $fieldOrRelId) {
+		$def = $this->def();
+		if ($def->hasParentRelationship($fieldOrRelId)) {
+			$rel = $this->rel($fieldOrRelId);
+			return new RelationshipPath($rel->getTargetType(), [$rel]);
+		} else if ($def->hasChildRelationship($fieldOrRelId)) {
+			$rel = $this->rel($fieldOrRelId);
+			return new RelationshipPath($rel->getTargetType(), [$rel]); 
+		} else if ($def->hasField($fieldOrRelId)) {
+			return new OwnFieldPath($this, $this->field($fieldOrRelId));
+		} else {
+			throw new \Exception(sprintf("Type '%s' has no relationship or field of name '%s' defined.", $this->typeName, $fieldOrRelId));
+		}
 	}
 
 	public function __get($fieldOrRelationName) {
-
+		return $this->path(new Identifier($fieldOrRelationName));
 	}
 
 	public function query(Query $query) {
@@ -36,6 +66,10 @@ class Type {
 
 	public function keyFromValues($values) {
 
+	}
+
+	private function def() {
+		return $this->mapper->getTypeDefinition($this->typeName);
 	}
 	
 }

@@ -6,6 +6,7 @@ use LaszloKorte\Mapper\Field;
 use LaszloKorte\Mapper\Type;
 
 class OwnFieldPath implements FieldPath {
+	use FieldDSLTrait;
 	private $targetType;
 	private $field;
 
@@ -16,5 +17,9 @@ class OwnFieldPath implements FieldPath {
 
 	public function getRootType() {
 		
+	}
+
+	public function getField() {
+		return $this->field;
 	}
 }

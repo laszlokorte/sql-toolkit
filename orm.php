@@ -5,7 +5,10 @@ use LaszloKorte\Schema\DatabaseId;
 use LaszloKorte\Schema\SchemaBuilder;
 use LaszloKorte\Schema\ColumnType;
 
+use LaszloKorte\Mapper\DataSource;
+use LaszloKorte\Mapper\Query\Operator;
 use LaszloKorte\Mapper\MapperDefinition;
+use LaszloKorte\Mapper\Mapper;
 use LaszloKorte\Mapper\Identifier;
 
 require __DIR__ . '/vendor/autoload.php';
@@ -21,15 +24,37 @@ $connection = new PDO('mysql:host=directus.dev;port=3306;dbname=ishl;charset=utf
 
 $schema = $builder->buildSchemaFor($connection, 'ishl');
 
-$mapper = new MapperDefinition();
-$sessionDef = $mapper->defineType(new Identifier('session'));
+$mapperDef = new MapperDefinition();
+$sessionDef = $mapperDef->defineType(new Identifier('session'));
+$sessionDef->defineField(new Identifier('id'));
 $sessionDef->defineField(new Identifier('title'));
 $sessionDef->defineField(new Identifier('description'));
+$sessionDef->definePrimaryKey([new Identifier('id')]);
 
 
-$timeslotDef = $mapper->defineType(new Identifier('timeslot'));
+$timeslotDef = $mapperDef->defineType(new Identifier('timeslot'));
+$timeslotDef->defineField(new Identifier('id'));
 $timeslotDef->defineField(new Identifier('start_time'));
 $timeslotDef->defineField(new Identifier('end_time'));
+$timeslotDef->definePrimaryKey([new Identifier('id')]);
 
-$sessionDef->defineParentRelationship(new Identifier('timeslot'), new Identifier('timeslot'));
-$timeslotDef->defineChildRelationship(new Identifier('sessions'), new Identifier('session'));
+$sessionTimeslotRel = $sessionDef->defineParentRelationship(new Identifier('timeslot'), new Identifier('timeslot'));
+$timeslotSessionRel = $timeslotDef->defineChildRelationship(new Identifier('sessions'), new Identifier('session'));
+
+$sessionTimeslotRel->setInverse(new Identifier('sessions'));
+$timeslotSessionRel->setInverse(new Identifier('timeslot'));
+
+
+$dataSource = new DataSource($connection);
+$mapper = new Mapper($mapperDef, $dataSource);
+
+$timeslot = $mapper->timeslot;
+$startTime = $timeslot->start_time;
+$endTime = $timeslot->end_time;
+
+$result = $timeslot->find()
+	->filter($startTime->eq('100')->or($endTime->eq('100')))
+	->expand($startTime->eq(42))
+	->orderBy($startTime->asc(), $endTime->desc())
+	->take(20)
+	->skip(10);

@@ -6,7 +6,7 @@ use LaszloKorte\Mapper\Type;
 use LaszloKorte\Mapper\Record\Record;
 use LaszloKorte\Mapper\Record\Identifier;
 use LaszloKorte\Mapper\Query\Query;
-use LaszloKorte\Mapper\Query\Condition;
+use LaszloKorte\Mapper\Query\Condition\Predicate;
 use LaszloKorte\Mapper\Query\Ordering;
 
 class LazyCollection implements Collection {
@@ -21,27 +21,31 @@ class LazyCollection implements Collection {
 	}
 
 	private function deriveFromQuery(Query $query) {
-		return new Collection($query);
+		return new LazyCollection($query);
 	}
 
-	public function filter(Condition $cond) {
-		return $this->deriveFromQuery(clone $this->query);
+	public function filter(Predicate $cond) {
+		return $this->deriveFromQuery($this->query->withCondition(
+			$this->query->getCondition()->and($cond)
+		));
 	}
 
-	public function expand(Condition $cond) {
-		return $this->deriveFromQuery(clone $this->query);
+	public function expand(Predicate $cond) {
+		return $this->deriveFromQuery($this->query->withCondition(
+			$this->query->getCondition()->or($cond)
+		));
 	}
 
-	public function orderBy(Ordering $cond) {
-		return $this->deriveFromQuery(clone $this->query);
+	public function orderBy(Ordering ...$orderings) {
+		return $this->deriveFromQuery($this->query->withOrder(...$orderings));
 	}
 
 	public function take($limit) {
-		return $this->deriveFromQuery(clone $this->query);
+		return $this->deriveFromQuery($this->query->withLimit($limit));
 	}
 
 	public function skip($offset) {
-		return $this->deriveFromQuery(clone $this->query);
+		return $this->deriveFromQuery($this->query->withOffset($offset));
 	}
 
 	public function getRecords() {
@@ -80,5 +84,9 @@ class LazyCollection implements Collection {
 			return;
 		}
 		$this->rows = $this->getType()->query($this->query);
+	}
+
+	public function toArray() {
+
 	}
 }

@@ -2,6 +2,18 @@
 
 namespace LaszloKorte\Mapper\Query\Condition\Operator;
 
-class Negation {
-	
+use LaszloKorte\Mapper\Query\Condition\Predicate;
+use LaszloKorte\Mapper\Query\Condition\OperatorTrait;
+use LaszloKorte\Mapper\Record\Record;
+
+class Negation implements Predicate {
+	use OperatorTrait;
+
+	public function evalFor(Record $record) {
+
+	}
+
+	public function getRootType() {
+		return NULL;
+	}
 }

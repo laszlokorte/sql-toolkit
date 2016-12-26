@@ -5,6 +5,7 @@ namespace LaszloKorte\Mapper\Path;
 use LaszloKorte\Mapper\Field;
 
 class ForeignFieldPath implements FieldPath {
+	use FieldDSLTrait;
 	private $relationshipPath;
 	private $field;
 
@@ -15,5 +16,9 @@ class ForeignFieldPath implements FieldPath {
 
 	public function getRootType() {
 		
+	}
+
+	public function getField() {
+		return $this->field;
 	}
 }

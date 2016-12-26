@@ -22,4 +22,8 @@ class MapperDefinition {
 	public function getTypeDefinition(Identifier $name) {
 		return $this->types[$name];
 	}
+
+	public function hasType(Identifier $name) {
+		return isset($this->types[$name]);
+	}
 }

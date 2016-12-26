@@ -17,4 +17,8 @@ class OneToManyDefinition {
 		$this->targetTypeName = $targetTypeName;
 		$this->inverseId = $inverseId;
 	}
+
+	public function setInverse(Identifier $inverseId) {
+		$this->inverseId = $inverseId;
+	}
 }

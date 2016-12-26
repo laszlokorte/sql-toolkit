@@ -14,18 +14,34 @@ class RelationshipPath implements Path {
 	}
 
 	public function __get($name) {
-
+		return $this->path(new Identifier($name));
 	}
 
-	public function field($name) {
-
+	public function path(Identifier $name) {
+		$this->concatWith($this->targetType->path($name));
 	}
 
-	public function rel($name) {
-		
+	public function field(Identifier $name) {
+		return $this->targetType->field($name);
+	}
+
+	public function rel(Identifier $name) {
+		return $this->targetType->rel($name);
 	}
 
 	public function getRootType() {
-		
+		return $this->relationships[0]->getSourceType();
+	}
+
+	private function concatWith(Path $path) {
+		if ($path instanceof FieldPath) {
+			return new ForeignFieldPath($this, $path->getField());
+		} elseif ($path instanceof RelationshipPath) {
+			return new RelationshipPath(
+				$path->targetType, array_merge($this->relationships, end($path->relationships));
+			);
+		} else {
+			throw new \Exception("Unexpected case");
+		}
 	}
 }
