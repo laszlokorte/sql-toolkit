@@ -6,4 +6,5 @@ interface Path {
 
 	public function getRootType();
 	
+	public function length();
 }

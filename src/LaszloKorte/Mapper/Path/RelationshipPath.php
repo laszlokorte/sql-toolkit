@@ -3,8 +3,10 @@
 namespace LaszloKorte\Mapper\Path;
 
 use LaszloKorte\Mapper\Type;
+use LaszloKorte\Mapper\Identifier;
 
-final class RelationshipPath implements Path {
+final class RelationshipPath implements ForeignPath {
+	use RelationshipDSLTrait;
 	private $targetType;
 	private $relationships = [];
 
@@ -17,8 +19,12 @@ final class RelationshipPath implements Path {
 		return $this->path(new Identifier($name));
 	}
 
+	public function length() {
+		return count($this->relationships);
+	}
+
 	public function path(Identifier $name) {
-		$this->concatWith($this->targetType->path($name));
+		return $this->concatWith($this->targetType->path($name));
 	}
 
 	public function field(Identifier $name) {
@@ -33,15 +39,26 @@ final class RelationshipPath implements Path {
 		return $this->relationships[0]->getSourceType();
 	}
 
+	public function getRelationships() {
+		return $this->relationships;
+	}
+
 	private function concatWith(Path $path) {
 		if ($path instanceof FieldPath) {
 			return new ForeignFieldPath($this, $path->getField());
 		} elseif ($path instanceof RelationshipPath) {
 			return new RelationshipPath(
-				$path->targetType, array_merge($this->relationships, end($path->relationships));
+				$path->targetType, 
+				array_merge($this->relationships, [end($path->relationships)])
 			);
 		} else {
 			throw new \Exception("Unexpected case");
 		}
+	}
+
+	public function __toString() {
+		return sprintf('%s/%s', $this->relationships[0]->getSourceType(), implode('/', array_map(function($r) {
+			return $r->getTargetType();
+		}, $this->relationships)));
 	}
 }

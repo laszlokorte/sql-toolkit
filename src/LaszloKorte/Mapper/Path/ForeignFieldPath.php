@@ -4,7 +4,7 @@ namespace LaszloKorte\Mapper\Path;
 
 use LaszloKorte\Mapper\Field;
 
-final class ForeignFieldPath implements FieldPath {
+final class ForeignFieldPath implements FieldPath, ForeignPath {
 	use FieldDSLTrait;
 	private $relationshipPath;
 	private $field;
@@ -18,7 +18,19 @@ final class ForeignFieldPath implements FieldPath {
 		
 	}
 
+	public function length() {
+		return $this->relationshipPath->length() + 1;
+	}
+
+	public function getRelationships() {
+		return $this->relationshipPath->getRelationships();
+	}
+
 	public function getField() {
 		return $this->field;
+	}
+
+	public function __toString() {
+		return sprintf('%s/%s', $this->relationshipPath, $this->field);
 	}
 }

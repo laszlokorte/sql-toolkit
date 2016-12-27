@@ -24,4 +24,11 @@ final class Conjunction implements Predicate {
 	public function getRootType() {
 		return NULL;
 	}
+
+	public function getPaths() {
+		return array_merge(
+			$this->lhs->getPaths(), 
+			$this->rhs->getPaths()
+		);
+	}
 }

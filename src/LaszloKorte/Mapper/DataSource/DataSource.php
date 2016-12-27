@@ -3,6 +3,7 @@
 namespace LaszloKorte\Mapper\DataSource;
 
 use LaszloKorte\Mapper\Query\Query;
+use LaszloKorte\Mapper\Path\ForeignPath;
 
 use PDO;
 
@@ -72,11 +73,42 @@ final class DataSource {
 	}
 
 	private function tablesFor(Query $query, $depth = 0) {
-		$sql = 'tableName'; // JOIN ... ON ...
+		$sourceType = $query->getType();
+		$tableName = (string)$sourceType->getTableName();
+		$sources = [$tableName];
+
+		$paths = $query->getPaths();
+		$foreignPaths = array_unique(
+			array_filter($paths, function($p) {
+					return ($p instanceof ForeignPath);
+			})
+		);
+		usort($foreignPaths, 
+			function($a, $b) {
+				$diff = $a->length() - $b->length();
+				return ($diff > 0) - ($diff < 0);
+			}
+		);
+
+		$joins = $this->joins($foreignPaths);
+		echo "<pre>";
+		var_dump("\n - ".implode("\n - ", $joins));
+
+		$sql = implode(' ', $sources); // JOIN ... ON ...
 		return (object) [
 			'sqlString' => $sql,
 			'bindings' => [],
 		];
+	}
+
+	private function joins(array $foreignPaths) {
+		var_dump(array_map(function($s){return (string)$s;}, $foreignPaths));
+		return array_map(function($p) {
+			$tableName = $p->getTargetType();
+			$alias = sprintf('%s_%s', $p->getSourceType(), $p->getName());
+			$conditions = [];
+			return sprintf(' INNER JOIN %s %s ON (%s)', $tableName, $alias, implode(' AND ', $conditions));
+		}, $foreignPaths);
 	}
 
 	private function conditionsFor(Query $query, $depth = 0) {

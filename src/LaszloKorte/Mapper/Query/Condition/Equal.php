@@ -27,4 +27,11 @@ final class Equal implements Predicate {
 	public function _not() {
 		return new NotEqual($this->valueA, $this->valueB);
 	}
+
+	public function getPaths() {
+		return array_merge(
+			$this->valueA->getPaths(), 
+			$this->valueB->getPaths()
+		);
+	}
 }

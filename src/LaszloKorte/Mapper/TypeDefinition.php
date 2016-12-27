@@ -19,6 +19,10 @@ final class TypeDefinition {
 		$this->childRelationships = new IdentifierMap();
 		$this->parentRelationships = new IdentifierMap();
 	}
+
+	public function getTableName() {
+		return $this->tableName;
+	}
 	
 	public function defineField(Identifier $name) {
 		$this->requireUnusedIdentifier($name);

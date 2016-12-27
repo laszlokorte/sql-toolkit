@@ -8,4 +8,6 @@ interface Value {
 	public function valueFor(Record $record);
 
 	public function getRootType();
+
+	public function getPaths();
 }

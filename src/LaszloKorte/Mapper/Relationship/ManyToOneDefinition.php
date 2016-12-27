@@ -21,4 +21,8 @@ final class ManyToOneDefinition {
 	public function setInverse(Identifier $inverseId) {
 		$this->inverseId = $inverseId;
 	}
+
+	public function getTargetTypeName() {
+		return $this->targetTypeName;
+	}
 }

@@ -23,4 +23,8 @@ final class Existence implements Predicate {
 	public function getRootType() {
 		return NULL;
 	}
+
+	public function getPaths() {
+		return $this->value->getPaths();
+	}
 }

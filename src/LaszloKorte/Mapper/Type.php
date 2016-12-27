@@ -4,6 +4,8 @@ namespace LaszloKorte\Mapper;
 
 use LaszloKorte\Mapper\Collection\LazyCollection;
 use LaszloKorte\Mapper\Query\Query;
+use LaszloKorte\Mapper\Relationship\ManyToOne;
+use LaszloKorte\Mapper\Relationship\OneToMany;
 
 use LaszloKorte\Mapper\Path\OwnFieldPath;
 use LaszloKorte\Mapper\Path\RelationshipPath;
@@ -23,7 +25,7 @@ final class Type {
 
 	public function field(Identifier $name) {
 		$def = $this->def();
-		if ($def->hasField($name)) {		
+		if ($def->hasField($name)) {
 			return new Field($this->typeName, $name, $this->mapper);
 		} else {
 			throw new \Exception(sprintf("Type '%s' has no field of name '%s' defined.", $this->typeName, $name));
@@ -70,6 +72,14 @@ final class Type {
 
 	private function def() {
 		return $this->mapper->getTypeDefinition($this->typeName);
+	}
+
+	public function getTableName() {
+		return $this->def()->getTableName();
+	}
+
+	public function __toString() {
+		return sprintf('%s', $this->typeName);
 	}
 	
 }

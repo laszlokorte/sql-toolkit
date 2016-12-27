@@ -20,4 +20,8 @@ final class RecordValue implements Value {
 	public function getRootType() {
 		return $this->path->getRootType();
 	}
+
+	public function getPaths() {
+		return [$this->path];
+	}
 }

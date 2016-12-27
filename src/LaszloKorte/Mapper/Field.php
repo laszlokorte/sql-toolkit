@@ -12,4 +12,8 @@ final class Field {
 		$this->fieldName = $fieldName;
 		$this->mapper = $mapper;
 	}
+
+	public function __toString() {
+		return sprintf('%s', $this->fieldName);
+	}
 }

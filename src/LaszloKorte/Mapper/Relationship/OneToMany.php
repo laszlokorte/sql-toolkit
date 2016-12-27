@@ -17,11 +17,23 @@ final class OneToMany implements Relationship {
 		$this->mapper = $mapper;
 	}
 
+	public function getName() {
+		return $this->relationshipName;
+	}
+
 	public function getTargetType() {
-		return $this->mapper->type($this->typeName)->rel($this->relationshipName);
+		return $this->mapper->type($this->def()->getTargetTypeName());
 	}
 
 	public function getSourceType() {
 		return $this->mapper->type($this->typeName);
+	}
+
+	private function def() {
+		return $this->mapper->getTypeDefinition($this->typeName)->getChildRelationshipDefinition($this->relationshipName);
+	}
+
+	public function __toString() {
+		return sprintf('[%s->%s](%s)', $this->getSourceType(), $this->getTargetType(), $this->relationshipName);
 	}
 }

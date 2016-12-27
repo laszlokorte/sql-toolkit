@@ -24,4 +24,12 @@ final class Ordering {
 	public function evalFor(Record $a, Record $b) {
 
 	}
+
+	public function getDirection() {
+		return $this->direction;
+	}
+
+	public function getPath() {
+		return $this->path;
+	}
 }

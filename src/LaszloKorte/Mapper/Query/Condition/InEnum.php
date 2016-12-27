@@ -23,4 +23,11 @@ final class InEnum implements Predicate {
 	public function getRootType() {
 		return NULL;
 	}
+
+	public function getPaths() {
+		return array_merge(
+			$this->valueA->getPaths(), 
+			$this->valueB->getPaths()
+		);
+	}
 }

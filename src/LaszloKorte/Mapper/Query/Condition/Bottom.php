@@ -18,4 +18,8 @@ final class Bottom implements Predicate {
 	public function _not() {
 		return new Top();
 	}
+
+	public function getPaths() {
+		return [];
+	}
 }

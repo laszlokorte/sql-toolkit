@@ -23,4 +23,8 @@ final class Like implements Predicate {
 	public function getRootType() {
 		return NULL;
 	}
+
+	public function getPaths() {
+		return $this->valueA->getPaths();
+	}
 }

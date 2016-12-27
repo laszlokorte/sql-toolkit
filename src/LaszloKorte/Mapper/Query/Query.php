@@ -88,4 +88,13 @@ final class Query {
 	public function isStrictSubsetOf(Query $other) {
 		return false;
 	}
+
+	public function getPaths() {
+		return array_merge(
+			array_map(function($o) {
+				return $o->getPath();
+			}, $this->ordering),
+			$this->condition->getPaths()
+		);
+	}
 }

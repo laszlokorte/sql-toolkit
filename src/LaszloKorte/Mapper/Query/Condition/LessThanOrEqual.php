@@ -27,4 +27,11 @@ final class LessThanOrEqual implements Predicate {
 	public function _not() {
 		return new GreaterThan($this->valueA, $this->valueB);
 	}
+
+	public function getPaths() {
+		return array_merge(
+			$this->valueA->getPaths(), 
+			$this->valueB->getPaths()
+		);
+	}
 }

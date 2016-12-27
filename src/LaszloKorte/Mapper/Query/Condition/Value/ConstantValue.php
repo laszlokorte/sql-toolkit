@@ -19,4 +19,8 @@ final class ConstantValue implements Value {
 	public function getRootType() {
 		return NULL;
 	}
+
+	public function getPaths() {
+		return [];
+	}
 }

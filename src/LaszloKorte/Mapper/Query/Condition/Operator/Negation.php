@@ -26,4 +26,8 @@ final class Negation implements Predicate {
 	public function _not() {
 		return $this->operand;
 	}
+
+	public function getPaths() {
+		return $this->operand->getPaths();
+	}
 }

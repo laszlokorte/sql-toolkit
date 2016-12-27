@@ -12,7 +12,11 @@ final class OwnFieldPath implements FieldPath {
 
 	public function __construct(Type $targetType, Field $field) {
 		$this->targetType = $targetType;
-		$this->field;
+		$this->field = $field;
+	}
+
+	public function length() {
+		return 1;
 	}
 
 	public function getRootType() {
@@ -21,5 +25,9 @@ final class OwnFieldPath implements FieldPath {
 
 	public function getField() {
 		return $this->field;
+	}
+
+	public function __toString() {
+		return sprintf('%s/%s', $this->targetType, $this->field);
 	}
 }

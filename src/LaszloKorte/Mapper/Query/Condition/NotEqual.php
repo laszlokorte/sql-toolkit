@@ -28,4 +28,11 @@ final class NotEqual implements Predicate {
 	public function _not() {
 		return new Equal($this->valueA, $this->valueB);
 	}
+
+	public function getPaths() {
+		return array_merge(
+			$this->valueA->getPaths(), 
+			$this->valueB->getPaths()
+		);
+	}
 }
