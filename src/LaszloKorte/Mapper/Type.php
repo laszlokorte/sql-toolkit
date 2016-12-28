@@ -19,6 +19,10 @@ final class Type {
 		$this->mapper = $mapper;
 	}
 
+	public function getName() {
+		return $this->typeName;
+	}
+
 	public function find() {
 		return new LazyCollection(new Query($this));
 	}

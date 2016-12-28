@@ -4,6 +4,7 @@ namespace LaszloKorte\Mapper\DataSource;
 
 use LaszloKorte\Mapper\Query\Query;
 use LaszloKorte\Mapper\Path\ForeignPath;
+use LaszloKorte\Mapper\Type;
 
 use PDO;
 
@@ -42,6 +43,8 @@ final class DataSource {
 			$limit->sqlString,
 			$offset->sqlString
 		);
+
+		var_dump($queryString);
 
 		$queryString = 'SELECT id, date, label FROM day WHERE 1 ORDER BY 1 LIMIT 1000 OFFSET 0';
 		$stmt = $this->connection->prepare($queryString);
@@ -90,25 +93,47 @@ final class DataSource {
 			}
 		);
 
-		$joins = $this->joins($foreignPaths);
-		echo "<pre>";
-		var_dump("\n - ".implode("\n - ", $joins));
+		$joins = $this->joinsForPaths($sourceType, $foreignPaths);
 
-		$sql = implode(' ', $sources); // JOIN ... ON ...
+		$sql = count($joins) > 0 ? sprintf('%s %s', $tableName, implode(' ', $joins)) : $tableName; // JOIN ... ON ...
 		return (object) [
 			'sqlString' => $sql,
 			'bindings' => [],
 		];
 	}
 
-	private function joins(array $foreignPaths) {
-		var_dump(array_map(function($s){return (string)$s;}, $foreignPaths));
-		return array_map(function($p) {
-			$tableName = $p->getTargetType();
-			$alias = sprintf('%s_%s', $p->getSourceType(), $p->getName());
-			$conditions = [];
-			return sprintf(' INNER JOIN %s %s ON (%s)', $tableName, $alias, implode(' AND ', $conditions));
-		}, $foreignPaths);
+	private function joinsForPaths(Type $startType, array $foreignPaths) {
+		$joins = array_merge(...array_map(function($p) use($startType) {
+			return $this->joinForPath($startType, $p);
+		}, $foreignPaths));
+
+		return array_map(function($alias, $join) {
+			return sprintf('INNER JOIN %s %s ON %s', $join->table, $alias, implode(' AND ', $join->conditions));
+		}, array_keys($joins), array_values($joins));
+	}
+
+	private function joinForPath(Type $startType, ForeignPath $path) {
+		$joins = [];
+		$prevAlias = (string)$startType->getName();
+		foreach($path->getRelationships() AS $rel) {
+			$alias = sprintf('%s_%s', $prevAlias, $rel->getName());
+			$target = $rel->getTargetType();
+
+			$joins[$alias] = (object)[
+				'table' => $target->getName(),
+				'conditions' => $this->joinCondition($prevAlias, $alias, $rel),
+			];
+
+			$prevAlias = $alias;
+		}
+
+		return $joins;
+	}
+
+	private function joinCondition($sourceAlias, $targetAlias, $relationship) {
+		return [
+			sprintf('%s.id = %s.id', $sourceAlias, $targetAlias),
+		];
 	}
 
 	private function conditionsFor(Query $query, $depth = 0) {
