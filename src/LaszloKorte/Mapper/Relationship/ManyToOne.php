@@ -5,7 +5,7 @@ namespace LaszloKorte\Mapper\Relationship;
 use LaszloKorte\Mapper\Identifier;
 use LaszloKorte\Mapper\Mapper;
 
-final class ManyToOne implements Relationship {
+final class ManyToOne implements Relationship, ParentRelationship {
 	
 	private $typeName;
 	private $relationshipName;
@@ -27,6 +27,14 @@ final class ManyToOne implements Relationship {
 
 	public function getSourceType() {
 		return $this->mapper->type($this->typeName);
+	}
+
+	public function getSourceKeys() {
+		return $this->def()->getKeyColumns();
+	}
+
+	public function getTargetKeys() {
+		return $this->mapper->getTypeDefinition($this->def()->getTargetTypeName())->getPrimaryKey();
 	}
 
 	private function def() {

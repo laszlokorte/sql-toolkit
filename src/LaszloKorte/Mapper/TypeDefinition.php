@@ -4,6 +4,7 @@ namespace LaszloKorte\Mapper;
 
 use LaszloKorte\Mapper\Relationship\OneToManyDefinition;
 use LaszloKorte\Mapper\Relationship\ManyToOneDefinition;
+use LaszloKorte\Mapper\DefinitionException;
 
 final class TypeDefinition {
 	private $tableName;
@@ -31,6 +32,15 @@ final class TypeDefinition {
 		$this->fields[$name] = $f;
 	}
 
+
+	public function getFieldNames() {
+		$result = [];
+		foreach($this->fields AS $f) {
+			$result []= $f;
+		}
+		return $result;
+	}
+
 	public function getFieldDefinition(Identifier $name) {
 		return $this->fields[$name];
 	}
@@ -54,11 +64,14 @@ final class TypeDefinition {
 		return $this->primaryKey;
 	}
 	
-	public function defineParentRelationship(Identifier $name, Identifier $targetType = NULL) {
+	public function defineParentRelationship(Identifier $targetType, array $foreignKeys, Identifier $name = NULL) {
+		$name = is_null($name) ? $targetType : $name;
+
 		$this->requireUnusedIdentifier($name);
 
 		$r = new ManyToOneDefinition(
-			is_null($targetType) ? $name : $targetType
+			$targetType,
+			$foreignKeys
 		);
 
 		$this->parentRelationships[$name] = $r;
@@ -66,11 +79,14 @@ final class TypeDefinition {
 		return $r;
 	}
 	
-	public function defineChildRelationship(Identifier $name, Identifier $targetType = NULL) {
+	public function defineChildRelationship(Identifier $targetType, array $foreignKeys, Identifier $name = NULL) {
+		$name = is_null($name) ? $targetType : $name;
+
 		$this->requireUnusedIdentifier($name);
 
 		$r = new OneToManyDefinition(
-			is_null($targetType) ? $name : $targetType
+			$targetType,
+			$foreignKeys
 		);
 
 		$this->childRelationships[$name] = $r;

@@ -13,8 +13,9 @@ final class ManyToOneDefinition {
 	
 	private $inverseId;
 
-	public function __construct(Identifier $targetTypeName, Identifier $inverseId = NULL) {
+	public function __construct(Identifier $targetTypeName, array $foreignKeyColumns, Identifier $inverseId = NULL) {
 		$this->targetTypeName = $targetTypeName;
+		$this->foreignKeyColumns = $foreignKeyColumns;
 		$this->inverseId = $inverseId;
 	}
 
@@ -24,5 +25,9 @@ final class ManyToOneDefinition {
 
 	public function getTargetTypeName() {
 		return $this->targetTypeName;
+	}
+
+	public function getKeyColumns() {
+		return $this->foreignKeyColumns;
 	}
 }

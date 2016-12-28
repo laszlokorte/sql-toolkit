@@ -46,7 +46,7 @@ final class DataSource {
 
 		var_dump($queryString);
 
-		$queryString = 'SELECT id, date, label FROM day WHERE 1 ORDER BY 1 LIMIT 1000 OFFSET 0';
+		// $queryString = 'SELECT id, date, label FROM day WHERE 1 ORDER BY 1 LIMIT 1000 OFFSET 0';
 		$stmt = $this->connection->prepare($queryString);
 
 		$bindings = array_merge(
@@ -66,9 +66,11 @@ final class DataSource {
 	}
 
 	private function fieldsFor(Query $query, $depth = 0) {
-		$sql = implode(', ', array_map(function($f) {
-			return $f;
-		}, []));
+		$type = $query->getType();
+		$sql = implode(', ', array_map(function($f) use ($type) {
+			return sprintf('%s.%s', $type->getName(), $f->getName());
+		}, $type->fields()));
+
 		return (object) [
 			'sqlString' => $sql,
 			'bindings' => [],
@@ -83,7 +85,7 @@ final class DataSource {
 		$paths = $query->getPaths();
 		$foreignPaths = array_unique(
 			array_filter($paths, function($p) {
-					return ($p instanceof ForeignPath);
+					return ($p instanceof ForeignPath) && $p->isParentPath();
 			})
 		);
 		usort($foreignPaths, 
@@ -131,9 +133,12 @@ final class DataSource {
 	}
 
 	private function joinCondition($sourceAlias, $targetAlias, $relationship) {
-		return [
-			sprintf('%s.id = %s.id', $sourceAlias, $targetAlias),
-		];
+		return array_map(function($sourceField, $targetField) use($sourceAlias, $targetAlias) {
+			return sprintf('%s.%s = %s.%s', 
+				$sourceAlias, $sourceField,
+				$targetAlias, $targetField
+			);
+		}, $relationship->getSourceKeys(), $relationship->getTargetKeys());
 	}
 
 	private function conditionsFor(Query $query, $depth = 0) {
@@ -146,7 +151,7 @@ final class DataSource {
 	}
 
 	private function orderFor(Query $query, $depth = 0) {
-		$sql = '0';
+		$sql = '1';
 
 		return (object) [
 			'sqlString' => $sql,

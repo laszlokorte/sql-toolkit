@@ -85,5 +85,11 @@ final class Type {
 	public function __toString() {
 		return sprintf('%s', $this->typeName);
 	}
+
+	public function fields() {
+		return array_map(function($name) {
+			return new Field($this->typeName, $name, $this->mapper);
+		}, $this->def()->getFieldNames());
+	}
 	
 }

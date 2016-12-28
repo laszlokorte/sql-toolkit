@@ -13,6 +13,10 @@ final class Field {
 		$this->mapper = $mapper;
 	}
 
+	public function getName() {
+		return $this->fieldName;
+	}
+
 	public function __toString() {
 		return sprintf('%s', $this->fieldName);
 	}

@@ -7,5 +7,9 @@ interface Relationship {
 
 	public function getSourceType();
 
+	public function getSourceKeys();
+
+	public function getTargetKeys();
+
 	public function getName();
 }

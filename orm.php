@@ -48,16 +48,16 @@ $confDef->defineField(new Identifier('id'));
 $confDef->defineField(new Identifier('name'));
 $confDef->definePrimaryKey([new Identifier('id')]);
 
-$sessionTimeslotRel = $sessionDef->defineParentRelationship(new Identifier('timeslot'), new Identifier('timeslot'));
-$timeslotSessionRel = $timeslotDef->defineChildRelationship(new Identifier('sessions'), new Identifier('session'));
+$sessionTimeslotRel = $sessionDef->defineParentRelationship(new Identifier('timeslot'), [new Identifier('timeslot_id')], new Identifier('timeslot'));
+$timeslotSessionRel = $timeslotDef->defineChildRelationship(new Identifier('session'), [new Identifier('timeslot_id')], new Identifier('sessions'));
 
 
-$timeslotDayRel = $timeslotDef->defineParentRelationship(new Identifier('day'), new Identifier('day'));
-$dayTimeslotRel = $dayDef->defineChildRelationship(new Identifier('timeslots'), new Identifier('timeslot'));
+$timeslotDayRel = $timeslotDef->defineParentRelationship(new Identifier('day'), [new Identifier('day_id')], new Identifier('day'));
+$dayTimeslotRel = $dayDef->defineChildRelationship(new Identifier('timeslot'), [new Identifier('day_id')], new Identifier('timeslots'));
 
 
-$dayConfRel = $dayDef->defineParentRelationship(new Identifier('conference'), new Identifier('conference'));
-$confDayRel = $confDef->defineChildRelationship(new Identifier('days'), new Identifier('day'));
+$dayConfRel = $dayDef->defineParentRelationship(new Identifier('conference'), [new Identifier('conference_id')], new Identifier('conference'));
+$confDayRel = $confDef->defineChildRelationship(new Identifier('day'), [new Identifier('conference_id')], new Identifier('days'));
 
 $sessionTimeslotRel->setInverse(new Identifier('sessions'));
 $timeslotSessionRel->setInverse(new Identifier('timeslot'));
@@ -79,6 +79,7 @@ $collection = $timeslot->find()
 	->filter($startTime->eq('100')->or($endTime->eq('100')))
 	->filter($timeslot->day->date->eq('2016-10-22'))
 	->expand($timeslot->day->conference->name->eq('ISHL10'))
+	->expand($timeslot->sessions->title->eq('ISHL10'))
 	->expand($startTime->eq(42)->not())
 	->orderBy($startTime->asc(), $endTime->desc())
 	->take(20)
@@ -86,6 +87,7 @@ $collection = $timeslot->find()
 
 $result = $collection->getResult();
 
+echo "<pre>";
 foreach($result AS $row) {
 	var_dump($row);
 } 

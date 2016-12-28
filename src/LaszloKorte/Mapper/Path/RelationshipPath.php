@@ -5,6 +5,8 @@ namespace LaszloKorte\Mapper\Path;
 use LaszloKorte\Mapper\Type;
 use LaszloKorte\Mapper\Identifier;
 
+use LaszloKorte\Mapper\Relationship\ParentRelationship;
+
 final class RelationshipPath implements ForeignPath {
 	use RelationshipDSLTrait;
 	private $targetType;
@@ -21,6 +23,12 @@ final class RelationshipPath implements ForeignPath {
 
 	public function length() {
 		return count($this->relationships);
+	}
+
+	public function isParentPath() {
+		return array_reduce($this->relationships, function($acc, $r) {
+			return $acc && ($r instanceof ParentRelationship);
+		}, true);
 	}
 
 	public function path(Identifier $name) {

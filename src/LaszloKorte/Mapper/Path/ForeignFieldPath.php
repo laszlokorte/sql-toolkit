@@ -18,6 +18,10 @@ final class ForeignFieldPath implements FieldPath, ForeignPath {
 		
 	}
 
+	public function isParentPath() {
+		return $this->relationshipPath->isParentPath();
+	}
+
 	public function length() {
 		return $this->relationshipPath->length() + 1;
 	}

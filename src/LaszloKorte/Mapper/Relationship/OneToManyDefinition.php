@@ -7,13 +7,13 @@ use LaszloKorte\Mapper\Identifier;
 final class OneToManyDefinition {
 	private $targetTypeName;
 
-	private $ownKeyColumns;
 	private $foreignKeyColumns;
 
 	private $inverseId;
 
-	public function __construct(Identifier $targetTypeName, Identifier $inverseId = NULL) {
+	public function __construct(Identifier $targetTypeName, array $foreignKeyColumns, Identifier $inverseId = NULL) {
 		$this->targetTypeName = $targetTypeName;
+		$this->foreignKeyColumns = $foreignKeyColumns;
 		$this->inverseId = $inverseId;
 	}
 
@@ -23,5 +23,9 @@ final class OneToManyDefinition {
 
 	public function getTargetTypeName() {
 		return $this->targetTypeName;
+	}
+
+	public function getKeyColumns() {
+		return $this->foreignKeyColumns;
 	}
 }

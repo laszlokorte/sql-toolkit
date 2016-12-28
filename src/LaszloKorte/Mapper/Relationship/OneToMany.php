@@ -29,6 +29,14 @@ final class OneToMany implements Relationship {
 		return $this->mapper->type($this->typeName);
 	}
 
+	public function getSourceKeys() {
+		return $this->mapper->getTypeDefinition($this->typeName)->getPrimaryKey();
+	}
+
+	public function getTargetKeys() {
+		return $this->def()->getKeyColumns();
+	}
+
 	private function def() {
 		return $this->mapper->getTypeDefinition($this->typeName)->getChildRelationshipDefinition($this->relationshipName);
 	}
