@@ -9,12 +9,10 @@ use LaszloKorte\Mapper\Record\Record;
 final class Conjunction implements Predicate {
 	use OperatorTrait;
 
-	private $lhs;
-	private $rhs;
+	private $children;
 
-	public function __construct(Predicate $lhs, Predicate $rhs) {
-		$this->lhs = $lhs;
-		$this->rhs = $rhs;
+	public function __construct(Predicate ...$children) {
+		$this->children = $children;
 	}
 
 	public function evalFor(Record $record) {
@@ -27,8 +25,9 @@ final class Conjunction implements Predicate {
 
 	public function getPaths() {
 		return array_merge(
-			$this->lhs->getPaths(), 
-			$this->rhs->getPaths()
+			...array_map(function($c) {
+				return $c->getPaths();
+			}, $this->children)
 		);
 	}
 }

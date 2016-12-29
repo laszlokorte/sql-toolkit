@@ -28,11 +28,11 @@ final class FetchedCollection implements Collection {
 		return new FetchedCollection($query);
 	}
 
-	public function filter(Predicate $cond) {
+	public function filter(Predicate ...$cond) {
 		return $this->deriveFromQuery(clone $this->query);
 	}
 
-	public function expand(Predicate $cond) {
+	public function expand(Predicate ...$cond) {
 		return $this->deriveFromQuery(clone $this->query);
 	}
 

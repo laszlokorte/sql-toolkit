@@ -13,9 +13,9 @@ interface Collection extends IteratorAggregate, Countable {
 
 	public function getType();
 
-	public function filter(Predicate $cond);
+	public function filter(Predicate ...$cond);
 
-	public function expand(Predicate $cond);
+	public function expand(Predicate ...$cond);
 
 	public function orderBy(Ordering ...$cond);
 

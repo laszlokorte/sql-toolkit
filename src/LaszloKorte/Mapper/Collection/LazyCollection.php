@@ -24,15 +24,15 @@ final class LazyCollection implements Collection {
 		return new LazyCollection($query);
 	}
 
-	public function filter(Predicate $cond) {
+	public function filter(Predicate ...$cond) {
 		return $this->deriveFromQuery($this->query->withCondition(
-			$this->query->getCondition()->and($cond)
+			$this->query->getCondition()->and(...$cond)
 		));
 	}
 
-	public function expand(Predicate $cond) {
+	public function expand(Predicate ...$cond) {
 		return $this->deriveFromQuery($this->query->withCondition(
-			$this->query->getCondition()->or($cond)
+			$this->query->getCondition()->or(...$cond)
 		));
 	}
 
