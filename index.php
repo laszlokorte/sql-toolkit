@@ -1,4 +1,6 @@
 <?php 
+	date_default_timezone_set("Europe/Berlin");
+
 	ob_start();
 	//
 	//
@@ -27,7 +29,11 @@
 	use LaszloKorte\Schema\ColumnType;
 	use LaszloKorte\Schema\ForeignKey;
 
-	require __DIR__ . '/vendor/autoload.php';
+	use Doctrine\Common\Annotations\DocParser;
+	use Doctrine\Common\Annotations\AnnotationRegistry;
+
+	$loader = require __DIR__ . '/vendor/autoload.php';
+	AnnotationRegistry::registerLoader([$loader,'loadClass']);
 
 	$jwtKey = "c303c6c7125d5e365ed7323f6143fb58";
 	$builder = new SchemaBuilder();
@@ -41,6 +47,93 @@
 		]);
 
 	$schema = $builder->buildSchemaFor($connection, 'ishl');
+
+
+	$annotationParser = new DocParser();
+	$annotationParser->addNamespace('LaszloKorte\\Configurator\\TableAnnotation');
+
+	$ann = $annotationParser->parse(
+<<<'FOO'
+@Title("Some custom Title")
+@Description("Explanation for this table...")
+@Display("{{someColumn}} {{someRel}} {{otherRel.foreignColumn}}")
+@Visible(true)
+@ParentRel("some_rel")
+@Sort("sort")
+
+@CollectionView("Grid")
+@CollectionView("Map",fields={"long","lat"})
+@CollectionView("Calendar",field="created_at")
+
+@SyntheticInterface("location",fields={"long","lat"})
+FOO
+, [
+	'yes' => true,
+	'no' => false,
+]);
+
+$app = new Silex\Application();
+
+$app->get('/table/{table}', function ($table) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->get('/table/{table}/export', function ($table) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->get('/table/{table}/{id}/view', function ($table, $id) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->get('/table/{table}/{id}/export', function ($table, $id) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->get('/table/{table}/new', function ($table) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->post('/table/{table}', function ($table) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->get('/table/{table}/{id}/edit', function ($table, $id) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->put('/table/{table}/{id}', function ($table, $id) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->get('/table/{table}/{id}/delete', function ($table, $id) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->delete('/table/{table}/{id}', function ($table, $id) use ($app) {
+    return 'Hello '.$app->escape($table);
+});
+
+$app->get('/login', function () use ($app) {
+    return 'Hello ';
+});
+
+$app->get('/post', function () use ($app) {
+    return 'Hello ';
+});
+
+$app->get('/logout', function () use ($app) {
+    return 'Hello ';
+});
+
+
+$app->get('/', function () use ($app) {
+    return 'Hello ';
+});
+
+//$app->run();
+//exit(0);
+
 ?><!DOCTYPE html>
 <html>
 <head>
