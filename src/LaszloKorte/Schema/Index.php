@@ -22,9 +22,7 @@ final class Index {
 	}
 
 	public function getColumns() {
-		return array_map(function($colName) {
-			return new Column($colName, $this->tableName, $this->schemaDefinition);
-		}, $this->def()->getColumnNames());
+		return new ColumnsIterator($this->schemaDefinition, $this->tableName, $this->def()->getColumnNames());
 	}
 
 	public function __toString() {

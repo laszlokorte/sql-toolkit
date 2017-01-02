@@ -29,8 +29,13 @@
 	use LaszloKorte\Schema\ColumnType;
 	use LaszloKorte\Schema\ForeignKey;
 
-	use Doctrine\Common\Annotations\DocParser;
+	use LaszloKorte\Resource\IdConverter;
+	use LaszloKorte\Resource\TableConverter;
+
+	use LaszloKorte\Configurator\ConfigurationBuilder;
+
 	use Doctrine\Common\Annotations\AnnotationRegistry;
+	use Doctrine\Common\Inflector\Inflector;
 
 	$loader = require __DIR__ . '/vendor/autoload.php';
 	AnnotationRegistry::registerLoader([$loader,'loadClass']);
@@ -48,91 +53,146 @@
 
 	$schema = $builder->buildSchemaFor($connection, 'ishl');
 
+	$inflector = new Inflector();
 
-	$annotationParser = new DocParser();
-	$annotationParser->addNamespace('LaszloKorte\\Configurator\\TableAnnotation');
+	
 
-	$ann = $annotationParser->parse(
-<<<'FOO'
-@Title("Some custom Title")
-@Description("Explanation for this table...")
-@Display("{{someColumn}} {{someRel}} {{otherRel.foreignColumn}}")
-@Visible(true)
-@ParentRel("some_rel")
-@Sort("sort")
+// 	$ann = $annotationParser->parse(
+// <<<'FOO'
+// @Title("Some custom Title")
+// @Description("Explanation for this table...")
+// @Display("{{someColumn}} {{someRel}} {{otherRel.foreignColumn}}")
+// @Visible(true)
+// @ParentRel("some_rel")
+// @Sort("sort")
 
-@CollectionView("Grid")
-@CollectionView("Map",fields={"long","lat"})
-@CollectionView("Calendar",field="created_at")
+// @CollectionView("Grid")
+// @CollectionView("Map",fields={"long","lat"})
+// @CollectionView("Calendar",field="created_at")
 
-@SyntheticInterface("location",fields={"long","lat"})
-FOO
-, [
-	'yes' => true,
-	'no' => false,
-]);
+// @SyntheticInterface("location",fields={"long","lat"})
+// FOO
+// , [
+// 	'yes' => true,
+// 	'no' => false,
+// ]);
+
+$confBuilder = new ConfigurationBuilder();
+
+$schemaConf = $confBuilder->buildConfigurationFor($schema);
 
 $app = new Silex\Application();
 
-$app->get('/table/{table}', function ($table) use ($app) {
-    return 'Hello '.$app->escape($table);
-});
+$app['converter.id'] = function() {
+	return new IdConverter();
+};
+$app['converter.table'] = function($app) {
+	return new TableConverter($app['schema']);
+};
+$app['builder.schema'] = function() {
+	return new SchemaBuilder();
+};
+$app['db.name'] = 'ishl';
+$app['db.connection'] = function() {
+	return new PDO('mysql:host=directus.dev;port=3306;dbname=ishl;charset=utf8', 'ishl', 'ishl', [
+			PDO::ATTR_TIMEOUT => 2,
+			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+			PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+	   		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
+		]);
+};
+$app['schema'] = function($app) {
+	return $app['builder.schema']->buildSchemaFor($app['db.connection'], $app['db.name']);
+};
 
-$app->get('/table/{table}/export', function ($table) use ($app) {
+$app->get('/table/{table}', function (Application $app, Request $request, $table) {
+	var_dump($table);
     return 'Hello '.$app->escape($table);
-});
+})
+->convert('table', 'converter.table:convert')
+->bind('table_list');
 
-$app->get('/table/{table}/{id}/view', function ($table, $id) use ($app) {
+$app->get('/table/{table}/export', function (Application $app, Request $request, $table) {
     return 'Hello '.$app->escape($table);
-});
+})
+->convert('table', 'converter.table:convert')
+->bind('table_export');
 
-$app->get('/table/{table}/{id}/export', function ($table, $id) use ($app) {
+$app->get('/table/{table}/{id}/details', function (Application $app, Request $request, $table, $id) {
+	var_dump($id);
     return 'Hello '.$app->escape($table);
-});
+})
+->convert('table', 'converter.table:convert')
+->convert('id', 'converter.id:convert')
+->bind('table_detail');
 
-$app->get('/table/{table}/new', function ($table) use ($app) {
+$app->get('/table/{table}/{id}/export', function (Application $app, Request $request, $table, $id) {
     return 'Hello '.$app->escape($table);
-});
+})
+->convert('table', 'converter.table:convert')
+->convert('id', 'converter.id:convert')
+->bind('table_detail_export');
 
-$app->post('/table/{table}', function ($table) use ($app) {
+$app->get('/table/{table}/new', function (Application $app, Request $request, $table) {
     return 'Hello '.$app->escape($table);
-});
+})
+->convert('table', 'converter.table:convert')
+->bind('table_new');
 
-$app->get('/table/{table}/{id}/edit', function ($table, $id) use ($app) {
+$app->post('/table/{table}', function (Application $app, Request $request, $table) {
     return 'Hello '.$app->escape($table);
-});
+})
+->convert('table', 'converter.table:convert')
+->bind('table_create');
 
-$app->put('/table/{table}/{id}', function ($table, $id) use ($app) {
+$app->get('/table/{table}/{id}/edit', function (Application $app, Request $request, $table, $id) {
     return 'Hello '.$app->escape($table);
-});
+})
+->convert('table', 'converter.table:convert')
+->convert('id', 'converter.id:convert')
+->bind('table_edit');
 
-$app->get('/table/{table}/{id}/delete', function ($table, $id) use ($app) {
+$app->put('/table/{table}/{id}', function (Application $app, Request $request, $table, $id) {
     return 'Hello '.$app->escape($table);
-});
+})
+->convert('table', 'converter.table:convert')
+->convert('id', 'converter.id:convert')
+->bind('table_update');
 
-$app->delete('/table/{table}/{id}', function ($table, $id) use ($app) {
+$app->get('/table/{table}/{id}/delete', function (Application $app, Request $request, $table, $id) {
     return 'Hello '.$app->escape($table);
-});
+})
+->convert('table', 'converter.table:convert')
+->convert('id', 'converter.id:convert')
+->bind('table_delete');
 
-$app->get('/login', function () use ($app) {
+$app->delete('/table/{table}/{id}', function (Application $app, Request $request, $table, $id) {
+    return 'Hello '.$app->escape($table);
+})
+->convert('table', 'converter.table:convert')
+->convert('id', 'converter.id:convert')
+->bind('table_destroy');
+
+$app->get('/login', function (Application $app, Request $request) {
     return 'Hello ';
 });
 
-$app->get('/post', function () use ($app) {
+$app->post('/login', function (Application $app, Request $request) {
     return 'Hello ';
 });
 
-$app->get('/logout', function () use ($app) {
+$app->get('/logout', function (Application $app, Request $request) {
     return 'Hello ';
 });
 
 
-$app->get('/', function () use ($app) {
+$app->get('/', function (Application $app, Request $request) {
     return 'Hello ';
 });
 
-//$app->run();
-//exit(0);
+// $app->run();
+// exit(0);
+
 
 ?><!DOCTYPE html>
 <html>
@@ -224,8 +284,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 		// }
 		$comment = $table->getComment();
 		$attributes = parseColumnAttributes($comment);
-		if(array_key_exists('group', $attributes)) {
-			$groupName = $attributes['group'];
+		if(array_key_exists('NavGroup', $attributes)) {
+			$groupName = $attributes['NavGroup'];
 			if(!isset($tableCategories[$groupName])) {
 				$tableCategories[$groupName] = [];
 			}
@@ -240,10 +300,10 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 		echo "<h2 class=nav-group-title>$catTitle</h2>";
 		echo "<ul class=nav-list>";
 		foreach ($tables as $t) {
-			$tableTitle = ucwords(str_replace('_', ' ', $t->getName())) . 's';
+			$tableTitle = ucwords(str_replace('_', ' ', $t->getName()));
 
 			$currentTable = $t->getName() == $_GET['table'] ? 'state-active' : '';
-			echo "<li><a class='$currentTable' href='?table={$t->getName()}'>{$tableTitle}</a></li>";
+			echo "<li><a class='$currentTable' href='?table={$t->getName()}'>{$inflector->pluralize($tableTitle)}</a></li>";
 		}
 		echo "</ul>";
 	}
@@ -252,9 +312,9 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 	}
 	echo "<ul class=nav-list>";
 	foreach ($uncategorized as $t) {
-		$tableTitle = ucwords(str_replace('_', ' ', $t->getName())) . 's';
+		$tableTitle = ucwords(str_replace('_', ' ', $t->getName()));
 		$currentTable = $t->getName() === $_GET['table'] ? 'state-active' : '';
-		echo "<li><a class='$currentTable' href='?table={$t->getName()}'>{$tableTitle}</a></li>";
+		echo "<li><a class='$currentTable' href='?table={$t->getName()}'>{$inflector->pluralize($tableTitle)}</a></li>";
 	}
 	echo "</ul>";
 
@@ -271,7 +331,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 		if(!isset($_GET['action'])) {
 			
-			echo "<h2>${tableTitle}s</h2>";
+			echo "<h2>{$inflector->pluralize($tableTitle)}</h2>";
 
 			echo "<div class='debug'>";
 
@@ -377,7 +437,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$uniqIndices = array_map(function($i) use ($colRefs) {
 					$fks = array_map(function($c) {
 						return $c->getForeignKey();
-					}, array_filter($i->getColumns(), function($c) {
+					}, array_filter(iterator_to_array($i->getColumns()), function($c) {
 						return $c->belongsToForeignKey();
 					}));
 					return array_filter($fks, function($c) use ($colRefs) {
@@ -499,7 +559,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 		$id = getIdFromQuery($table, $_GET['id']);
 		// echo "<a href='?'>Tables</a> / ";
-		echo "<a href='?table=$tableName'>${tableTitle}s</a>";
+		echo "<a href='?table=$tableName'>{$inflector->pluralize($tableTitle)}</a>";
 
 
 		// $sql = sprintf('SELECT %s FROM %s WHERE id = :id', implode(', ', array_map(function($id) {
@@ -568,7 +628,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$comment = $col->getComment();
 				$attributes = parseColumnAttributes($comment);
 				$val = $data->{$tableName . '_'. $col->getName()};
-				if(array_key_exists('password', $attributes)) {
+				if(array_key_exists('secret', $attributes)) {
 					$val = '******';
 				}
 				if($attributes['hyper'] === 'email') {
@@ -585,7 +645,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 						echo is_null($val) ? '<span class="empty">-</span>' : "<a href='$val'>$val</a>";
 						break;
 						
-					case 'currency, euro':
+					case 'currency", unit="euro':
 						echo (is_null($val) || 0) ? '<span class="empty">-</span>' : "$val,00 €";
 						break;
 					case 'pre':
@@ -617,7 +677,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$foreignTable = $fk->getTargetTable();
 				$targetName = $fk->getName();
 
-				if ($foreignTable->hasPrimaryKeys()) {
+				if ($foreignTable->hasPrimaryKeys() && fkIsset($foreignTable, $data, $targetName)) {
 					$idQ = buildIdQuery($foreignTable, $data, $targetName);
 
 					echo "<a href='?table={$foreignTable->getName()}&amp;$idQ'>";
@@ -652,7 +712,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				echo "<div class=child-records>";
 				$sourceTable = $assoc->getOwnTable();
 				$sourceTitle = ucwords(str_replace('_', ' ', $sourceTable->getName()));
-				echo "<h3>{$sourceTitle}s</h3>";
+				echo "<h3>{$inflector->pluralize($sourceTitle)}</h3>";
 
 				if(false && isJoinTable($sourceTable)) {
 					continue;
@@ -784,9 +844,9 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 <?php
 function renderTable($table, $data, $page, $baseUrl, $parentTable) {
-	$parentForeignKeys = $parentTable ? $parentTable->reverseForeignKeys() : [];
+	$parentForeignKeys = $parentTable ? iterator_to_array($parentTable->reverseForeignKeys()) : [];
 	$columns = $table->columns(false);
-	$foreignKeys = array_filter($table->foreignKeys(), function($fk) use ($parentForeignKeys) {
+	$foreignKeys = array_filter(iterator_to_array($table->foreignKeys()), function($fk) use ($parentForeignKeys) {
 		return !in_array($fk, $parentForeignKeys);
 	});
 	$tableName = $table->getName();
@@ -954,7 +1014,7 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 				
 				$val = $row->{$table->getName().'_'.$col->getName()};
 				$isLink = array_key_exists('link', $attributes) && !is_null($val) || $col->belongsToPrimaryKey();
-				$isPassword = array_key_exists('password', $attributes);
+				$isPassword = array_key_exists('secret', $attributes);
 
 				if($isPassword) {
 					$val = '*****';
@@ -971,6 +1031,7 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 					$idQ = buildIdQuery($table, $row);
 					echo "<a href='?table=$tableName&amp;$idQ'>";
 				}
+
 				switch($attributes['display']) {
 					case 'boolean':
 						echo $val === '1' ? '<input type="checkbox" checked disabled>' : '<input type="checkbox" disabled>';
@@ -980,7 +1041,7 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 						echo is_null($val) ? '<span class="empty">-</span>' : "<a href='$val'>$val</a>";
 						break;
 					
-					case 'currency, euro':
+					case 'currency", unit="euro':
 						echo (is_null($val) || 0) ? '<span class="empty">-</span>' : "$val,00 €";
 						break;
 					case 'color':
@@ -1013,7 +1074,7 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 				$targetTable = $fk->getTargetTable();
 				$targetName = $fk->getName();
 
-				if($targetTable->hasPrimaryKeys()) {
+				if($targetTable->hasPrimaryKeys() && fkIsset($targetTable, $row, $targetName)) {
 					$tableComment = $targetTable->getComment();
 					$tableAttributes = parseColumnAttributes($tableComment);
 
@@ -1089,7 +1150,7 @@ function isJoinTable($table) {
 
 function parseColumnAttributes($string) {
 	$attributes = [];
-	if($string && preg_match_all('~@(?<key>[^\(\s@]+)(\((?<val>[^\)]+)\))?~i', $string, $matches, PREG_SET_ORDER)) {
+	if($string && preg_match_all('~@(?<key>[^\(\s@]+)(\(\"(?<val>[^\)]+)\"\))?~i', $string, $matches, PREG_SET_ORDER)) {
 		foreach($matches as $conf) {
 			if(array_key_exists($conf['key'], $attributes)) {
 				throw new \Exception("Duplicate attribute {$conf['key']}");
@@ -1147,7 +1208,7 @@ function buildTableQuery($table, $single = false) {
 
 	$order = $table->hasPrimaryKeys() ? implode(',', array_map(function($c) use ($table) {
 		return $table->getName() . '_' . $c->getName();
-	}, $table->primaryKeys())) : '1';
+	}, iterator_to_array($table->primaryKeys()))) : '1';
 
 	return sprintf("SELECT \n\t%s \nFROM\n\t%s\n%s \nWHERE \n\t%s \nORDER BY %s \nLIMIT :limit \nOFFSET :offset",implode(", \n\t", $columns), implode(', ', $tables), empty($joins) ? '' : "LEFT JOIN\n\t" . implode("\nLEFT JOIN\n\t", $joins), implode(' AND ', $conditions) ?: '1', $order);
 }
@@ -1167,6 +1228,15 @@ function buildIdQuery($table, $data, $fkName = NULL, $prefix = 'id') {
 	}, $pks));
 }
 
+function fkIsset($table, $data, $fkName = NULL) {
+	$pks = $table->primaryKeys();
+	$dataPrefix = $fkName !== NULL ? $fkName : $table->getName();
+
+	return array_reduce(iterator_to_array($pks), function($acc, $c) use ($dataPrefix, $data) {
+		return $acc && isset($data->{$dataPrefix . '_' . $c->getName()});
+	}, true);
+}
+
 function getIdFromQuery($table, $params) {
 	$pks = $table->primaryKeys();
 
@@ -1181,6 +1251,28 @@ function getIdFromQuery($table, $params) {
 	}
 
 	return $result;
+}
+
+function buildQuery($oldQuery, $newValues) {
+	return http_build_query(array_replace_recursive($oldQuery, $newValues));
+}
+
+function arrayPath(&$array, $path = array(), &$value = null)
+{
+    $args = func_get_args();
+    $ref = &$array;
+    foreach ($path as $key) {
+        if (!is_array($ref)) {
+            $ref = array();
+        }
+        $ref = &$ref[$key];
+    }
+    $prev = $ref;
+    if (array_key_exists(2, $args)) {
+        // value param was passed -> we're setting
+        $ref = $value;  // set the value
+    }
+    return $prev;
 }
 ?>
 

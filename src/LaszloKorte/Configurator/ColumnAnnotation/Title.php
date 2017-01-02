@@ -1,8 +1,11 @@
 <?php
 
-namespace LaszloKorte\ColumnAnnotation;
+namespace LaszloKorte\Configurator\ColumnAnnotation;
 
-class TitleAnnotation {
+/**
+ * @Annotation 
+ */
+class Title {
 	private $title;
 
 	public function __construct($title) {

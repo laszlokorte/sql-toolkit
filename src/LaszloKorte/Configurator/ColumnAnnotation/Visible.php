@@ -1,8 +1,11 @@
 <?php
 
-namespace LaszloKorte\ColumnAnnotation;
+namespace LaszloKorte\Configurator\ColumnAnnotation;
 
-class VisibleAnnotation {
+/**
+ * @Annotation 
+ */
+class Visible {
 	private $isVisible;
 
 	public function __construct($isVisible) {

@@ -12,35 +12,27 @@ final class Table {
 	}
 
 	public function columns($includeForeignKeys = TRUE) {
-		$cols = array_map(function($id) {
-			return new Column($id, $this->tableName, $this->schemaDefinition);
-		}, $this->def()->getColumnIds());
-
 		if($includeForeignKeys) {
-			return $cols;
+			$columnIds = $this->def()->getColumnIds();
 		} else {
-			return array_filter($cols, function($c) {
-				return !$c->belongsToForeignKey();
-			});
+			$columnIds = array_values(array_filter($this->def()->getColumnIds(), function($colId) {
+				return !$this->schemaDefinition->columnBelongsToForeignKey($this->tableName, $colId);
+			}));
 		}
+
+		return new ColumnsIterator($this->schemaDefinition, $this->tableName, $columnIds);
 	}
 
 	public function foreignKeys() {
-		return array_map(function($id) {
-			return new ForeignKey($id, $this->schemaDefinition);
-		}, $this->schemaDefinition->getForeignKeyIds($this->tableName));
+		return new ForeignKeysIterator($this->schemaDefinition, $this->schemaDefinition->getForeignKeyIds($this->tableName));
 	}
 
 	public function reverseforeignKeys() {
-		return array_map(function($id) {
-			return new ForeignKey($id, $this->schemaDefinition);
-		}, $this->schemaDefinition->getReverseForeignKeyIds($this->tableName));
+		return new ForeignKeysIterator($this->schemaDefinition, $this->schemaDefinition->getReverseForeignKeyIds($this->tableName));
 	}
 
 	public function indices() {
-		return array_map(function($indexName) {
-			return new Index($indexName, $this->tableName, $this->schemaDefinition);
-		}, $this->def()->getIndices());
+		return new IndicesIterator($this->schemaDefinition, $this->tableName, $this->def()->getIndices());
 	}
 
 	public function column($name) {
@@ -76,9 +68,7 @@ final class Table {
 	}
 
 	public function primaryKeys() {
-		return array_map(function($colName) {
-			return new Column($colName, $this->tableName, $this->schemaDefinition);
-		}, $this->def()->getPrimaryKeys());
+		return new ColumnsIterator($this->schemaDefinition, $this->tableName, $this->def()->getPrimaryKeys());
 	}
 
 	public function hasPrimaryKeys() {

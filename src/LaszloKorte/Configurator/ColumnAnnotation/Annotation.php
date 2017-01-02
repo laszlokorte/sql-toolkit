@@ -1,6 +1,6 @@
 <?php
 
-namespace LaszloKorte\ColumnAnnotation;
+namespace LaszloKorte\Configurator\ColumnAnnotation;
 
 interface Annotation {
 	

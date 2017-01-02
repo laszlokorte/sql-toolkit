@@ -21,15 +21,12 @@ final class Column {
 		return $this->schemaDefinition->getTableDefinition($this->tableName);
 	}
 
-	public function belongsToForeignKey() {
-		foreach($this->schemaDefinition->getForeignKeyIds($this->tableName) AS $fkid) {
-			$fk = $this->schemaDefinition->getForeignKeyDefinition($fkid);
-			if($fk->containsOwnColumn($this->columnName)) {
-				return true;
-			}
-		}
+	public function table() {
+		return new Table($this->tableName, $this->schemaDefinition);
+	}
 
-		return false;
+	public function belongsToForeignKey() {
+		return $this->schemaDefinition->columnBelongsToForeignKey($this->tableName, $this->columnName);
 	}
 
 	public function getForeignKey() {

@@ -74,4 +74,15 @@ final class SchemaDefinition {
 		}
 		return $result;
 	}
+
+	public function columnBelongsToForeignKey(Identifier $tableName, Identifier $columnName) {
+		foreach($this->getForeignKeyIds($tableName) AS $fkid) {
+			$fk = $this->getForeignKeyDefinition($fkid);
+			if($fk->containsOwnColumn($columnName)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

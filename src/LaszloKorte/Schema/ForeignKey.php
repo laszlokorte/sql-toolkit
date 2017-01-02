@@ -17,16 +17,12 @@ final class ForeignKey {
 
 	public function getOwnColumns() {
 		$def = $this->def();
-		return array_map(function($id) use ($def) {
-			return new Column($id, $def->getOwnTableName(), $this->schemaDefinition);
-		}, $def->getOwnColumns());
+		return new ColumnsIterator($this->schemaDefinition, $def->getOwnTableName(), $def->getOwnColumns());
 	}
 
 	public function getForeignColumns() {
 		$def = $this->def();
-		return array_map(function($id) use ($def) {
-			return new Column($id, $def->getForeignTableName(), $this->schemaDefinition);
-		}, $def->getForeignColumns());
+		return new ColumnsIterator($this->schemaDefinition, $def->getForeignTableName(), $def->getForeignColumns());
 	}
 
 	public function getOwnTable() {

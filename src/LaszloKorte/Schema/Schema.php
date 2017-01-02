@@ -10,9 +10,7 @@ final class Schema {
 	}
 
 	public function tables() {
-		return array_map(function($id) {
-			return new Table($id, $this->schemaDefinition);
-		}, $this->schemaDefinition->getTableIds());
+		return new TablesIterator($this->schemaDefinition, $this->schemaDefinition->getTableIds());
 	}
 
 	public function table($name) {
