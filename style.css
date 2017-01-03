@@ -157,9 +157,11 @@ body.debug .debug {
 	left: 0;
 	right: 0;
 	padding-left: inherit;
-	font-weight: normal;
+	font-weight: lighter;
 	text-decoration: none;
-	line-height: 2;
+	line-height: 2.8;
+	font-size: 1.5em;
+	text-transform: uppercase;
 }
 
 .app-title a {

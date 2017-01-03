@@ -358,12 +358,14 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 		usort($tables, function($a,$b) use ($tablePriorities) {
 			$aName = (string)$a->getName();
 			$bName = (string)$b->getName();
+			$aJ = isJoinTable($a);
+			$bJ = isJoinTable($b);
 
-			if(true || $tablePriorities[$aName] == $tablePriorities[$bName]) {
+			if($aJ == $bJ) {
 				return strcasecmp($aName, $bName);
 			}
 
-			return $tablePriorities[$aName] < $tablePriorities[$bName] ? 1 : -1;
+			return $aJ ? 1 : -1;
 		});
 
 		$catTitle = ucwords(str_replace('_', ' ', $cat));
@@ -374,7 +376,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			$tableTitle = ucwords(str_replace('_', ' ', $t->getName()));
 
 			$currentTable = $t->getName() == $_GET['table'] ? 'state-active' : '';
-			echo "<li><a class='nav-table $currentTable' href='?table={$t->getName()}'>{$inflector->pluralize($tableTitle)}</a></li>";
+			$jtPrefix = isJoinTable($t) ? '_': '';
+			echo "<li><a class='nav-table $currentTable' href='?table={$t->getName()}'>{$jtPrefix}{$inflector->pluralize($tableTitle)}</a></li>";
 		}
 		echo "</ul>";
 	}
@@ -448,7 +451,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			$sql = buildTableQuery($table, false, true);
 			$stmt = $connection->prepare($sql);
 
-			$limit = 20;
+			$limit = isset($_GET['export']) ? 1000000 : 20;
 			$page = (int)($_GET[(string)$tableName]['page']);
 			$stmt->bindValue(':offset', $page * $limit, PDO::PARAM_INT);
 			$stmt->bindValue(':limit', $limit + 1, PDO::PARAM_INT);
@@ -640,7 +643,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				}
 
 
-				$limit = 20;
+				$limit = isset($_GET['export']) ? 1000000 : 20;
 				$page = (int)($_GET[(string)$sourceTable->getName()]['page']);
 				$stmt->bindValue(':offset', $page * $limit, PDO::PARAM_INT);
 				$stmt->bindValue(':limit', $limit + 1, PDO::PARAM_INT);
@@ -683,6 +686,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			echo ": ";
 			echo $name;
 			echo "</h2>";
+
+			renderForm($table, $connection, [$tableName]);
 
 			echo "<p>";
 			echo "<button>Save</button>";
@@ -747,6 +752,40 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			echo $name;
 			echo "</h2>";
 
+			echo "<p>";
+			echo "Are your sure you want to delete this $tableTitle?";
+			echo "</p>";
+
+			echo "<p>";
+			echo "The following associated records will also be deleted:";
+			echo "</p>";
+
+			echo "<ul>";
+			foreach ($table->reverseForeignKeys() as $assoc) {
+				$sourceTable = $assoc->getOwnTable();
+				if(isJoinTable($sourceTable)) {
+					continue;
+				}
+				$sourceTitle = ucwords(str_replace('_', ' ', $sourceTable->getName()));
+				echo "<li>$sourceTitle</li>";
+			}
+			echo "</ul>";
+
+			echo "<p>";
+			echo "The following references will be unlinked:";
+			echo "</p>";
+
+			echo "<ul>";
+			foreach ($table->reverseForeignKeys() as $assoc) {
+				$sourceTable = $assoc->getOwnTable();
+				if(!isJoinTable($sourceTable)) {
+					continue;
+				}
+				$sourceTitle = ucwords(str_replace('_', ' ', $sourceTable->getName()));
+				echo "<li>$sourceTitle</li>";
+			}
+			echo "</ul>";
+
 			
 			echo "<p>";
 			echo "<button>Confirm</button>";
@@ -766,6 +805,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	$foreignKeys = array_filter(iterator_to_array($table->foreignKeys()), function($fk) use ($parentFK) {
 		return $fk != $parentFK;
 	});
+	$exportName = is_null($parentFK) ? null : (string)$parentFK->getName();
 	$reverseForeignKeys = $table->reverseForeignKeys();
 	$tableName = $table->getName();
 	$tableTitle = ucwords(str_replace('_', ' ', $tableName));
@@ -780,15 +820,52 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	}
 	echo "<div><a href='$addUrl'>+ New $tableTitle</a></div>";
 
+	if ((isset($baseQuery['export']['data']) && $baseQuery['export']['data'] === $exportName) || isset($baseQuery['export']) && $parentFK === NULL) {
+		ob_clean();
+
+		$parentIdName = is_null($parentFK) ? 'all' : $parentFK->getTargetTable()->getName();
+		$fileName = sprintf('export-%s-%s-%s', $parentIdName, $inflector->pluralize((string)$tableName), date('Y-m-d_H-i'));
+		switch($baseQuery['export']['format']) {
+			case 'xml':
+				header('Content-type: text/xml; charset=utf-8');
+				$extension = 'xml';
+				echo '<?xml version="1.0" ?><data></data>';
+				break;
+			case 'csv':
+				header('Content-type: text/csv');
+				$extension = 'csv';
+				renderCSV($table, $data);
+				break;
+			case 'json':
+				header('Content-type: application/json');
+				$extension = 'json';
+				renderJSON($table, $data);
+				break;
+		}
+		header('Content-Disposition: attachment; filename="'.$fileName.'.'.$extension.'"');
+		ob_end_flush();
+		exit(0);
+	} 
+
 	echo "<div>";
 	echo "Export: ";
-	echo "<a>XML</a>";
+	echo "<a href='?{$baseQuery
+		->replace('export.format', 'xml')
+		->remove([(string)$tableName,'page'])
+		->replace('export.data', $exportName)
+	}'>XML</a>";
 	echo " | ";
-	echo "<a>JSON</a>";
+	echo "<a href='?{$baseQuery
+		->replace('export.format', 'json')
+		->remove([(string)$tableName,'page'])
+		->replace('export.data', $exportName)
+	}'>JSON</a>";
 	echo " | ";
-	echo "<a>CSV</a>";
-	echo " | ";
-	echo "<a>Excel</a>";
+	echo "<a href='?{$baseQuery
+		->replace('export.format', 'csv')
+		->remove([(string)$tableName,'page'])
+		->replace('export.data', $exportName)
+	}'>CSV</a>";
 	echo "</div>";
 
 	if (!empty($data) && ($page > 0 || count($data) > 20)) {
@@ -1097,16 +1174,97 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 
 	echo "<div>";
 	echo "Export: ";
-	echo "<a>XML</a>";
+	echo "<a href='?{$baseQuery
+		->replace('export.format', 'xml')
+		->remove([(string)$tableName,'page'])
+		->replace('export.data', $exportName)
+	}'>XML</a>";
 	echo " | ";
-	echo "<a>JSON</a>";
+	echo "<a href='?{$baseQuery
+		->replace('export.format', 'json')
+		->remove([(string)$tableName,'page'])
+		->replace('export.data', $exportName)
+	}'>JSON</a>";
 	echo " | ";
-	echo "<a>CSV</a>";
-	echo " | ";
-	echo "<a>Excel</a>";
+	echo "<a href='?{$baseQuery
+		->replace('export.format', 'csv')
+		->remove([(string)$tableName,'page'])
+		->replace('export.data', $exportName)
+	}'>CSV</a>";
 	echo "</div>";
 
 	echo "<div><a href='$addUrl'>+ New $tableTitle</a></div>";
+}
+
+function renderCSV($table, $data) {
+	$row = [];
+	$columns = $table->columns(false);
+	$usedColumns = [];
+	foreach ($columns as $col) {
+		$comment = $col->getComment();
+		$attributes = parseColumnAttributes($comment);
+		if(array_key_exists('HideInList', $attributes)) {
+			continue;
+		}
+		if(array_key_exists('Secret', $attributes)) {
+			continue;
+		}
+
+		$row[] = (string)$col->getName();
+		$usedColumns []= $col;
+	}
+
+	echo implode(',', $row);
+	echo PHP_EOL;
+	$tableName = $table->getName();
+
+	foreach ($data AS $row) {
+		echo implode(',', array_map(function($col) use ($row, $tableName) {
+			$colName = (string)$col->getName();
+			return maybeEncodeCSVField($row->{$tableName.'_'.$colName});
+		}, $usedColumns));
+		echo PHP_EOL;
+	}
+}
+
+function renderJSON($table, $data) {
+	$row = [];
+	$columns = $table->columns(false);
+	$usedColumns = [];
+	$keys = [];
+	foreach ($columns as $col) {
+		$comment = $col->getComment();
+		$attributes = parseColumnAttributes($comment);
+		if(array_key_exists('HideInList', $attributes)) {
+			continue;
+		}
+		if(array_key_exists('Secret', $attributes)) {
+			continue;
+		}
+		$usedColumns []= $col;
+		$keys[] = $col->getName();
+	}
+
+	echo '[';
+	echo PHP_EOL;
+	$tableName = $table->getName();
+
+	foreach ($data AS $i => $row) {
+		echo ($i>0) ? ',' : ' ';
+		echo json_encode(array_combine($keys, array_map(function($colName) use ($row, $tableName) {
+			return $row->{$tableName.'_'.$colName};
+		}, $keys)), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+		echo PHP_EOL;
+	}
+
+	echo ']';
+}
+
+function maybeEncodeCSVField($string) {
+    if(strpos($string, ',') !== false || strpos($string, '"') !== false || strpos($string, "\n") !== false) {
+        $string = '"' . str_replace('"', '""', $string) . '"';
+    }
+    return $string;
 }
 
 function renderForm($table, $connection, $scope, $parentFk = NULL) {
@@ -1287,7 +1445,7 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 
 	global $inflector;
 
-	if(!$parentFk) {
+	if(!$parentFk && count($table->reverseForeignKeys())) {
 		echo "<h2>Child Data</h2>";
 		foreach ($table->reverseForeignKeys() as $assoc) {
 			echo "<div class=child-records>";
@@ -1303,7 +1461,7 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 }
 
 function isJoinTable($table) {
-	return count($table->columns(FALSE)) === 1;
+	return count($table->columns(FALSE)) <= 1;
 }
 
 function parseColumnAttributes($string) {

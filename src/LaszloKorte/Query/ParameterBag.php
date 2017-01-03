@@ -66,7 +66,11 @@ final class ParameterBag implements ArrayAccess {
 	}
 
 	public function offsetExists($offset) {
-		
+		if($this->parent !== NULL) {
+			return isset($this->parent[$offset]);
+		} else {
+			return isset($this->values[$offset]);
+		}
 	}
 
 	public function offsetUnset($offset) {
