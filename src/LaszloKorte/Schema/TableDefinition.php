@@ -92,6 +92,10 @@ final class TableDefinition {
 		return $this->columnDefinitions[$name];
 	}
 
+	public function hasColumnDefinition(Identifier $name) {
+		return isset($this->columnDefinitions[$name]);
+	}
+
 	public function getIndexDefinition(Identifier $name) {
 		return $this->indices[$name];
 	}

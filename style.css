@@ -139,14 +139,37 @@ body.debug .debug {
 
 .menu {
 	position: absolute;
-	left: 2%;
+	left: 0;
 	top: 0;
 	width: 20%;
+	background-color: #EEEEEE;
+	padding: 5em 2em 3em;
+	font-size: 0.9em;
+	line-height: 1.5;
+}
+
+.app-title {
+	background-color: #222222;
+	color: #fff;
+	margin: 0;
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	padding-left: inherit;
+	font-weight: normal;
+	text-decoration: none;
+	line-height: 2;
+}
+
+.app-title a {
+	color: inherit;
+	text-decoration: inherit;
 }
 
 .content {
 	position: absolute;
-	left: 24%;
+	left: 23%;
 	top: 0;
 	padding-top: 2em;
 	right: 2%;
@@ -180,13 +203,20 @@ body.debug .debug {
 }
 
 .nav-group-title {
-	margin: 0;
+	margin: 1em 0 0 0;
+	font-size: 0.9em;
+	text-transform: uppercase;
+	color: #999;
 }
 
 .nav-list {
 	margin: 0;
 	list-style: none;
 	padding: 0;
+}
+
+.nav-table {
+	text-decoration: none;
 }
 
 .sort {
@@ -212,7 +242,11 @@ body.debug .debug {
 }
 
 li a.state-active {
-	background-color: #eee;
+	font-weight: bold;
+}
+
+li a.state-active::after {
+	content: ' »';
 }
 
 .login-panel {
@@ -224,6 +258,7 @@ li a.state-active {
 	padding: 0.5em 1em;
 	border: 3px solid #f0f0f0;
 	margin: 1em 0;
+	overflow: auto;
 }
 
 .child-records > :first-child {

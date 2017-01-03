@@ -20,13 +20,23 @@ final class ParameterBag implements ArrayAccess {
 		);
 		$newValue = array_reduce($reversePath, function($v, $currentKey) {
 			return [$currentKey => $v];
-		}, $value);
+		}, $this->scalarize($value));
 
 		return new ParameterBag($newValue, $this);
 	}
 
+	public function scalarize($val) {
+		if(is_null($val) || is_scalar($val)) {
+			return $val;
+		} else if(is_array($val)) {
+			return array_map([$this, 'scalarize'], $val);
+		} else {
+			return (string)$val;
+		}
+	}
+
 	public function remove($key) {
-		return $this->replace($key, null);
+		return $this->replace($key, NULL);
 	}
 
 	public function __toString() {
@@ -44,7 +54,11 @@ final class ParameterBag implements ArrayAccess {
 	}
 
 	public function offsetGet($offset) {
-		
+		if($this->parent !== NULL) {
+			return $this->parent[$offset];
+		} else {
+			return $this->values[$offset];
+		}
 	}
 
 	public function offsetSet($offset, $value) {

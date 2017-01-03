@@ -32,6 +32,7 @@
 
 	use LaszloKorte\Resource\IdConverter;
 	use LaszloKorte\Resource\TableConverter;
+	use LaszloKorte\Query\ParameterBag;
 
 	use LaszloKorte\Configurator\ConfigurationBuilder;
 
@@ -60,7 +61,6 @@
 
 	$inflector = new Inflector();
 
-	
 
 // 	$ann = $annotationParser->parse(
 // <<<'FOO'
@@ -132,7 +132,7 @@ $app->extend('twig', function($twig, $app) {
 
 $app->get('/table/{table}.{format}', function (Application $app, Request $request, Table $table, $format) {
 	var_dump($format);
-	$q = (new LaszloKorte\Query\ParameterBag($_GET))
+	$q = (new ParameterBag($_GET))
 		->replace('table', 'users');
     return new Response('Hello' . $q);
 })
@@ -228,7 +228,7 @@ $app->error(function (\Exception $e, Request $request, $code) {
 // $app->run();
 // exit(0);
 
-$queryBag = new LaszloKorte\Query\ParameterBag($_GET);
+$queryBag = new ParameterBag($_GET);
 
 ?><!DOCTYPE html>
 <html>
@@ -308,7 +308,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 	echo "<div class='menu'>";
 
-	echo "<h1><a href='/'>DB Manager</a></h1>";
+	echo "<h1 class=app-title><a href='/'>DB Manager</a></h1>";
 	echo "<a href=?logout rel=nofollow>Logout</a> | ";
 	echo "<label><input type=checkbox onChange=\"document.body.classList.toggle('debug', this.checked)\"/> Debug</label>";
 	echo "<hr>";
@@ -330,6 +330,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			$uncategorized []= $table;
 		}
 	}
+
 	foreach ($tableCategories as $cat => $tables) {
 		$catTitle = ucwords(str_replace('_', ' ', $cat));
 
@@ -339,7 +340,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			$tableTitle = ucwords(str_replace('_', ' ', $t->getName()));
 
 			$currentTable = $t->getName() == $_GET['table'] ? 'state-active' : '';
-			echo "<li><a class='$currentTable' href='?table={$t->getName()}'>{$inflector->pluralize($tableTitle)}</a></li>";
+			echo "<li><a class='nav-table $currentTable' href='?table={$t->getName()}'>{$inflector->pluralize($tableTitle)}</a></li>";
 		}
 		echo "</ul>";
 	}
@@ -350,14 +351,13 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 	foreach ($uncategorized as $t) {
 		$tableTitle = ucwords(str_replace('_', ' ', $t->getName()));
 		$currentTable = $t->getName() === $_GET['table'] ? 'state-active' : '';
-		echo "<li><a class='$currentTable' href='?table={$t->getName()}'>{$inflector->pluralize($tableTitle)}</a></li>";
+		echo "<li><a class='nav-table $currentTable' href='?table={$t->getName()}'>{$inflector->pluralize($tableTitle)}</a></li>";
 	}
 	echo "</ul>";
 
 	echo "</div>";
 
 	echo "<div class='content'>";
-
 	if (!isset($_GET['table'])) {
 		echo "Select some data set on the left.";
 	} elseif (!isset($_GET['id'])) {
@@ -426,9 +426,9 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			renderTable($table, $data, $page, $queryBag, null);
 		} elseif($_GET['action'] === 'add') {
 			echo "<h2>New $tableTitle</h2>";
-			echo "<form>";
+			echo "<form method='post'>";
 			
-			renderForm($table, $connection, $tableName);
+			renderForm($table, $connection, [$tableName]);
 
 			echo "<button>Create $tableTitle</button>";
 			echo " | <a href='?table=$tableName'>Cancel</a>";
@@ -619,7 +619,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$childData = $stmt->fetchAll(PDO::FETCH_OBJ);
 				//$idQ = buildIdQuery($table, $data);
 
-				renderTable($sourceTable, $childData, $page, $queryBag, $table);
+				renderTable($sourceTable, $childData, $page, $queryBag, $assoc);
 				echo "</div>";
 			}
 		} elseif($_GET['action'] === 'edit') {
@@ -726,19 +726,25 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 ?>
 
 <?php
-function renderTable($table, $data, $page, $baseQuery, $parentTable) {
+function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	global $inflector;
-	$parentForeignKeys = $parentTable ? iterator_to_array($parentTable->reverseForeignKeys()) : [];
 	$columns = $table->columns(false);
-	$foreignKeys = array_filter(iterator_to_array($table->foreignKeys()), function($fk) use ($parentForeignKeys) {
-		return !in_array($fk, $parentForeignKeys);
+	$foreignKeys = array_filter(iterator_to_array($table->foreignKeys()), function($fk) use ($parentFK) {
+		return $fk != $parentFK;
 	});
 	$reverseForeignKeys = $table->reverseForeignKeys();
 	$tableName = $table->getName();
 	$tableTitle = ucwords(str_replace('_', ' ', $tableName));
 
-
-	echo "<div><a href='?table=$tableName&amp;action=add'>+ New $tableTitle</a></div>";
+	$addUrl = "?table=$tableName&amp;action=add?table=$tableName&amp;action=add";
+	if($parentFK !== NULL) {
+		$addUrl .= '&amp;' . (
+			(new ParameterBag([]))
+			->replace('parent', (string)$parentFK->getName())
+			->replace('parent_id', $baseQuery['id'])
+		);
+	}
+	echo "<div><a href='$addUrl'>+ New $tableTitle</a></div>";
 
 	echo "<div>";
 	echo "Export: ";
@@ -1061,13 +1067,17 @@ function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 	echo "<a>Excel</a>";
 	echo "</div>";
 
-	echo "<div><a href='?table=$tableName&amp;action=add'>+ New $tableTitle</a></div>";
+	echo "<div><a href='$addUrl'>+ New $tableTitle</a></div>";
 }
 
-function renderForm($table, $connection, $scope) {
+function renderForm($table, $connection, $scope, $parentFk = NULL) {
 	echo "<dl class='prop-list'>";
+	$scopeString = scopeToFieldName($scope);
 
 	foreach ($table->foreignKeys() as $fk) {
+		if($fk == $parentFk) {
+			continue;
+		}
 		echo "<dt>";
 		$fkTitle = ucwords(str_replace('_', ' ', 
 			preg_replace('/^fk_.+__/i', '', $fk->getName())
@@ -1147,7 +1157,10 @@ function renderForm($table, $connection, $scope) {
 			$optTemplate = $optTemplate . ' '. $extraTemplate;
 		}
 		
-		echo "<select>";
+
+		$fieldName = sprintf('%s[%s]', scopeToFieldName($scope), $fk->getName());
+
+		echo "<select name='$fieldName' data-form-scope='$scopeString'>";
 		if(!$fk->isRequired()) {
 			echo "<option>---None---</option>";
 		}
@@ -1157,7 +1170,7 @@ function renderForm($table, $connection, $scope) {
 				if($i===50) {
 					break;
 				}
-				echo "<option>";
+				echo "<option value=''>";
 				echo preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}]+)\}~i', function($m) use ($opt, $optTargetName) {
 					$pre = !empty($m['fk']) ? $m['fk'] : $optTargetName;
 					$idx = $pre . '_' . $m['col'];
@@ -1170,13 +1183,18 @@ function renderForm($table, $connection, $scope) {
 		if(count($options) > 50) {
 			echo "<optgroup label='More...'></optgroup>";
 		}
+		if(!$parentFk) 
 		echo "<option value=__new>New: </option>";
 		echo "</select>";
 		
-		echo "<div class=sub-form>";
-		echo "<h2>New {$fk->getTargetTable()->getName()}</h2>";
-		renderForm($fk->getTargetTable(), $connection, $fkName);
-		echo "</div>";
+		if(!$parentFk) {
+			$subScope = scopeToFieldName(array_merge($scope, ['__new', $fk->getName()]));
+			echo "<div class=sub-form data-form-scope='$subScope'>";
+			$subTitle = ucwords(str_replace('_', ' ', $fk->getTargetTable()->getName()));
+			echo "<h2>New $subTitle</h2>";
+			renderForm($fk->getTargetTable(), $connection, array_merge($scope, ['__new', $fk->getName()]), $fk);
+			echo "</div>";
+		}
 
 		echo "</dd>";
 	}
@@ -1192,6 +1210,7 @@ function renderForm($table, $connection, $scope) {
 		echo $colTitle;
 		echo "</dt>";
 		echo "<dd>";
+		$fieldName = sprintf('%s[%s]', scopeToFieldName($scope), $col->getName());
 		$comment = $col->getComment();
 		$attributes = parseColumnAttributes($comment);
 		if($dataType instanceof ColumnType\Enumerable) {
@@ -1206,26 +1225,42 @@ function renderForm($table, $connection, $scope) {
 				}
 			}
 		} elseif($dataType instanceof ColumnType\Date) {
-			echo "<input type=date />";
+			echo "<input name='$fieldName' data-form-scope='$scopeString' type=date />";
 		} elseif($dataType instanceof ColumnType\DateTime) {
-			echo "<input type=date />";
-			echo "<input type=time />";
+			echo "<input name='$fieldName' data-form-scope='$scopeString' type=date />";
+			echo "<input name='$fieldName' data-form-scope='$scopeString' type=time />";
 		} elseif($dataType instanceof ColumnType\Time) {
-			echo "<input type=time />";
+			echo "<input name='$fieldName' data-form-scope='$scopeString' type=time />";
 		} elseif($dataType instanceof ColumnType\String) {
-			echo "<input type=text />";
+			echo "<input name='$fieldName' data-form-scope='$scopeString' type=text />";
 		} elseif($dataType instanceof ColumnType\Blob) {
-			echo "<textarea></textarea>";
+			echo "<textarea name='$fieldName'></textarea>";
 		} elseif($dataType instanceof ColumnType\Integer) {
-			echo "<input type=number />";
+			echo "<input name='$fieldName' data-form-scope='$scopeString' type=number />";
 		} else {
-			echo "<input type=text />";
+			echo "<input name='$fieldName' data-form-scope='$scopeString' type=text />";
 		}
 
 
 		echo "</dd>";
 	}
 	echo "</dl>";
+
+	global $inflector;
+
+	if(!$parentFk) {
+		echo "<h2>Child Data</h2>";
+		foreach ($table->reverseForeignKeys() as $assoc) {
+			echo "<div class=child-records>";
+			$sourceTable = $assoc->getOwnTable();
+			$sourceTitle = ucwords(str_replace('_', ' ', $sourceTable->getName()));
+			echo "<h3>{$inflector->pluralize($sourceTitle)}</h3>";
+
+			renderForm($sourceTable, $connection, [], $assoc);
+
+			echo "</div>";
+		}
+	}
 }
 
 function isJoinTable($table) {
@@ -1359,6 +1394,12 @@ function buildQuery($oldQuery, $newValues) {
 	return http_build_query(array_replace_recursive($oldQuery, $newValues));
 }
 
+function scopeToFieldName($scope) {
+	return array_reduce($scope, function($prev, $field) {
+		return is_null($prev) ? $field : sprintf('%s[%s]', $prev, $field);
+	});
+} 
+
 function arrayPath(&$array, $path = array(), &$value = null)
 {
     $args = func_get_args();
@@ -1412,7 +1453,16 @@ function arrayPath(&$array, $path = array(), &$value = null)
 				allCheck.indeterminate = allChecked === null
 			}
 		} else if (evt.target.tagName === 'SELECT' && evt.target.nextSibling && evt.target.nextSibling.classList.contains('sub-form')) {
-			evt.target.nextSibling.classList.toggle('state-visible', evt.target.value === '__new');
+			var enableSubForm = evt.target.value === '__new';
+			evt.target.nextSibling.classList.toggle('state-visible', enableSubForm);
+			//TODO: Disabling nesting forms does not stack correctly
+			Array.prototype.forEach.call(evt.target.nextSibling.querySelectorAll('[data-form-scope="'+evt.target.nextSibling.getAttribute('data-form-scope')+'"]'), function(el) {
+				if(enableSubForm) {
+					el.removeAttribute('disabled');
+				} else {
+					el.setAttribute('disabled', true);
+				}
+			})
 		}
 	}, false)
 </script>

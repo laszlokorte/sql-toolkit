@@ -36,7 +36,11 @@ final class Table {
 	}
 
 	public function column($name) {
-		return new Column(new Identifier($name), $this->tableName, $this->schemaDefinition);
+		$id = new Identifier($name);
+		if(!$this->def()->hasColumnDefinition($id)) {
+			throw new \Exception(sprintf('Column "%s" does not exist', $name));
+		}
+		return new Column($id, $this->tableName, $this->schemaDefinition);
 	}
 
 	public function foreignKey($name) {

@@ -14,7 +14,11 @@ final class Schema {
 	}
 
 	public function table($name) {
-		return new Table(new Identifier($name), $this->schemaDefinition);
+		$id = new Identifier($name);
+		if(!$this->schemaDefinition->hasTableDefinition($id)) {
+			throw new \Exception(sprintf('Table "%s" does not exist', $name));
+		}
+		return new Table($id, $this->schemaDefinition);
 	}
 
 	public function getForeignTargetTableName($fkId) {

@@ -25,6 +25,10 @@ final class SchemaDefinition {
 		return $table;
 	}
 
+	public function hasTableDefinition(Identifier $name) {
+		return isset($this->tableDefinitions[$name]);
+	}
+
 	public function getTableDefinition(Identifier $name) {
 		return $this->tableDefinitions[$name];
 	}
