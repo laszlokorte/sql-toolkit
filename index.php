@@ -411,7 +411,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			}
 			echo "</ul>";
 			echo "</div>";
-			$sql = buildTableQuery($table);
+			$sql = buildTableQuery($table, false, true);
 			$stmt = $connection->prepare($sql);
 
 			$limit = 20;
@@ -601,7 +601,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 					continue;
 				} else {
 					$sql = 
-						buildTableQuery($sourceTable, $assoc);
+						buildTableQuery($sourceTable, $assoc, true);
 					$stmt = $connection->prepare($sql);
 				}
 
@@ -727,11 +727,13 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 <?php
 function renderTable($table, $data, $page, $baseQuery, $parentTable) {
+	global $inflector;
 	$parentForeignKeys = $parentTable ? iterator_to_array($parentTable->reverseForeignKeys()) : [];
 	$columns = $table->columns(false);
 	$foreignKeys = array_filter(iterator_to_array($table->foreignKeys()), function($fk) use ($parentForeignKeys) {
 		return !in_array($fk, $parentForeignKeys);
 	});
+	$reverseForeignKeys = $table->reverseForeignKeys();
 	$tableName = $table->getName();
 	$tableTitle = ucwords(str_replace('_', ' ', $tableName));
 
@@ -856,6 +858,18 @@ function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 		// echo "</a>";
 		echo "</th>";
 	}
+	foreach ($reverseForeignKeys as $rfkidx => $rfk) {
+		$colCount++;
+		echo "<th>";
+		
+		$sourceTable = $rfk->getOwnTable();
+
+		echo $inflector->pluralize(ucwords(str_replace('_', ' ', 
+			$sourceTable->getName()
+		)));
+		
+		echo "</th>";
+	}
 	if($table->hasPrimaryKeys()) {
 		$colCount += 2;
 		echo "<th>Actions</th>";
@@ -876,7 +890,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 		echo "";
 		echo "</td>";
 	}
-	foreach ($foreignKeys as $fkidx => $fk) {
+	foreach ($reverseForeignKeys as $rfkidx => $rfk) {
 		echo "<td>";
 		echo "</td>";
 	}
@@ -998,6 +1012,13 @@ function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 				} else {
 					echo "<span class='empty'>-</span>";
 				}
+				echo "</td>";
+			}
+			foreach ($reverseForeignKeys as $rfkidx => $rfk) {
+				echo "<td>";
+				echo "<span class=badge>";
+				echo $row->{$rfk->getName().'_count'};
+				echo "</span>";
 				echo "</td>";
 			}
 			if($table->hasPrimaryKeys()) {
@@ -1225,7 +1246,7 @@ function parseColumnAttributes($string) {
 	return $attributes;
 }
 
-function buildTableQuery($table, $single = false) {
+function buildTableQuery($table, $single = false, $includeChildCounts = FALSE) {
 	$columns = [];
 	$tables = [];
 	$conditions = [];
@@ -1269,7 +1290,25 @@ function buildTableQuery($table, $single = false) {
 		$columns []= $table->getName() . '.' . $col->getName() . ' AS ' . $table->getName() . '_' . $col->getName();
 	}
 
-	$order = $table->hasPrimaryKeys() ? implode(',', array_map(function($c) use ($table) {
+	if($includeChildCounts) {
+		foreach($table->reverseForeignKeys() AS $rfk) {
+			$sourceCols = $rfk->getOwnColumns();
+			$targetCols = $rfk->getForeignColumns();
+
+			$subQueryConditions = [];
+			for($i=0;$i<count($sourceCols);$i++) {
+				$subQueryConditions []= sprintf('%s.%s = %s.%s',  $rfk->getTargetTable()->getName(), $targetCols[$i], $rfk->getName(), $sourceCols[$i]);
+			}
+
+			$countQuery = sprintf("(SELECT \n\t\tCOUNT(*) \n\tFROM \n\t\t%s %s \n\tWHERE \n\t\t%s\n\t)", 
+				$rfk->getOwnTable()->getName(), 
+				$rfk->getName(),
+				implode(" \n\t\tAND \n\t\t", $subQueryConditions));
+			$columns []= $countQuery . ' AS '. $rfk->getName() . '_count';
+		}
+	}
+
+	$order = $table->hasPrimaryKeys() ? implode(', ', array_map(function($c) use ($table) {
 		return $table->getName() . '_' . $c->getName();
 	}, iterator_to_array($table->primaryKeys()))) : '1';
 

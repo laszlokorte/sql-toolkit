@@ -27,7 +27,7 @@ final class Table {
 		return new ForeignKeysIterator($this->schemaDefinition, $this->schemaDefinition->getForeignKeyIds($this->tableName));
 	}
 
-	public function reverseforeignKeys() {
+	public function reverseForeignKeys() {
 		return new ForeignKeysIterator($this->schemaDefinition, $this->schemaDefinition->getReverseForeignKeyIds($this->tableName));
 	}
 

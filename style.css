@@ -130,6 +130,7 @@ body .debug {
 
 body.debug .debug {
 	display: block;
+	font-family: monospace;
 }
 .hyper {
 	font-size: 1.3em;
@@ -234,4 +235,17 @@ li a.state-active {
 }
 .sub-form.state-visible {
 	display: block;
+}
+
+.badge {
+	background-color: #1557A3;
+	color: #fff;
+	border-radius: 1.5em;
+	padding: 0 .5em;
+	height: 1.5em;
+	text-align: center;
+	line-height: 1.6;
+	font-size: 0.9em;
+	margin: 0 0.5em;
+	display: inline-block;
 }
