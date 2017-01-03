@@ -598,7 +598,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				echo implode(',', array_map(function($c) use ($tableName, $data) {
 					$key = $tableName . '_' . $c->getName();
 					return $data->$key;
-				}, $table->primaryKeys()));
+				}, iterator_to_array($table->primaryKeys())));
 			}
 			$idQ = buildIdQuery($table, $data);
 			echo "[ ";
@@ -696,7 +696,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 						echo implode(',', array_map(function($c) use ($targetName, $data) {
 							$key = $targetName . '_' . $c->getName();
 							return $data->$key;
-						}, $foreignTable->primaryKeys()));
+						}, iterator_to_array($foreignTable->primaryKeys())));
 					}
 
 					echo "</a>";
@@ -1089,7 +1089,7 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 						$name = implode(',', array_map(function($c) use ($targetName, $row) {
 							$key = $targetName . '_' . $c->getName();
 							return $row->$key;
-						}, $targetTable->primaryKeys()));
+						}, iterator_to_array($targetTable->primaryKeys())));
 					}
 
 					$idQ = buildIdQuery($targetTable, $row, $targetName);
@@ -1225,7 +1225,7 @@ function buildIdQuery($table, $data, $fkName = NULL, $prefix = 'id') {
 	return implode('&amp;', array_map(function($c) use ($dataPrefix, $prefix, $data) {
 		$key = $dataPrefix . '_' . $c->getName();
 		return $prefix . '[' . $c->getName() . ']=' . $data->$key;
-	}, $pks));
+	}, iterator_to_array($pks)));
 }
 
 function fkIsset($table, $data, $fkName = NULL) {
