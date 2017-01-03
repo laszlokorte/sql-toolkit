@@ -281,12 +281,15 @@ if(array_key_exists('login', $_GET) && $_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 if(!$isLoggedIn || array_key_exists('login', $_GET)) {
+	echo "<div class='login-panel-outer'>";
 	echo "<div class=login-panel>";
-		echo "<h1>Login</h1>";
+		echo "<h1 class=login-title>Login</h1>";
 		echo "<form action='?login' method=post>";
 
 		if(isset($loginError)) {
+			echo "<div class=login-error>";
 			echo $loginError;
+			echo "</div>";
 		}
 
 		echo "<dl class='prop-list'>";
@@ -304,6 +307,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 		echo "</form>";
 	echo "</div>";
+	echo "</div>";
 } else {
 
 	echo "<div class='menu'>";
@@ -313,6 +317,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 	echo "<label><input type=checkbox onChange=\"document.body.classList.toggle('debug', this.checked)\"/> Debug</label>";
 	echo "<hr>";
 	$tableCategories = [];
+	$tableCategoryPriorities = [];
+	$tablePriorities = [];
 	$uncategorized = [];
 	foreach ($schema->tables() as $table) {
 		// if(isJoinTable($table)) {
@@ -326,12 +332,40 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$tableCategories[$groupName] = [];
 			}
 			$tableCategories[$groupName][] = $table;
+
+			if(!isset($tableCategoryPriorities[$groupName])) {
+				$tableCategoryPriorities[$groupName] = 0;
+			}
+			if(array_key_exists('Priority', $attributes)) {
+				$tableCategoryPriorities[$groupName] += (int)$attributes['Priority'];
+				$tablePriorities[(string)$table->getName()] = (int)$attributes['Priority'];
+			} else {
+				$tablePriorities[(string)$table->getName()] = 0;
+			}
 		} else {
 			$uncategorized []= $table;
 		}
 	}
+	uksort($tableCategories, function($a,$b) use ($tableCategoryPriorities) {
+		if($tableCategoryPriorities[$a] == $tableCategoryPriorities[$b]) {
+			return strcasecmp($a, $b);
+		}
+
+		return $tableCategoryPriorities[$a] < $tableCategoryPriorities[$b] ? 1 : -1;
+	});
 
 	foreach ($tableCategories as $cat => $tables) {
+		usort($tables, function($a,$b) use ($tablePriorities) {
+			$aName = (string)$a->getName();
+			$bName = (string)$b->getName();
+
+			if(true || $tablePriorities[$aName] == $tablePriorities[$bName]) {
+				return strcasecmp($aName, $bName);
+			}
+
+			return $tablePriorities[$aName] < $tablePriorities[$bName] ? 1 : -1;
+		});
+
 		$catTitle = ucwords(str_replace('_', ' ', $cat));
 
 		echo "<h2 class=nav-group-title>$catTitle</h2>";
@@ -896,6 +930,11 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		echo "";
 		echo "</td>";
 	}
+
+	foreach ($foreignKeys as $fkidx => $fk) {
+		echo "<td>";
+		echo "</td>";
+	}
 	foreach ($reverseForeignKeys as $rfkidx => $rfk) {
 		echo "<td>";
 		echo "</td>";
@@ -1269,7 +1308,7 @@ function isJoinTable($table) {
 
 function parseColumnAttributes($string) {
 	$attributes = [];
-	if($string && preg_match_all('~@(?<key>[^\(\s@]+)(\(\"(?<val>[^\)]+)\"\))?~i', $string, $matches, PREG_SET_ORDER)) {
+	if($string && preg_match_all('~@(?<key>[^\(\s@]+)(\(\"?(?<val>[^\)]+?)\"?\))?~i', $string, $matches, PREG_SET_ORDER)) {
 		foreach($matches as $conf) {
 			if(array_key_exists($conf['key'], $attributes)) {
 				throw new \Exception("Duplicate attribute {$conf['key']}");

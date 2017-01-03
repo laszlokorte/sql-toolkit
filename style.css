@@ -191,7 +191,16 @@ body.debug .debug {
   font-weight: normal;
   text-align: right;
   min-width: 8em;
+  text-transform: uppercase;
+  font-size: 0.9em;
 }
+
+/*input:not([type=radio]):not([type=checkbox]) {
+	display: block;
+	padding: 0.2em;
+	margin: 0.5em;
+}*/
+
 .prop-list dt:after {
 	content: ':';
 }
@@ -249,9 +258,36 @@ li a.state-active::after {
 	content: ' »';
 }
 
+.login-panel-outer {
+	position: absolute;
+	top: 0;
+	right: 0;
+	left: 0;
+	bottom: 0;
+	background-color: #222;
+	display: flex;
+	align-content: center;
+	justify-content: center;
+}
+
+.login-title {
+	text-transform: uppercase;
+	font-size: 1.2em;
+	font-weight: normal;
+	margin: 0;
+	text-align: center;
+}
+
+.login-error {
+	color: #aa0000;
+	text-align: center;
+}
+
 .login-panel {
-	margin: 5% auto;
-	max-width: 30em;
+	background-color: #fff;
+	padding: 2em 2em 2em;
+	align-self: center;
+	min-width: 27em;
 }
 
 .child-records {
