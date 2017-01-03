@@ -24,6 +24,7 @@
 	use \Firebase\JWT\JWT;
 
 	use LaszloKorte\Schema\Schema;
+	use LaszloKorte\Schema\Table;
 	use LaszloKorte\Schema\DatabaseId;
 	use LaszloKorte\Schema\SchemaBuilder;
 	use LaszloKorte\Schema\ColumnType;
@@ -36,6 +37,10 @@
 
 	use Doctrine\Common\Annotations\AnnotationRegistry;
 	use Doctrine\Common\Inflector\Inflector;
+
+	use Silex\Application;
+	use Symfony\Component\HttpFoundation\Request;
+	use Symfony\Component\HttpFoundation\Response;
 
 	$loader = require __DIR__ . '/vendor/autoload.php';
 	AnnotationRegistry::registerLoader([$loader,'loadClass']);
@@ -81,8 +86,11 @@ $confBuilder = new ConfigurationBuilder();
 
 $schemaConf = $confBuilder->buildConfigurationFor($schema);
 
-$app = new Silex\Application();
+$app = new Application();
 
+$app['helper.inflector'] = function() {
+	return new Inflector();
+};
 $app['converter.id'] = function() {
 	return new IdConverter();
 };
@@ -105,28 +113,49 @@ $app['schema'] = function($app) {
 	return $app['builder.schema']->buildSchemaFor($app['db.connection'], $app['db.name']);
 };
 
-$app->get('/table/{table}', function (Application $app, Request $request, $table) {
-	var_dump($table);
-    return 'Hello '.$app->escape($table);
+$app->register(new Silex\Provider\TwigServiceProvider(), array(
+    'twig.path' => __DIR__.'/views',
+));
+
+$app->extend('twig', function($twig, $app) {
+    $twig->addFilter(new \Twig_SimpleFilter('pluralize', [
+    	$app['helper.inflector'],
+    	'pluralize',
+    ]));
+
+    $twig->addFilter(new \Twig_SimpleFilter('titlelize', function($s) {
+    	return ucwords(str_replace('_', ' ', $s));
+    }));
+
+    return $twig;
+});
+
+$app->get('/table/{table}.{format}', function (Application $app, Request $request, Table $table, $format) {
+	var_dump($format);
+	$q = (new LaszloKorte\Query\ParameterBag($_GET))
+		->replace('table', 'users');
+    return new Response('Hello' . $q);
 })
+->value('format', 'html')
+->assert('format', '[a-z]+')
 ->convert('table', 'converter.table:convert')
 ->bind('table_list');
 
-$app->get('/table/{table}/export', function (Application $app, Request $request, $table) {
-    return 'Hello '.$app->escape($table);
-})
-->convert('table', 'converter.table:convert')
-->bind('table_export');
+// $app->get('/table/{table}/export', function (Application $app, Request $request, $table) {
+//     return 'Hello '.$app->escape($table);
+// })
+// ->convert('table', 'converter.table:convert')
+// ->bind('table_export');
 
-$app->get('/table/{table}/{id}/details', function (Application $app, Request $request, $table, $id) {
+$app->get('/table/{table}/{id}', function (Application $app, Request $request, $table, $id) {
 	var_dump($id);
-    return 'Hello '.$app->escape($table);
+    return 'Hello ';
 })
 ->convert('table', 'converter.table:convert')
 ->convert('id', 'converter.id:convert')
 ->bind('table_detail');
 
-$app->get('/table/{table}/{id}/export', function (Application $app, Request $request, $table, $id) {
+$app->get('/table/{table}/{id}/{child}.{format}', function (Application $app, Request $request, $table, $id, $child, $format) {
     return 'Hello '.$app->escape($table);
 })
 ->convert('table', 'converter.table:convert')
@@ -174,25 +203,32 @@ $app->delete('/table/{table}/{id}', function (Application $app, Request $request
 ->bind('table_destroy');
 
 $app->get('/login', function (Application $app, Request $request) {
-    return 'Hello ';
+    return 'Hello';
 });
 
 $app->post('/login', function (Application $app, Request $request) {
-    return 'Hello ';
+    return 'Hello';
 });
 
 $app->get('/logout', function (Application $app, Request $request) {
-    return 'Hello ';
+    return 'Hello';
 });
 
 
 $app->get('/', function (Application $app, Request $request) {
-    return 'Hello ';
+    return $app['twig']->render('index.html.twig', array(
+        'tables' => $app['schema']->tables(),
+    ));
+});
+
+$app->error(function (\Exception $e, Request $request, $code) {
+    return new Response('We are sorry, but something went terribly wrong.');
 });
 
 // $app->run();
 // exit(0);
 
+$queryBag = new LaszloKorte\Query\ParameterBag($_GET);
 
 ?><!DOCTYPE html>
 <html>
@@ -379,7 +415,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			$stmt = $connection->prepare($sql);
 
 			$limit = 20;
-			$page = (int)($_GET[$tableName]['page']);
+			$page = (int)($_GET[(string)$tableName]['page']);
 			$stmt->bindValue(':offset', $page * $limit, PDO::PARAM_INT);
 			$stmt->bindValue(':limit', $limit + 1, PDO::PARAM_INT);
 			echo "<div class='sql debug'>$sql</div>";
@@ -387,7 +423,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 			$data = $stmt->fetchAll(PDO::FETCH_OBJ);
 
-			renderTable($table, $data, $page, "?table=$tableName", null);
+			renderTable($table, $data, $page, $queryBag, null);
 		} elseif($_GET['action'] === 'add') {
 			echo "<h2>New $tableTitle</h2>";
 			echo "<form>";
@@ -416,8 +452,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$options = $stmt->fetchAll(PDO::FETCH_OBJ);
 				
 
-				if(array_key_exists('display', $optionAttributes)) {
-					$optTemplate = $optionAttributes['display'];
+				if(array_key_exists('Display', $optionAttributes)) {
+					$optTemplate = $optionAttributes['Display'];
 				} else {
 					$optTemplate = '{id}';
 				}
@@ -458,12 +494,12 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 					$fkTargetName = $f->getTargetTable()->getName();
 					$xComment = $f->getTargetTable()->getComment();
 					$xAttributes = parseColumnAttributes($xComment);
-					if(array_key_exists('display', $xAttributes)) {
+					if(array_key_exists('Display', $xAttributes)) {
 						return preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}]+)\}~i', function($m) use ($opt, $fkName) {
 							$pre = !empty($m['fk']) ? $m['fk'] : $fkName;
 							$idx = $pre . ':' . $m['col'];
 							return "[{".$idx."}]";
-						}, $xAttributes['display']);
+						}, $xAttributes['Display']);
 					} else {
 						return "[".$fkTargetName." : {".$fkName.":id}]";
 					}
@@ -588,7 +624,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			foreach ($table->columns() as $col) {
 				$comment = $col->getComment();
 				$attributes = parseColumnAttributes($comment);
-				if(array_key_exists('link', $attributes)) {
+				if(array_key_exists('Link', $attributes)) {
 					$anyLink = TRUE;
 					echo $data->{$tableName.'_'.$col->getName()};
 					echo " ";
@@ -628,16 +664,16 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$comment = $col->getComment();
 				$attributes = parseColumnAttributes($comment);
 				$val = $data->{$tableName . '_'. $col->getName()};
-				if(array_key_exists('secret', $attributes)) {
+				if(array_key_exists('Secret', $attributes)) {
 					$val = '******';
 				}
-				if($attributes['hyper'] === 'email') {
+				if($attributes['Hyper'] === 'email') {
 					echo " <a class='hyper' href='mailto:$val'>💬</a> ";
 				} elseif($attributes['hyper'] === 'country') {
 					$lower = strtolower($val);
 						echo "<img width='50' src='https://lipis.github.io/flag-icon-css/flags/4x3/$lower.svg' alt='$val' /> ";
 				}
-				switch($attributes['display']) {
+				switch($attributes['Display']) {
 					case 'boolean':
 						echo $val === '1' ? '<input type="checkbox" checked disabled>' : '<input type="checkbox" disabled>';
 						break;
@@ -685,8 +721,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 					$tableComment = $foreignTable->getComment();
 					$tableAttributes = parseColumnAttributes($tableComment);
 
-					if(array_key_exists('display', $tableAttributes)) {
-						$template = $tableAttributes['display'];
+					if(array_key_exists('Display', $tableAttributes)) {
+						$template = $tableAttributes['Display'];
 
 						echo preg_replace_callback('~\{(?<col>[^\}]+)\}~i', function($m) use ($data, $targetName) {
 							$idx = $targetName . '_' . $m['col'];
@@ -734,9 +770,9 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$stmt->execute();
 
 				$childData = $stmt->fetchAll(PDO::FETCH_OBJ);
-				$idQ = buildIdQuery($table, $data);
+				//$idQ = buildIdQuery($table, $data);
 
-				renderTable($sourceTable, $childData, $page, "?table=$tableName&amp;$idQ", $table);
+				renderTable($sourceTable, $childData, $page, $queryBag, $table);
 				echo "</div>";
 			}
 		} elseif($_GET['action'] === 'edit') {
@@ -745,7 +781,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			foreach ($table->columns() as $col) {
 				$comment = $col->getComment();
 				$attributes = parseColumnAttributes($comment);
-				if(array_key_exists('link', $attributes)) {
+				if(array_key_exists('Link', $attributes)) {
 					$anyLink = TRUE;
 					$name .= $data->{$tableName.'_'.$col->getName()};
 					$name .= " ";
@@ -777,7 +813,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			foreach ($table->columns() as $col) {
 				$comment = $col->getComment();
 				$attributes = parseColumnAttributes($comment);
-				if(array_key_exists('link', $attributes)) {
+				if(array_key_exists('Link', $attributes)) {
 					$anyLink = TRUE;
 					$name .= $data->{$tableName.'_'.$col->getName()};
 					$name .= " ";
@@ -809,7 +845,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			foreach ($table->columns() as $col) {
 				$comment = $col->getComment();
 				$attributes = parseColumnAttributes($comment);
-				if(array_key_exists('link', $attributes)) {
+				if(array_key_exists('Link', $attributes)) {
 					$anyLink = TRUE;
 					$name .= $data->{$tableName.'_'.$col->getName()};
 					$name .= " ";
@@ -843,7 +879,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 ?>
 
 <?php
-function renderTable($table, $data, $page, $baseUrl, $parentTable) {
+function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 	$parentForeignKeys = $parentTable ? iterator_to_array($parentTable->reverseForeignKeys()) : [];
 	$columns = $table->columns(false);
 	$foreignKeys = array_filter(iterator_to_array($table->foreignKeys()), function($fk) use ($parentForeignKeys) {
@@ -869,14 +905,15 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 	if (!empty($data) && ($page > 0 || count($data) > 20)) {
 		if ($page > 0) {
 			$prevPage = $page - 1;
-			echo "<a href='{$baseUrl}&amp;{$tableName}[page]={$prevPage}'>Back</a>";
+
+			echo "<a href='?{$baseQuery->replace([(string)$tableName,'page'], $prevPage)}'>Back</a>";
 		} else {
 			echo "<span class='disabled'>Back</span>";
 		}
 		echo " | ";
 		if (count($data) > 20) {
 			$nextPage = $page + 1;
-			echo "<a href='{$baseUrl}&amp;{$tableName}[page]={$nextPage}'>Next</a>";
+			echo "<a href='?{$baseQuery->replace([(string)$tableName,'page'], $nextPage)}'>Next</a>";
 		} else {
 			echo "<span class='disabled'>Next</span>";
 		}
@@ -893,15 +930,20 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 	foreach ($columns as $cidx => $col) {
 		$comment = $col->getComment();
 		$attributes = parseColumnAttributes($comment);
-		if(array_key_exists('hideInList', $attributes)) {
+		if(array_key_exists('HideInList', $attributes)) {
 			continue;
 		}
 		$colCount++;
 		echo "<th>";
-		if($_GET['order']['dir'] == 'asc' && $_GET['order']['col'] == $col->getName()) {
-			echo " <a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=desc'>";
+		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
+			
+			echo " <a href='?{$baseQuery
+			->replace([(string)$tableName,'order','col'], (string)$col->getName())
+			->replace([(string)$tableName,'order','dir'], 'desc')}'>";
 		} else {
-			echo " <a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=asc'>";
+			echo " <a href='?{$baseQuery
+			->replace([(string)$tableName,'order','col'], (string)$col->getName())
+			->replace([(string)$tableName,'order','dir'], 'asc')}'>";
 		}
 		if($col->belongsToPrimaryKey()) {
 			echo "*";
@@ -911,15 +953,19 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 		}
 		echo ucwords(str_replace('_', ' ', $col->getName()));
 		echo "</a> ";
-		echo "<a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=asc' class=sort>";
-		if($_GET['order']['dir'] == 'asc' && $_GET['order']['col'] == $col->getName()) {
+		echo "<a href='?{$baseQuery
+			->replace([(string)$tableName,'order','col'], (string)$col->getName())
+			->replace([(string)$tableName,'order','dir'], 'asc')}' class=sort>";
+		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
 			echo "▲"; //
 		} else {
 			echo "△";
 		}
 		echo "</a>";
-		echo "<a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=desc' class=sort>";
-		if($_GET['order']['dir'] == 'desc' && $_GET['order']['col'] == $col->getName()) {
+		echo "<a href='?{$baseQuery
+			->replace([(string)$tableName,'order','col'], (string)$col->getName())
+			->replace([(string)$tableName,'order','dir'], 'desc')}' class=sort>";
+		if($_GET[(string)$tableName]['order']['dir'] == 'desc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
 			echo "▼"; //
 		} else {
 			echo "▽";
@@ -930,7 +976,7 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 	foreach ($foreignKeys as $fkidx => $fk) {
 		$colCount++;
 		echo "<th>";
-		// if($_GET['order']['dir'] == 'asc' && $_GET['order']['col'] == $col->getName()) {
+		// if($_GET[$tableName]['order']['dir'] == 'asc' && $_GET[$tableName]['order']['col'] == $col->getName()) {
 		// 	echo " <a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=desc'>";
 		// } else {
 		// 	echo " <a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=asc'>";
@@ -942,14 +988,14 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 		));
 		//echo "</a> ";
 		// echo "<a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=asc' class=sort>";
-		// if($_GET['order']['dir'] == 'asc' && $_GET['order']['col'] == $col->getName()) {
+		// if($_GET[$tableName]['order']['dir'] == 'asc' && $_GET[$tableName]['order']['col'] == $col->getName()) {
 		// 	echo "▲"; //
 		// } else {
 		// 	echo "△";
 		// }
 		// echo "</a>";
 		// echo "<a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=desc' class=sort>";
-		// if($_GET['order']['dir'] == 'desc' && $_GET['order']['col'] == $col->getName()) {
+		// if($_GET[$tableName]['order']['dir'] == 'desc' && $_GET[$tableName]['order']['col'] == $col->getName()) {
 		// 	echo "▼"; //
 		// } else {
 		// 	echo "▽";
@@ -970,7 +1016,7 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 	foreach ($columns as $cidx => $col) {
 		$comment = $col->getComment();
 		$attributes = parseColumnAttributes($comment);
-		if(array_key_exists('hideInList', $attributes)) {
+		if(array_key_exists('HideInList', $attributes)) {
 			continue;
 		}
 		echo "<td>";
@@ -1007,20 +1053,20 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 			foreach ($columns as $ciidx => $col) {
 				$comment = $col->getComment();
 				$attributes = parseColumnAttributes($comment);
-				if(array_key_exists('hideInList', $attributes)) {
+				if(array_key_exists('HideInList', $attributes)) {
 					continue;
 				}
 				echo "<td>";
 				
 				$val = $row->{$table->getName().'_'.$col->getName()};
-				$isLink = array_key_exists('link', $attributes) && !is_null($val) || $col->belongsToPrimaryKey();
-				$isPassword = array_key_exists('secret', $attributes);
+				$isLink = array_key_exists('Link', $attributes) && !is_null($val) || $col->belongsToPrimaryKey();
+				$isPassword = array_key_exists('Secret', $attributes);
 
 				if($isPassword) {
 					$val = '*****';
 				}
 
-				if($attributes['hyper'] === 'email') {
+				if($attributes['Hyper'] === 'email') {
 					echo " <a class='hyper' href='mailto:$val'>💬</a> ";
 				} elseif($attributes['hyper'] === 'country') {
 					$lower = strtolower($val);
@@ -1032,7 +1078,7 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 					echo "<a href='?table=$tableName&amp;$idQ'>";
 				}
 
-				switch($attributes['display']) {
+				switch($attributes['Display']) {
 					case 'boolean':
 						echo $val === '1' ? '<input type="checkbox" checked disabled>' : '<input type="checkbox" disabled>';
 						break;
@@ -1078,15 +1124,15 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 					$tableComment = $targetTable->getComment();
 					$tableAttributes = parseColumnAttributes($tableComment);
 
-					if(array_key_exists('display', $tableAttributes)) {
-						$template = $tableAttributes['display'];
+					if(array_key_exists('Display', $tableAttributes)) {
+						$template = $tableAttributes['Display'];
 
 						$val = preg_replace_callback('~\{(?<col>[^\}]+)\}~i', function($m) use ($row, $targetName) {
 							$idx = $targetName . '_' . $m['col'];
 							return $row->$idx ?: '';
 						}, $template);
 					} else {
-						$name = implode(',', array_map(function($c) use ($targetName, $row) {
+						$val = implode(',', array_map(function($c) use ($targetName, $row) {
 							$key = $targetName . '_' . $c->getName();
 							return $row->$key;
 						}, iterator_to_array($targetTable->primaryKeys())));
@@ -1117,14 +1163,14 @@ function renderTable($table, $data, $page, $baseUrl, $parentTable) {
 	if (!empty($data) && ($page > 0 || count($data) > 20)) {
 		if ($page > 0) {
 			$prevPage = $page - 1;
-			echo "<a href='{$baseUrl}&amp;{$tableName}[page]={$prevPage}'>Back</a>";
+			echo "<a href='?{$baseUrl}&amp;{$tableName}[page]={$prevPage}'>Back</a>";
 		} else {
 			echo "<span class='disabled'>Back</span>";
 		}
 		echo " | ";
 		if (count($data) > 20) {
 			$nextPage = $page + 1;
-			echo "<a href='{$baseUrl}&amp;{$tableName}[page]={$nextPage}'>Next</a>";
+			echo "<a href='?{$baseUrl}&amp;{$tableName}[page]={$nextPage}'>Next</a>";
 		} else {
 			echo "<span class='disabled'>Next</span>";
 		}

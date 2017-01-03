@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title></title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	{% block body %}
+	    
+	{% endblock %}
+	<script>
+		document.body.addEventListener('change', function(evt) {
+			if(evt.target.tagName === 'INPUT' && evt.target.type === 'checkbox' && evt.target.hasAttribute('data-select')) {
+				var sel = evt.target.getAttribute('data-select');
+				var row = evt.target.parentNode.parentNode.parentNode;
+				var table = row.parentNode.parentNode;
+				if(sel === 'all') {
+					var isChecked = evt.target.checked;
+
+					Array.prototype.forEach.call(
+						table.querySelectorAll('tbody [data-select]'),
+						function(c) {
+							c.checked = isChecked
+							var cRow = c.parentNode.parentNode.parentNode
+							cRow.classList.toggle('state-selected', isChecked)
+						}
+					)
+				} else {
+					row.classList.toggle('state-selected', isChecked)
+
+					var allChecked = Array.prototype.reduce.call(
+						table.querySelectorAll('tbody input[data-select]'),
+						function(acc, c) {
+							return acc === undefined ? c.checked : (acc === c.checked ? acc : null)
+						},
+						undefined
+					)
+
+					var allCheck = table.querySelector('[data-select=all]')
+
+					allCheck.checked = allChecked === true
+					allCheck.indeterminate = allChecked === null
+				}
+			}
+		}, false)
+	</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{% extends 'layout.html.twig' %}
+
+{% block body %}
+    <div class='menu'>
+    	<h1>DB Manager</h1>
+	
+		<a href=?logout rel=nofollow>Logout</a> | 
+		<label><input type=checkbox onChange=\"document.body.classList.toggle('debug', this.checked)\"/> Debug</label>
+		<hr>
+
+		<ul class="nav-list">
+			{% for table in tables %}
+			    <li><a href="{{ path('table_list', {'table':table}) }}">{{ table.name|titlelize|pluralize }}</a></li>
+			{% endfor %}
+		</ul>
+    </div>
+
+    <div class="content">
+    </div>
+{% endblock %}
