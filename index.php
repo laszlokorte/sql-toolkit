@@ -308,7 +308,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 	echo "<div class='menu'>";
 
-	echo "<h1>DB Manager</h1>";
+	echo "<h1><a href='/'>DB Manager</a></h1>";
 	echo "<a href=?logout rel=nofollow>Logout</a> | ";
 	echo "<label><input type=checkbox onChange=\"document.body.classList.toggle('debug', this.checked)\"/> Debug</label>";
 	echo "<hr>";
@@ -427,164 +427,11 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 		} elseif($_GET['action'] === 'add') {
 			echo "<h2>New $tableTitle</h2>";
 			echo "<form>";
-			echo "<dl class='prop-list'>";
-
-			foreach ($table->foreignKeys() as $fk) {
-				echo "<dt>";
-				$fkTitle = ucwords(str_replace('_', ' ', 
-					preg_replace('/^fk_.+__/i', '', $fk->getName())
-				));
-				echo $fkTitle;
-				echo "</dt>";
-				echo "<dd>";
-				
-				$optTargetTable = $fk->getTargetTable();
-				$optionComment = $optTargetTable->getComment();
-				$optionAttributes = parseColumnAttributes($optionComment);
-				$optTargetName = $optTargetTable->getName();
-				
-				$sql = buildTableQuery($optTargetTable);
-				$stmt = $connection->prepare($sql);
-				$stmt->bindValue(':offset', 0, PDO::PARAM_INT);
-				$stmt->bindValue(':limit', 50+1, PDO::PARAM_INT);
-				echo "<div class='sql debug'>$sql</div>";
-				$stmt->execute();
-				$options = $stmt->fetchAll(PDO::FETCH_OBJ);
-				
-
-				if(array_key_exists('Display', $optionAttributes)) {
-					$optTemplate = $optionAttributes['Display'];
-				} else {
-					$optTemplate = '{id}';
-				}
-
-				preg_match_all('~\{(?<col>[^\}]+)\}~i', $optTemplate, $colRefs);
-
-				$colRefs = $colRefs['col'];
-				$uniqIndices = [];
-
-				foreach($optTargetTable->indices() AS $optIndex) {
-					if(!$optIndex->isUnique()) {
-						continue;
-					}
-					$uniqIndices []= $optIndex;
-				}
-
-				$uniqIndices = array_map(function($i) use ($colRefs) {
-					$fks = array_map(function($c) {
-						return $c->getForeignKey();
-					}, array_filter(iterator_to_array($i->getColumns()), function($c) {
-						return $c->belongsToForeignKey();
-					}));
-					return array_filter($fks, function($c) use ($colRefs) {
-						return !in_array($c->getName(), $colRefs);
-					});
-				}, $uniqIndices);
-
-				$simplestFK = NULL;
-
-				foreach($uniqIndices AS $i) {
-					if($simplestFK === NULL || count($simplestFK) >= count($i)) {
-						$simplestFK = $i;
-					}
-				}
-
-				$extraTemplate = $simplestFK ? array_values(array_map(function($f) {
-					$fkName = $f->getName();
-					$fkTargetName = $f->getTargetTable()->getName();
-					$xComment = $f->getTargetTable()->getComment();
-					$xAttributes = parseColumnAttributes($xComment);
-					if(array_key_exists('Display', $xAttributes)) {
-						return preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}]+)\}~i', function($m) use ($opt, $fkName) {
-							$pre = !empty($m['fk']) ? $m['fk'] : $fkName;
-							$idx = $pre . ':' . $m['col'];
-							return "[{".$idx."}]";
-						}, $xAttributes['Display']);
-					} else {
-						return "[".$fkTargetName." : {".$fkName.":id}]";
-					}
-				}, $simplestFK))[0] : NULL;
-
-				if($extraTemplate) {
-					$optTemplate = $optTemplate . ' '. $extraTemplate;
-				}
-				
-				echo "<select>";
-				if(!$fk->isRequired()) {
-					echo "<option>---None---</option>";
-				}
-				if(count($options) > 0) {
-					echo "<optgroup label=Existing:>";
-					foreach($options AS $i => $opt) {
-						if($i===50) {
-							break;
-						}
-						echo "<option>";
-						echo preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}]+)\}~i', function($m) use ($opt, $optTargetName) {
-							$pre = !empty($m['fk']) ? $m['fk'] : $optTargetName;
-							$idx = $pre . '_' . $m['col'];
-							return $opt->$idx ?: '';
-						}, $optTemplate);
-						echo "</option>";
-					}
-					echo "</optgroup>";
-				}
-				if(count($options) > 50) {
-					echo "<optgroup label='More...'></optgroup>";
-				}
-				echo "<option>New: </option>";
-				echo "</select>";
-				
-				echo "</dd>";
-			}
-			foreach ($table->columns(false) as $col) {
-				$dataType = $col->getType();
-				$comment = $col->getComment();
-				$attributes = parseColumnAttributes($optionComment);
-				if($col->isSerialColumn()) {
-					continue;
-				}
-				echo "<dt>";
-				$colTitle = ucwords(str_replace('_', ' ', $col->getName()));
-				echo $colTitle;
-				echo "</dt>";
-				echo "<dd>";
-				$comment = $col->getComment();
-				$attributes = parseColumnAttributes($comment);
-				if($dataType instanceof ColumnType\Enumerable) {
-					$multi = $dataType->allowMultiple();
-					if($multi) {
-						foreach($dataType->getOptions() AS $o) {
-							echo "<label><input type=checkbox value=$o /> " . $o . "</label>";
-						}
-					} else {
-						foreach($dataType->getOptions() AS $o) {
-							echo "<label><input name={$col->getName()} type=radio value=$o /> " . $o . "</label>";
-						}
-					}
-				} elseif($dataType instanceof ColumnType\Date) {
-					echo "<input type=date />";
-				} elseif($dataType instanceof ColumnType\DateTime) {
-					echo "<input type=date />";
-					echo "<input type=time />";
-				} elseif($dataType instanceof ColumnType\Time) {
-					echo "<input type=time />";
-				} elseif($dataType instanceof ColumnType\String) {
-					echo "<input type=text />";
-				} elseif($dataType instanceof ColumnType\Blob) {
-					echo "<textarea></textarea>";
-				} elseif($dataType instanceof ColumnType\Integer) {
-					echo "<input type=number />";
-				} else {
-					echo "<input type=text />";
-				}
-
-
-				echo "</dd>";
-			}
-			echo "</dl>";
+			
+			renderForm($table, $connection, $tableName);
 
 			echo "<button>Create $tableTitle</button>";
+			echo " | <a href='?table=$tableName'>Cancel</a>";
 			echo "</form>";
 
 		}
@@ -939,11 +786,13 @@ function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 			
 			echo " <a href='?{$baseQuery
 			->replace([(string)$tableName,'order','col'], (string)$col->getName())
-			->replace([(string)$tableName,'order','dir'], 'desc')}'>";
+			->replace([(string)$tableName,'order','dir'], 'desc')
+			->remove([(string)$tableName,'page'])}'>";
 		} else {
 			echo " <a href='?{$baseQuery
 			->replace([(string)$tableName,'order','col'], (string)$col->getName())
-			->replace([(string)$tableName,'order','dir'], 'asc')}'>";
+			->replace([(string)$tableName,'order','dir'], 'asc')
+			->remove([(string)$tableName,'page'])}'>";
 		}
 		if($col->belongsToPrimaryKey()) {
 			echo "*";
@@ -955,7 +804,9 @@ function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 		echo "</a> ";
 		echo "<a href='?{$baseQuery
 			->replace([(string)$tableName,'order','col'], (string)$col->getName())
-			->replace([(string)$tableName,'order','dir'], 'asc')}' class=sort>";
+			->replace([(string)$tableName,'order','dir'], 'asc')
+			->remove([(string)$tableName,'page'])
+		}' class=sort>";
 		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
 			echo "▲"; //
 		} else {
@@ -964,7 +815,9 @@ function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 		echo "</a>";
 		echo "<a href='?{$baseQuery
 			->replace([(string)$tableName,'order','col'], (string)$col->getName())
-			->replace([(string)$tableName,'order','dir'], 'desc')}' class=sort>";
+			->replace([(string)$tableName,'order','dir'], 'desc')
+			->remove([(string)$tableName,'page'])
+		}' class=sort>";
 		if($_GET[(string)$tableName]['order']['dir'] == 'desc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
 			echo "▼"; //
 		} else {
@@ -1163,14 +1016,14 @@ function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 	if (!empty($data) && ($page > 0 || count($data) > 20)) {
 		if ($page > 0) {
 			$prevPage = $page - 1;
-			echo "<a href='?{$baseUrl}&amp;{$tableName}[page]={$prevPage}'>Back</a>";
+			echo "<a href='?{$baseQuery->replace([(string)$tableName,'page'], $prevPage)}'>Back</a>";
 		} else {
 			echo "<span class='disabled'>Back</span>";
 		}
 		echo " | ";
 		if (count($data) > 20) {
 			$nextPage = $page + 1;
-			echo "<a href='?{$baseUrl}&amp;{$tableName}[page]={$nextPage}'>Next</a>";
+			echo "<a href='?{$baseQuery->replace([(string)$tableName,'page'], $nextPage)}'>Next</a>";
 		} else {
 			echo "<span class='disabled'>Next</span>";
 		}
@@ -1188,6 +1041,170 @@ function renderTable($table, $data, $page, $baseQuery, $parentTable) {
 	echo "</div>";
 
 	echo "<div><a href='?table=$tableName&amp;action=add'>+ New $tableTitle</a></div>";
+}
+
+function renderForm($table, $connection, $scope) {
+	echo "<dl class='prop-list'>";
+
+	foreach ($table->foreignKeys() as $fk) {
+		echo "<dt>";
+		$fkTitle = ucwords(str_replace('_', ' ', 
+			preg_replace('/^fk_.+__/i', '', $fk->getName())
+		));
+		echo $fkTitle;
+		echo "</dt>";
+		echo "<dd>";
+		
+		$optTargetTable = $fk->getTargetTable();
+		$optionComment = $optTargetTable->getComment();
+		$optionAttributes = parseColumnAttributes($optionComment);
+		$optTargetName = $optTargetTable->getName();
+		
+		$sql = buildTableQuery($optTargetTable);
+		$stmt = $connection->prepare($sql);
+		$stmt->bindValue(':offset', 0, PDO::PARAM_INT);
+		$stmt->bindValue(':limit', 50+1, PDO::PARAM_INT);
+		echo "<div class='sql debug'>$sql</div>";
+		$stmt->execute();
+		$options = $stmt->fetchAll(PDO::FETCH_OBJ);
+		
+
+		if(array_key_exists('Display', $optionAttributes)) {
+			$optTemplate = $optionAttributes['Display'];
+		} else {
+			$optTemplate = '{id}';
+		}
+
+		preg_match_all('~\{(?<col>[^\}]+)\}~i', $optTemplate, $colRefs);
+
+		$colRefs = $colRefs['col'];
+		$uniqIndices = [];
+
+		foreach($optTargetTable->indices() AS $optIndex) {
+			if(!$optIndex->isUnique()) {
+				continue;
+			}
+			$uniqIndices []= $optIndex;
+		}
+
+		$uniqIndices = array_map(function($i) use ($colRefs) {
+			$fks = array_map(function($c) {
+				return $c->getForeignKey();
+			}, array_filter(iterator_to_array($i->getColumns()), function($c) {
+				return $c->belongsToForeignKey();
+			}));
+			return array_filter($fks, function($c) use ($colRefs) {
+				return !in_array($c->getName(), $colRefs);
+			});
+		}, $uniqIndices);
+
+		$simplestFK = NULL;
+
+		foreach($uniqIndices AS $i) {
+			if($simplestFK === NULL || count($simplestFK) >= count($i)) {
+				$simplestFK = $i;
+			}
+		}
+
+		$extraTemplate = $simplestFK ? array_values(array_map(function($f) {
+			$fkName = $f->getName();
+			$fkTargetName = $f->getTargetTable()->getName();
+			$xComment = $f->getTargetTable()->getComment();
+			$xAttributes = parseColumnAttributes($xComment);
+			if(array_key_exists('Display', $xAttributes)) {
+				return preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}]+)\}~i', function($m) use ($opt, $fkName) {
+					$pre = !empty($m['fk']) ? $m['fk'] : $fkName;
+					$idx = $pre . ':' . $m['col'];
+					return "[{".$idx."}]";
+				}, $xAttributes['Display']);
+			} else {
+				return "[".$fkTargetName." : {".$fkName.":id}]";
+			}
+		}, $simplestFK))[0] : NULL;
+
+		if($extraTemplate) {
+			$optTemplate = $optTemplate . ' '. $extraTemplate;
+		}
+		
+		echo "<select>";
+		if(!$fk->isRequired()) {
+			echo "<option>---None---</option>";
+		}
+		if(count($options) > 0) {
+			echo "<optgroup label=Existing:>";
+			foreach($options AS $i => $opt) {
+				if($i===50) {
+					break;
+				}
+				echo "<option>";
+				echo preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}]+)\}~i', function($m) use ($opt, $optTargetName) {
+					$pre = !empty($m['fk']) ? $m['fk'] : $optTargetName;
+					$idx = $pre . '_' . $m['col'];
+					return $opt->$idx ?: '';
+				}, $optTemplate);
+				echo "</option>";
+			}
+			echo "</optgroup>";
+		}
+		if(count($options) > 50) {
+			echo "<optgroup label='More...'></optgroup>";
+		}
+		echo "<option value=__new>New: </option>";
+		echo "</select>";
+		
+		echo "<div class=sub-form>";
+		echo "<h2>New {$fk->getTargetTable()->getName()}</h2>";
+		renderForm($fk->getTargetTable(), $connection, $fkName);
+		echo "</div>";
+
+		echo "</dd>";
+	}
+	foreach ($table->columns(false) as $col) {
+		$dataType = $col->getType();
+		$comment = $col->getComment();
+		$attributes = parseColumnAttributes($optionComment);
+		if($col->isSerialColumn()) {
+			continue;
+		}
+		echo "<dt>";
+		$colTitle = ucwords(str_replace('_', ' ', $col->getName()));
+		echo $colTitle;
+		echo "</dt>";
+		echo "<dd>";
+		$comment = $col->getComment();
+		$attributes = parseColumnAttributes($comment);
+		if($dataType instanceof ColumnType\Enumerable) {
+			$multi = $dataType->allowMultiple();
+			if($multi) {
+				foreach($dataType->getOptions() AS $o) {
+					echo "<label><input type=checkbox value=$o /> " . $o . "</label>";
+				}
+			} else {
+				foreach($dataType->getOptions() AS $o) {
+					echo "<label><input name={$col->getName()} type=radio value=$o /> " . $o . "</label>";
+				}
+			}
+		} elseif($dataType instanceof ColumnType\Date) {
+			echo "<input type=date />";
+		} elseif($dataType instanceof ColumnType\DateTime) {
+			echo "<input type=date />";
+			echo "<input type=time />";
+		} elseif($dataType instanceof ColumnType\Time) {
+			echo "<input type=time />";
+		} elseif($dataType instanceof ColumnType\String) {
+			echo "<input type=text />";
+		} elseif($dataType instanceof ColumnType\Blob) {
+			echo "<textarea></textarea>";
+		} elseif($dataType instanceof ColumnType\Integer) {
+			echo "<input type=number />";
+		} else {
+			echo "<input type=text />";
+		}
+
+
+		echo "</dd>";
+	}
+	echo "</dl>";
 }
 
 function isJoinTable($table) {
@@ -1355,6 +1372,8 @@ function arrayPath(&$array, $path = array(), &$value = null)
 				allCheck.checked = allChecked === true
 				allCheck.indeterminate = allChecked === null
 			}
+		} else if (evt.target.tagName === 'SELECT' && evt.target.nextSibling && evt.target.nextSibling.classList.contains('sub-form')) {
+			evt.target.nextSibling.classList.toggle('state-visible', evt.target.value === '__new');
 		}
 	}, false)
 </script>

@@ -25,6 +25,10 @@ final class ParameterBag implements ArrayAccess {
 		return new ParameterBag($newValue, $this);
 	}
 
+	public function remove($key) {
+		return $this->replace($key, null);
+	}
+
 	public function __toString() {
 		$arrays = [];
 		$bag = $this;

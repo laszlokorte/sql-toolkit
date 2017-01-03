@@ -228,3 +228,10 @@ li a.state-active {
 .child-records > :first-child {
 	margin-top: 0;
 }
+
+.sub-form {
+	display: none;
+}
+.sub-form.state-visible {
+	display: block;
+}
