@@ -33,12 +33,12 @@ final class SchemaDefinition {
 		return $this->tableDefinitions[$name];
 	}
 
-	public function defineForeignKey(Identifier $name, Identifier $ownTable, Identifier $foreignTable, $ownColumnNames, $foreignColumnNames) {
+	public function defineForeignKey(Identifier $name, Identifier $ownTable, Identifier $foreignTable, $ownColumnNames, $foreignColumnNames, $onUpdate = ForeignKeyDefinition::RULE_RESTRICT, $onDelete = ForeignKeyDefinition::RULE_RESTRICT) {
 		if($this->foreignKeys->offsetExists($name)) {
 			throw new \Exception(sprintf('FK with name \'%s\' is already defined.', $name));
 		}
 
-		$fk = new ForeignKeyDefinition($ownTable, $foreignTable, $ownColumnNames, $foreignColumnNames);
+		$fk = new ForeignKeyDefinition($ownTable, $foreignTable, $ownColumnNames, $foreignColumnNames, $onUpdate, $onDelete);
 
 		$this->foreignKeys[$name] = $fk;
 

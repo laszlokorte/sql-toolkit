@@ -61,27 +61,6 @@
 
 	$inflector = new Inflector();
 
-
-// 	$ann = $annotationParser->parse(
-// <<<'FOO'
-// @Title("Some custom Title")
-// @Description("Explanation for this table...")
-// @Display("{{someColumn}} {{someRel}} {{otherRel.foreignColumn}}")
-// @Visible(true)
-// @ParentRel("some_rel")
-// @Sort("sort")
-
-// @CollectionView("Grid")
-// @CollectionView("Map",fields={"long","lat"})
-// @CollectionView("Calendar",field="created_at")
-
-// @SyntheticInterface("location",fields={"long","lat"})
-// FOO
-// , [
-// 	'yes' => true,
-// 	'no' => false,
-// ]);
-
 $confBuilder = new ConfigurationBuilder();
 
 $schemaConf = $confBuilder->buildConfigurationFor($schema);
@@ -140,12 +119,6 @@ $app->get('/table/{table}.{format}', function (Application $app, Request $reques
 ->assert('format', '[a-z]+')
 ->convert('table', 'converter.table:convert')
 ->bind('table_list');
-
-// $app->get('/table/{table}/export', function (Application $app, Request $request, $table) {
-//     return 'Hello '.$app->escape($table);
-// })
-// ->convert('table', 'converter.table:convert')
-// ->bind('table_export');
 
 $app->get('/table/{table}/{id}', function (Application $app, Request $request, $table, $id) {
 	var_dump($id);
@@ -462,7 +435,14 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 			renderTable($table, $data, $page, $queryBag, null);
 		} elseif($_GET['action'] === 'add') {
-			echo "<h2>New $tableTitle</h2>";
+			if(isset($_GET['template'])) {
+				$copy = true;
+			}
+			if($copy) {
+				echo "<h2>New $tableTitle by duplicating XXX</h2>";
+			} else {
+				echo "<h2>New $tableTitle</h2>";
+			}
 			echo "<form method='post'>";
 			
 			renderForm($table, $connection, [$tableName]);
@@ -478,13 +458,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 		$table = $schema->table($tableName);
 
 		$id = getIdFromQuery($table, $_GET['id']);
-		// echo "<a href='?'>Tables</a> / ";
 		echo "<a href='?table=$tableName'>{$inflector->pluralize($tableTitle)}</a>";
 
-
-		// $sql = sprintf('SELECT %s FROM %s WHERE id = :id', implode(', ', array_map(function($id) {
-		// 	return "`{$id->getName()}`";
-		// }, $table->columns())), $table->getName());
 		$sql = buildTableQuery($table, true);
 		$stmt = $connection->prepare($sql);
 
@@ -521,12 +496,13 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				}, iterator_to_array($table->primaryKeys())));
 			}
 			$idQ = buildIdQuery($table, $data);
+			$idQTemplate = buildIdQuery($table, $data, NULL, 'template');
 			echo "[ ";
-			echo "<a href='?table=$tableName&amp;action=edit&amp;$idQ'>&#x270E;</a>";
+			echo "<a href='?{$idQ->replace('action','edit')}'>&#x270E;</a>";
 			echo " ";
-			echo "<a href='?table=$tableName&amp;action=delete&amp;$idQ'>&#x2715;</a>";
+			echo "<a href='?{$idQ->replace('action','delete')}'>&#x2715;</a>";
 			echo " ";
-			echo "<a href='?table=$tableName&amp;action=copy&amp;$idQ'>&#x2398;</a>";
+			echo "<a href='?{$idQTemplate->replace('action','add')}'>&#x2398;</a>";
 			echo " ]";
 			echo "</h2>";
 
@@ -600,7 +576,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				if ($foreignTable->hasPrimaryKeys() && fkIsset($foreignTable, $data, $targetName)) {
 					$idQ = buildIdQuery($foreignTable, $data, $targetName);
 
-					echo "<a href='?table={$foreignTable->getName()}&amp;$idQ'>";
+					echo "<a href='?$idQ'>";
 				
 					$tableComment = $foreignTable->getComment();
 					$tableAttributes = parseColumnAttributes($tableComment);
@@ -629,7 +605,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			echo "</dl>";
 
 			foreach ($table->reverseForeignKeys() as $assoc) {
-				echo "<div class=child-records>";
+				$assocId = $inflector->pluralize(preg_replace('/^fk_(.+)__.+$/i', '$1', $assoc->getName()));
+				echo "<div class=child-records id='$assocId'>";
 				$sourceTable = $assoc->getOwnTable();
 				$sourceTitle = ucwords(str_replace('_', ' ', $sourceTable->getName()));
 				echo "<h3>{$inflector->pluralize($sourceTitle)}</h3>";
@@ -654,7 +631,6 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$stmt->execute();
 
 				$childData = $stmt->fetchAll(PDO::FETCH_OBJ);
-				//$idQ = buildIdQuery($table, $data);
 
 				renderTable($sourceTable, $childData, $page, $queryBag, $assoc);
 				echo "</div>";
@@ -679,7 +655,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			}
 			$idQ = buildIdQuery($table, $data);
 
-			// echo " / <a href='?table=$tableName&amp;$idQ'>$name</a>";
+			
 			echo "<h2>";
 			echo "Edit ";
 			echo $tableTitle;
@@ -691,39 +667,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 			echo "<p>";
 			echo "<button>Save</button>";
-			echo " | <a href='?table=$tableName&amp;$idQ'>Cancel</a>";
-			echo "</p>";
-		} elseif($_GET['action'] === 'copy') {
-			$name = '';
-			$anyLink = false;
-			foreach ($table->columns() as $col) {
-				$comment = $col->getComment();
-				$attributes = parseColumnAttributes($comment);
-				if(array_key_exists('Link', $attributes)) {
-					$anyLink = TRUE;
-					$name .= $data->{$tableName.'_'.$col->getName()};
-					$name .= " ";
-				}
-			}
-			if(!$anyLink) {
-				$name = implode(',', array_map(function($c) use ($tableName, $data) {
-					$key = $tableName . '_' . $c->getName();
-					return $data->$key;
-				}, $table->primaryKeys()));
-			}
-			$idQ = buildIdQuery($table, $data);
-
-			// echo " / <a href='?table=$tableName&amp;$idQ'>$name</a>";
-			echo "<h2>";
-			echo "Duplicate ";
-			echo $tableTitle;
-			echo ": ";
-			echo $name;
-			echo "</h2>";
-
-			echo "<p>";
-			echo "<button>Create</button>";
-			echo " | <a href='?table=$tableName&amp;$idQ'>Cancel</a>";
+			echo " | <a href='?$idQ'>Cancel</a>";
 			echo "</p>";
 		} elseif($_GET['action'] === 'delete') {
 			$name = '';
@@ -744,7 +688,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				}, $table->primaryKeys()));
 			}
 			$idQ = buildIdQuery($table, $data);
-			// echo " / <a href='?table=$tableName&amp;$idQ'>$name</a>";
+			
 			echo "<h2>";
 			echo "Delete ";
 			echo $tableTitle;
@@ -789,7 +733,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			
 			echo "<p>";
 			echo "<button>Confirm</button>";
-			echo " | <a href='?table=$tableName&amp;$idQ'>Cancel</a>";
+			echo " | <a href='?$idQ'>Cancel</a>";
 			echo "</p>";
 		}
 	}
@@ -810,15 +754,18 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	$tableName = $table->getName();
 	$tableTitle = ucwords(str_replace('_', ' ', $tableName));
 
-	$addUrl = "?table=$tableName&amp;action=add?table=$tableName&amp;action=add";
+	$addUrl = (new ParameterBag([
+		'table' => $tableName,
+		'action' => 'add'
+	]));
+
 	if($parentFK !== NULL) {
-		$addUrl .= '&amp;' . (
-			(new ParameterBag([]))
-			->replace('parent', (string)$parentFK->getName())
+		$addUrl = $addUrl
+			->replace('parent', $parentFK->getName())
 			->replace('parent_id', $baseQuery['id'])
-		);
+		;
 	}
-	echo "<div><a href='$addUrl'>+ New $tableTitle</a></div>";
+	echo "<div><a href='?$addUrl'>+ New $tableTitle</a></div>";
 
 	if ((isset($baseQuery['export']['data']) && $baseQuery['export']['data'] === $exportName) || isset($baseQuery['export']) && $parentFK === NULL) {
 		ob_clean();
@@ -851,19 +798,19 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	echo "Export: ";
 	echo "<a href='?{$baseQuery
 		->replace('export.format', 'xml')
-		->remove([(string)$tableName,'page'])
+		->remove([$tableName,'page'])
 		->replace('export.data', $exportName)
 	}'>XML</a>";
 	echo " | ";
 	echo "<a href='?{$baseQuery
 		->replace('export.format', 'json')
-		->remove([(string)$tableName,'page'])
+		->remove([$tableName,'page'])
 		->replace('export.data', $exportName)
 	}'>JSON</a>";
 	echo " | ";
 	echo "<a href='?{$baseQuery
 		->replace('export.format', 'csv')
-		->remove([(string)$tableName,'page'])
+		->remove([$tableName,'page'])
 		->replace('export.data', $exportName)
 	}'>CSV</a>";
 	echo "</div>";
@@ -872,14 +819,14 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		if ($page > 0) {
 			$prevPage = $page - 1;
 
-			echo "<a href='?{$baseQuery->replace([(string)$tableName,'page'], $prevPage)}'>Back</a>";
+			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $prevPage)}'>Back</a>";
 		} else {
 			echo "<span class='disabled'>Back</span>";
 		}
 		echo " | ";
 		if (count($data) > 20) {
 			$nextPage = $page + 1;
-			echo "<a href='?{$baseQuery->replace([(string)$tableName,'page'], $nextPage)}'>Next</a>";
+			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $nextPage)}'>Next</a>";
 		} else {
 			echo "<span class='disabled'>Next</span>";
 		}
@@ -904,14 +851,14 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
 			
 			echo " <a href='?{$baseQuery
-			->replace([(string)$tableName,'order','col'], (string)$col->getName())
-			->replace([(string)$tableName,'order','dir'], 'desc')
-			->remove([(string)$tableName,'page'])}'>";
+			->replace([$tableName,'order','col'], $col->getName())
+			->replace([$tableName,'order','dir'], 'desc')
+			->remove([$tableName,'page'])}'>";
 		} else {
 			echo " <a href='?{$baseQuery
-			->replace([(string)$tableName,'order','col'], (string)$col->getName())
-			->replace([(string)$tableName,'order','dir'], 'asc')
-			->remove([(string)$tableName,'page'])}'>";
+			->replace([$tableName,'order','col'], $col->getName())
+			->replace([$tableName,'order','dir'], 'asc')
+			->remove([$tableName,'page'])}'>";
 		}
 		if($col->belongsToPrimaryKey()) {
 			echo "*";
@@ -922,23 +869,23 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		echo ucwords(str_replace('_', ' ', $col->getName()));
 		echo "</a> ";
 		echo "<a href='?{$baseQuery
-			->replace([(string)$tableName,'order','col'], (string)$col->getName())
-			->replace([(string)$tableName,'order','dir'], 'asc')
-			->remove([(string)$tableName,'page'])
+			->replace([$tableName,'order','col'], $col->getName())
+			->replace([$tableName,'order','dir'], 'asc')
+			->remove([$tableName,'page'])
 		}' class=sort>";
 		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
-			echo "▲"; //
+			echo "▲";
 		} else {
 			echo "△";
 		}
 		echo "</a>";
 		echo "<a href='?{$baseQuery
-			->replace([(string)$tableName,'order','col'], (string)$col->getName())
-			->replace([(string)$tableName,'order','dir'], 'desc')
-			->remove([(string)$tableName,'page'])
+			->replace([$tableName,'order','col'], $col->getName())
+			->replace([$tableName,'order','dir'], 'desc')
+			->remove([$tableName,'page'])
 		}' class=sort>";
 		if($_GET[(string)$tableName]['order']['dir'] == 'desc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
-			echo "▼"; //
+			echo "▼";
 		} else {
 			echo "▽";
 		}
@@ -948,31 +895,13 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	foreach ($foreignKeys as $fkidx => $fk) {
 		$colCount++;
 		echo "<th>";
-		// if($_GET[$tableName]['order']['dir'] == 'asc' && $_GET[$tableName]['order']['col'] == $col->getName()) {
-		// 	echo " <a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=desc'>";
-		// } else {
-		// 	echo " <a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=asc'>";
-		// }
+		
 		$targetTable = $fk->getTargetTable();
 
 		echo ucwords(str_replace('_', ' ', 
 			preg_replace('/^fk_.+__/i', '', $fk->getName())
 		));
-		//echo "</a> ";
-		// echo "<a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=asc' class=sort>";
-		// if($_GET[$tableName]['order']['dir'] == 'asc' && $_GET[$tableName]['order']['col'] == $col->getName()) {
-		// 	echo "▲"; //
-		// } else {
-		// 	echo "△";
-		// }
-		// echo "</a>";
-		// echo "<a href='$baseUrl&amp;order[col]={$col->getName()}&amp;order[dir]=desc' class=sort>";
-		// if($_GET[$tableName]['order']['dir'] == 'desc' && $_GET[$tableName]['order']['col'] == $col->getName()) {
-		// 	echo "▼"; //
-		// } else {
-		// 	echo "▽";
-		// }
-		// echo "</a>";
+		
 		echo "</th>";
 	}
 	foreach ($reverseForeignKeys as $rfkidx => $rfk) {
@@ -1064,7 +993,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 
 				if ($isLink) {
 					$idQ = buildIdQuery($table, $row);
-					echo "<a href='?table=$tableName&amp;$idQ'>";
+					echo "<a href='?$idQ'>";
 				}
 
 				switch($attributes['Display']) {
@@ -1127,8 +1056,8 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 						}, iterator_to_array($targetTable->primaryKeys())));
 					}
 
-					$idQ = buildIdQuery($targetTable, $row, $targetName);
-					echo "<a href='?table={$targetTable->getName()}&amp;$idQ'>";
+					$idQC = buildIdQuery($targetTable, $row, $targetName);
+					echo "<a href='?$idQC'>";
 					echo $val;
 					echo "</a>";
 				} else {
@@ -1137,18 +1066,22 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 				echo "</td>";
 			}
 			foreach ($reverseForeignKeys as $rfkidx => $rfk) {
+				$rfkName = $rfk->getName();
+				$rfkNameShort = $inflector->pluralize(preg_replace('/^fk_(.+)__.+$/i', '$1', $rfkName));
 				echo "<td>";
-				echo "<span class=badge>";
-				echo $row->{$rfk->getName().'_count'};
-				echo "</span>";
+				echo "<a class=badge href='?$idQ#$rfkNameShort'>";
+				echo $row->{$rfkName.'_count'};
+				echo "</a>";
 				echo "</td>";
 			}
 			if($table->hasPrimaryKeys()) {
 				echo "<td>";
-				$idQ = buildIdQuery($table, $row, $targetName);
-				echo "<a title=edit href='?table=$tableName&amp;$idQ&amp;action=edit'>&#x270E;</a> ";
-				echo "<a title=delete href='?table=$tableName&amp;$idQ&amp;action=delete'>&#x2715;</a> ";
-				echo "<a title=copy href='?table=$tableName&amp;$idQ&amp;action=copy'>&#x2398;</a> ";
+				$idQ = buildIdQuery($table, $row, NULL);
+				$idQTemplate = buildIdQuery($table, $row, NULL, 'template');
+
+				echo "<a title=edit href='{$idQ->replace('action','edit')}'>&#x270E;</a> ";
+				echo "<a title=delete href='?{$idQ->replace('action','delete')}'>&#x2715;</a> ";
+				echo "<a title=copy href='?{$idQTemplate->replace('action','new')}'>&#x2398;</a> ";
 				echo "</td>";
 				echo "<td class=fill-label><label><input type=checkbox data-select /></label></td>";
 			}
@@ -1159,14 +1092,14 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	if (!empty($data) && ($page > 0 || count($data) > 20)) {
 		if ($page > 0) {
 			$prevPage = $page - 1;
-			echo "<a href='?{$baseQuery->replace([(string)$tableName,'page'], $prevPage)}'>Back</a>";
+			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $prevPage)}'>Back</a>";
 		} else {
 			echo "<span class='disabled'>Back</span>";
 		}
 		echo " | ";
 		if (count($data) > 20) {
 			$nextPage = $page + 1;
-			echo "<a href='?{$baseQuery->replace([(string)$tableName,'page'], $nextPage)}'>Next</a>";
+			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $nextPage)}'>Next</a>";
 		} else {
 			echo "<span class='disabled'>Next</span>";
 		}
@@ -1176,19 +1109,19 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	echo "Export: ";
 	echo "<a href='?{$baseQuery
 		->replace('export.format', 'xml')
-		->remove([(string)$tableName,'page'])
+		->remove([$tableName,'page'])
 		->replace('export.data', $exportName)
 	}'>XML</a>";
 	echo " | ";
 	echo "<a href='?{$baseQuery
 		->replace('export.format', 'json')
-		->remove([(string)$tableName,'page'])
+		->remove([$tableName,'page'])
 		->replace('export.data', $exportName)
 	}'>JSON</a>";
 	echo " | ";
 	echo "<a href='?{$baseQuery
 		->replace('export.format', 'csv')
-		->remove([(string)$tableName,'page'])
+		->remove([$tableName,'page'])
 		->replace('export.data', $exportName)
 	}'>CSV</a>";
 	echo "</div>";
@@ -1270,6 +1203,9 @@ function maybeEncodeCSVField($string) {
 function renderForm($table, $connection, $scope, $parentFk = NULL) {
 	echo "<dl class='prop-list'>";
 	$scopeString = scopeToFieldName($scope);
+	$tableComment = $table->getComment();
+	$tableAttributes = parseColumnAttributes($tableComment);
+	
 
 	foreach ($table->foreignKeys() as $fk) {
 		if($fk == $parentFk) {
@@ -1398,7 +1334,7 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 	foreach ($table->columns(false) as $col) {
 		$dataType = $col->getType();
 		$comment = $col->getComment();
-		$attributes = parseColumnAttributes($optionComment);
+		$attributes = parseColumnAttributes($comment);
 		if($col->isSerialColumn()) {
 			continue;
 		}
@@ -1445,13 +1381,20 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 
 	global $inflector;
 
-	if(!$parentFk && count($table->reverseForeignKeys())) {
+	if(
+		!$parentFk && 
+		//!array_key_exists('NoChildren', $tableAttributes) && 
+		count($table->reverseForeignKeys())
+	) {
 		echo "<h2>Child Data</h2>";
 		foreach ($table->reverseForeignKeys() as $assoc) {
-			echo "<div class=child-records>";
 			$sourceTable = $assoc->getOwnTable();
+			$relTitle = ucwords(str_replace('_', ' ', 
+				preg_replace('/^fk_.+__/i', '', $assoc->getName())
+			));
 			$sourceTitle = ucwords(str_replace('_', ' ', $sourceTable->getName()));
-			echo "<h3>{$inflector->pluralize($sourceTitle)}</h3>";
+			echo "<h3>{$inflector->pluralize($sourceTitle)} this is a {$relTitle} of</h3>";
+			echo "<div class=child-records>";
 
 			renderForm($sourceTable, $connection, [], $assoc);
 
@@ -1494,7 +1437,6 @@ function buildTableQuery($table, $single = false, $includeChildCounts = FALSE) {
 
 	foreach ($table->foreignKeys() as $fk) {
 		$targetTable = $fk->getTargetTable();
-		//$tables []= $targetTable->getName();
 
 		$sourceCols = $fk->getOwnColumns();
 		$targetCols = $fk->getForeignColumns();
@@ -1551,15 +1493,19 @@ function buildIdQuery($table, $data, $fkName = NULL, $prefix = 'id') {
 	$pks = $table->primaryKeys();
 	$dataPrefix = $fkName !== NULL ? $fkName : $table->getName();
 
+	$bag = new ParameterBag([
+		'table' => $table->getName(),
+	]);
+
 	if(count($pks) === 1) {
 		$key = $dataPrefix . '_' . $pks[0]->getName();
-		return $prefix . '=' . $data->$key;
+		return $bag->replace($prefix, $data->$key);
 	}
 
-	return implode('&amp;', array_map(function($c) use ($dataPrefix, $prefix, $data) {
+	return array_reduce(iterator_to_array($pks), function($bag, $c) use ($dataPrefix, $prefix, $data) {
 		$key = $dataPrefix . '_' . $c->getName();
-		return $prefix . '[' . $c->getName() . ']=' . $data->$key;
-	}, iterator_to_array($pks)));
+		return $bag->replace([$prefix, $c->getName()], $data->$key);
+	}, $bag);
 }
 
 function fkIsset($table, $data, $fkName = NULL) {
@@ -1595,24 +1541,6 @@ function scopeToFieldName($scope) {
 	return array_reduce($scope, function($prev, $field) {
 		return is_null($prev) ? $field : sprintf('%s[%s]', $prev, $field);
 	});
-} 
-
-function arrayPath(&$array, $path = array(), &$value = null)
-{
-    $args = func_get_args();
-    $ref = &$array;
-    foreach ($path as $key) {
-        if (!is_array($ref)) {
-            $ref = array();
-        }
-        $ref = &$ref[$key];
-    }
-    $prev = $ref;
-    if (array_key_exists(2, $args)) {
-        // value param was passed -> we're setting
-        $ref = $value;  // set the value
-    }
-    return $prev;
 }
 ?>
 

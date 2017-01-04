@@ -110,16 +110,21 @@ final class SchemaBuilder {
 		}
 	}
 
-	private function defineForeignKeys($def, $connection, $tableName, $databaseName) {
+	private function defineForeignKeys($schemaDef, $connection, $tableName, $databaseName) {
 		$stmt = $connection->prepare('
 		SELECT 
 			ke.constraint_name AS name,
 			ke.column_name AS ownColumn,
 			ke.referenced_table_name AS targetTable,
-			ke.referenced_column_name AS targetColumn
+			ke.referenced_column_name AS targetColumn,
+			rc.update_rule AS updateRule, 
+			rc.delete_rule AS deleteRule
 		FROM
-			information_schema.KEY_COLUMN_USAGE ke
+			information_schema.KEY_COLUMN_USAGE ke,
+			information_schema.REFERENTIAL_CONSTRAINTS rc
 		WHERE
+			ke.constraint_name = rc.constraint_name
+			AND
 			ke.referenced_table_name IS NOT NULL
 			AND
 			ke.constraint_schema = :database
@@ -132,19 +137,46 @@ final class SchemaBuilder {
 
 		$result = $stmt->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_OBJ);
 
-
 		foreach ($result as $name => $row) {
-			$columnDef = $def->defineForeignKey(
+			$columnDef = $schemaDef->defineForeignKey(
 				new Identifier($name), 
 				new Identifier($tableName),
-				new Identifier($row[0]->targetTable),
+				new Identifier($this->assumeSame($row, 'targetTable')),
 				array_map(function($i) {
 					return new Identifier($i->ownColumn);
 				}, $row),
 				array_map(function($i) {
 					return new Identifier($i->targetColumn);
-				}, $row)
+				}, $row),
+				$this->constraintRuleFromString($this->assumeSame($row, 'updateRule')),
+				$this->constraintRuleFromString($this->assumeSame($row, 'deleteRule'))
 			);
+		}
+	}
+
+	private function assumeSame($array, $prop) {
+		return array_reduce($array, function($prev, $item) use ($prop) {
+			$current = $item->$prop;
+			if($prev === NULL || $current == $prev) {
+				return $current;
+			} else {
+				throw new \Exception("Unexpected value change");
+			}
+		}, NULL);
+	}
+
+	private function constraintRuleFromString($string) {
+		switch($string) {
+			case 'RESTRICT':
+				return ForeignKeyDefinition::RULE_RESTRICT;
+			case 'CASCADE':
+				return ForeignKeyDefinition::RULE_CASCADE;
+			case 'SET NULL':
+				return ForeignKeyDefinition::RULE_SET_NULL;
+			case 'NONE':
+				return ForeignKeyDefinition::RULE_NONE;
+			default:
+				return $string;
 		}
 	}
 

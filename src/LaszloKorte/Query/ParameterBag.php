@@ -9,15 +9,15 @@ final class ParameterBag implements ArrayAccess {
 	private $values;
 	private $parent;
 	
-	public function __construct($values, $parent = NULL) {
-		$this->values = $values;
+	public function __construct(array $values, $parent = NULL) {
+		$this->values = array_map([$this, 'scalarize'], $values);
 		$this->parent = $parent;
 	}
 
 	public function replace($key, $value) {
-		$reversePath = array_reverse(
+		$reversePath = array_map([$this, 'scalarize'], array_reverse(
 			is_array($key) ? $key : explode('.', $key)
-		);
+		));
 		$newValue = array_reduce($reversePath, function($v, $currentKey) {
 			return [$currentKey => $v];
 		}, $this->scalarize($value));

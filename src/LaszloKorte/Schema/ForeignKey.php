@@ -3,6 +3,11 @@
 namespace LaszloKorte\Schema;
 
 final class ForeignKey {
+	const RULE_RESTRICT = ForeignKeyDefinition::RULE_RESTRICT;
+	const RULE_CASCADE = ForeignKeyDefinition::RULE_CASCADE;
+	const RULE_SET_NULL = ForeignKeyDefinition::RULE_SET_NULL;
+	const RULE_NONE = ForeignKeyDefinition::RULE_NONE;
+
 	private $schemaDefinition;
 	private $keyName;
 
@@ -50,6 +55,6 @@ final class ForeignKey {
 	public function __toString() {
 		$def = $this->def();
 
-		return sprintf("%s [%s->%s]", $this->keyName, $def->getOwnTableName(), $def->getForeignTableName());
+		return sprintf("%s [%s->%s] (%s,%s)", $this->keyName, $def->getOwnTableName(), $def->getForeignTableName(), $def->getUpdateStrategy(), $def->getDeleteStrategy());
 	}
 }

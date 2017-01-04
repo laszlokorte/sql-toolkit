@@ -13,7 +13,7 @@ final class IndexDefinition {
 		$allowedTypes = [self::TYPE_UNIQUE, self::TYPE_KEY];
 
 		if(!in_array($type, $allowedTypes)) {
-			throw new \Exception("Invalid type %s for Index. Expected one of (%s)", $type, implode(', ', $allowedTypes));
+			throw new \Exception(sprintf("Invalid type %s for Index. Expected one of (%s)", $type, implode(', ', $allowedTypes)));
 		}
 
 		$this->type = $type;

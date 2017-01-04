@@ -321,4 +321,5 @@ li a.state-active::after {
 	font-size: 0.9em;
 	margin: 0 0.5em;
 	display: inline-block;
+	text-decoration: none;
 }

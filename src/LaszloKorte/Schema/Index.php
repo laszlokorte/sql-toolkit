@@ -3,6 +3,9 @@
 namespace LaszloKorte\Schema;
 
 final class Index {
+	const TYPE_UNIQUE = IndexDefinition::TYPE_UNIQUE;
+	const TYPE_KEY = IndexDefinition::TYPE_KEY;
+
 	private $schemaDefinition;
 	private $tableName;
 	private $indexName;
