@@ -421,7 +421,9 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			}
 			echo "</ul>";
 			echo "</div>";
-			$sql = buildTableQuery($table, false, true);
+			$orderCol = $queryBag[(string)$table->getName()]['order']['col'];
+			$orderDir = $queryBag[(string)$table->getName()]['order']['dir'];
+			$sql = buildTableQuery($table, false, true, $orderCol, $orderDir);
 			$stmt = $connection->prepare($sql);
 
 			$limit = isset($_GET['export']) ? 1000000 : 20;
@@ -614,8 +616,10 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				if(false && isJoinTable($sourceTable)) {
 					continue;
 				} else {
+					$orderCol = $queryBag[(string)$sourceTable->getName()]['order']['col'];
+					$orderDir = $queryBag[(string)$sourceTable->getName()]['order']['dir'];
 					$sql = 
-						buildTableQuery($sourceTable, $assoc, true);
+						buildTableQuery($sourceTable, $assoc, true, $orderCol, $orderDir);
 					$stmt = $connection->prepare($sql);
 				}
 
@@ -754,6 +758,8 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	$tableName = $table->getName();
 	$tableTitle = ucwords(str_replace('_', ' ', $tableName));
 
+	$hash = is_null($parentFK) ? '' : '#' . $inflector->pluralize(preg_replace('/^fk_(.+)__.+$/i', '$1', $parentFK->getName()));
+
 	$addUrl = (new ParameterBag([
 		'table' => $tableName,
 		'action' => 'add'
@@ -819,14 +825,14 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		if ($page > 0) {
 			$prevPage = $page - 1;
 
-			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $prevPage)}'>Back</a>";
+			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $prevPage)}{$hash}'>Back</a>";
 		} else {
 			echo "<span class='disabled'>Back</span>";
 		}
 		echo " | ";
 		if (count($data) > 20) {
 			$nextPage = $page + 1;
-			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $nextPage)}'>Next</a>";
+			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $nextPage)}{$hash}'>Next</a>";
 		} else {
 			echo "<span class='disabled'>Next</span>";
 		}
@@ -853,12 +859,12 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 			echo " <a href='?{$baseQuery
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'desc')
-			->remove([$tableName,'page'])}'>";
+			->remove([$tableName,'page'])}{$hash}'>";
 		} else {
 			echo " <a href='?{$baseQuery
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'asc')
-			->remove([$tableName,'page'])}'>";
+			->remove([$tableName,'page'])}{$hash}'>";
 		}
 		if($col->belongsToPrimaryKey()) {
 			echo "*";
@@ -872,7 +878,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'asc')
 			->remove([$tableName,'page'])
-		}' class=sort>";
+		}{$hash}' class=sort>";
 		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
 			echo "▲";
 		} else {
@@ -883,7 +889,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'desc')
 			->remove([$tableName,'page'])
-		}' class=sort>";
+		}{$hash}' class=sort>";
 		if($_GET[(string)$tableName]['order']['dir'] == 'desc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
 			echo "▼";
 		} else {
@@ -1092,14 +1098,14 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	if (!empty($data) && ($page > 0 || count($data) > 20)) {
 		if ($page > 0) {
 			$prevPage = $page - 1;
-			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $prevPage)}'>Back</a>";
+			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $prevPage)}{$hash}'>Back</a>";
 		} else {
 			echo "<span class='disabled'>Back</span>";
 		}
 		echo " | ";
 		if (count($data) > 20) {
 			$nextPage = $page + 1;
-			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $nextPage)}'>Next</a>";
+			echo "<a href='?{$baseQuery->replace([$tableName,'page'], $nextPage)}{$hash}'>Next</a>";
 		} else {
 			echo "<span class='disabled'>Next</span>";
 		}
@@ -1421,7 +1427,7 @@ function parseColumnAttributes($string) {
 	return $attributes;
 }
 
-function buildTableQuery($table, $single = false, $includeChildCounts = FALSE) {
+function buildTableQuery($table, $single = false, $includeChildCounts = FALSE, $orderBy = NULL, $orderDir = 'ASC') {
 	$columns = [];
 	$tables = [];
 	$conditions = [];
@@ -1482,9 +1488,13 @@ function buildTableQuery($table, $single = false, $includeChildCounts = FALSE) {
 		}
 	}
 
-	$order = $table->hasPrimaryKeys() ? implode(', ', array_map(function($c) use ($table) {
-		return $table->getName() . '_' . $c->getName();
-	}, iterator_to_array($table->primaryKeys()))) : '1';
+	if($orderBy === NULL) {
+		$order = $table->hasPrimaryKeys() ? implode(', ', array_map(function($c) use ($table, $orderDir) {
+			return $table->getName() . '_' . $c->getName() . ' ' . ($orderDir == 'desc' ? 'desc' : 'asc');
+		}, iterator_to_array($table->primaryKeys()))) : '1';
+	} else {
+		$order = sprintf('%s_%s %s', $table->getName(), $table->column($orderBy)->getName(), ($orderDir == 'desc' ? 'desc' : 'asc'));
+	}
 
 	return sprintf("SELECT \n\t%s \nFROM\n\t%s\n%s \nWHERE \n\t%s \nORDER BY %s \nLIMIT :limit \nOFFSET :offset",implode(", \n\t", $columns), implode(', ', $tables), empty($joins) ? '' : "LEFT JOIN\n\t" . implode("\nLEFT JOIN\n\t", $joins), implode(' AND ', $conditions) ?: '1', $order);
 }
