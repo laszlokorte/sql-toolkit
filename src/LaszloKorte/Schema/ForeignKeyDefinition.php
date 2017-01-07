@@ -2,7 +2,9 @@
 
 namespace LaszloKorte\Schema;
 
-final class ForeignKeyDefinition {
+use Serializable;
+
+final class ForeignKeyDefinition implements Serializable {
 	const RULE_RESTRICT = 'RESTRICT';
 	const RULE_CASCADE = 'CASCADE';
 	const RULE_SET_NULL = 'SET_NULL';
@@ -75,5 +77,27 @@ final class ForeignKeyDefinition {
 
 	public function getDeleteStrategy() {
 		return $this->onDelete;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->ownTableName,
+			$this->foreignTableName,
+			$this->ownColumns,
+			$this->foreignColumns,
+			$this->onUpdate,
+			$this->onDelete,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->ownTableName,
+			$this->foreignTableName,
+			$this->ownColumns,
+			$this->foreignColumns,
+			$this->onUpdate,
+			$this->onDelete
+		) = unserialize($data);
 	}
 }

@@ -2,7 +2,9 @@
 
 namespace LaszloKorte\Schema;
 
-final class IndexDefinition {
+use Serializable;
+
+final class IndexDefinition implements Serializable {
 	const TYPE_UNIQUE = 'UNIQUE';
 	const TYPE_KEY = 'KEY';
 
@@ -26,5 +28,19 @@ final class IndexDefinition {
 
 	public function getColumnNames() {
 		return $this->columnNames;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->type,
+			$this->columnNames,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->type,
+			$this->columnNames,
+		) = unserialize($data);
 	}
 }

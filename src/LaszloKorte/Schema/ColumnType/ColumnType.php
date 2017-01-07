@@ -2,6 +2,8 @@
 
 namespace LaszloKorte\Schema\ColumnType;
 
-interface ColumnType {
+use Serializable;
+
+interface ColumnType extends Serializable {
 	public function coerce($value);
 }

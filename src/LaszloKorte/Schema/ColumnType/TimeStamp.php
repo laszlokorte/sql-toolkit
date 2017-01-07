@@ -10,4 +10,12 @@ final class TimeStamp implements ColumnType {
 	public function coerce($value) {
 		return (string)($value);
 	}
+
+	public function serialize() {
+		return serialize([]);
+	}
+
+	public function unserialize($data) {
+		
+	}
 }

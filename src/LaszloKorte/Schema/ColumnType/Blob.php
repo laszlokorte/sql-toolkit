@@ -15,4 +15,18 @@ final class Blob implements ColumnType {
 	public function coerce($value) {
 		return (string)($value);
 	}
+
+	public function serialize() {
+		return serialize([
+			$this->length,
+			$this->binary,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->length,
+			$this->binary
+		) = unserialize($data);
+	}
 }

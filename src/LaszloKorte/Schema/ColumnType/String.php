@@ -15,4 +15,18 @@ final class String implements ColumnType {
 	public function coerce($value) {
 		return (string)($value);
 	}
+
+	public function serialize() {
+		return serialize([
+			$this->length,
+			$this->varLength,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->length,
+			$this->varLength
+		) = unserialize($data);
+	}
 }

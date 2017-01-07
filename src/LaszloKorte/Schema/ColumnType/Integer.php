@@ -18,4 +18,18 @@ final class Integer implements ColumnType, Serialable {
 	public function coerce($value) {
 		return \intval($value);
 	}
+
+	public function serialize() {
+		return serialize([
+			$this->bits,
+			$this->unsigned,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->bits,
+			$this->unsigned
+		) = unserialize($data);
+	}
 }

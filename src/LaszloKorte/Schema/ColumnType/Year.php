@@ -15,4 +15,15 @@ final class Year implements ColumnType {
 	public function coerce($value) {
 		return (string)($value);
 	}
-}
+
+	public function serialize() {
+		return serialize([
+			$this->length,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->length
+		) = unserialize($data);
+	}

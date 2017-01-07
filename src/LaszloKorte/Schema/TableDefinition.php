@@ -5,7 +5,9 @@ namespace LaszloKorte\Schema;
 use LaszloKorte\Schema\ColumnType\ColumnType;
 use LaszloKorte\Schema\ColumnType\Serialable;
 
-final class TableDefinition {
+use Serializable;
+
+final class TableDefinition implements Serializable {
 	private $columnDefinitions;
 	private $comment;
 
@@ -118,5 +120,25 @@ final class TableDefinition {
 
 	public function getComment() {
 		return $this->comment;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->columnDefinitions,
+			$this->comment,
+			$this->primaryKeyColumns,
+			$this->serialColumn,
+			$this->indices,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->columnDefinitions,
+			$this->comment,
+			$this->primaryKeyColumns,
+			$this->serialColumn,
+			$this->indices
+		) = unserialize($data);
 	}
 }

@@ -2,7 +2,9 @@
 
 namespace LaszloKorte\Schema;
 
-final class Identifier {
+use Serializable;
+
+final class Identifier implements Serializable {
 	private $name;
 
 	public function __construct($name) {
@@ -18,5 +20,13 @@ final class Identifier {
 
 	public function hash() {
 		return $this->name;
+	}
+
+	public function serialize() {
+		return serialize($this->name);
+	}
+
+	public function unserialize($data) {
+		$this->name = unserialize($data);
 	}
 }

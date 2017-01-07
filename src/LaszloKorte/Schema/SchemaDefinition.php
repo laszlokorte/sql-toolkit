@@ -5,7 +5,9 @@ namespace LaszloKorte\Schema;
 use LaszloKorte\Schema\ColumnType\ColumnType;
 use LaszloKorte\Schema\ColumnType\Serialable;
 
-final class SchemaDefinition {
+use Serializable;
+
+final class SchemaDefinition implements Serializable {
 	private $tableDefinitions;
 	private $foreignKeys;
 
@@ -88,5 +90,19 @@ final class SchemaDefinition {
 		}
 
 		return false;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->tableDefinitions,
+			$this->foreignKeys,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->tableDefinitions, 
+			$this->foreignKeys
+		) = unserialize($data);
 	}
 }

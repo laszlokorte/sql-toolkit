@@ -57,9 +57,17 @@
 	   		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
 		]);
 
-	$schema = $builder->buildSchemaFor($connection, 'ishl');
+$schemaCache = __DIR__ . '/cache/schema.txt';
+if(!file_exists($schemaCache)) {
+	$schemaDef = $builder->buildSchemaFor($connection, 'ishl')->getDef();
+	file_put_contents($schemaCache, serialize($schemaDef));
+}
 
-	$inflector = new Inflector();
+$schemaDef = unserialize(file_get_contents($schemaCache));
+
+$schema = new Schema($schemaDef);
+
+$inflector = new Inflector();
 
 $confBuilder = new ConfigurationBuilder();
 
@@ -422,8 +430,9 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			echo "</ul>";
 			echo "</div>";
 			$orderCol = $queryBag[(string)$table->getName()]['order']['col'];
+			$orderCount = $queryBag[(string)$table->getName()]['order']['count'];
 			$orderDir = $queryBag[(string)$table->getName()]['order']['dir'];
-			$sql = buildTableQuery($table, false, true, $orderCol, $orderDir);
+			$sql = buildTableQuery($table, false, true, $orderCol !== null ? $orderCol : $orderCount, $orderDir);
 			$stmt = $connection->prepare($sql);
 
 			$limit = isset($_GET['export']) ? 1000000 : 20;
@@ -617,9 +626,10 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 					continue;
 				} else {
 					$orderCol = $queryBag[(string)$sourceTable->getName()]['order']['col'];
+					$orderCount = $queryBag[(string)$sourceTable->getName()]['order']['count'];
 					$orderDir = $queryBag[(string)$sourceTable->getName()]['order']['dir'];
 					$sql = 
-						buildTableQuery($sourceTable, $assoc, true, $orderCol, $orderDir);
+						buildTableQuery($sourceTable, $assoc, true, $orderCol !== null ? $orderCol : $orderCount, $orderDir);
 					$stmt = $connection->prepare($sql);
 				}
 
@@ -857,11 +867,13 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
 			
 			echo " <a href='?{$baseQuery
+			->remove([$tableName,'order','count'])
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'desc')
 			->remove([$tableName,'page'])}{$hash}'>";
 		} else {
 			echo " <a href='?{$baseQuery
+			->remove([$tableName,'order','count'])
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'asc')
 			->remove([$tableName,'page'])}{$hash}'>";
@@ -875,6 +887,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		echo ucwords(str_replace('_', ' ', $col->getName()));
 		echo "</a> ";
 		echo "<a href='?{$baseQuery
+			->remove([$tableName,'order','count'])
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'asc')
 			->remove([$tableName,'page'])
@@ -886,6 +899,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		}
 		echo "</a>";
 		echo "<a href='?{$baseQuery
+			->remove([$tableName,'order','count'])
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'desc')
 			->remove([$tableName,'page'])
@@ -916,9 +930,50 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		
 		$sourceTable = $rfk->getOwnTable();
 
+		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['count'] == (string)$rfk->getName()) {
+			
+			echo " <a href='?{$baseQuery
+			->remove([$tableName,'order','col'])
+			->replace([$tableName,'order','count'], $rfk->getName())
+			->replace([$tableName,'order','dir'], 'desc')
+			->remove([$tableName,'page'])}{$hash}'>";
+		} else {
+			echo " <a href='?{$baseQuery
+			->remove([$tableName,'order','col'])
+			->replace([$tableName,'order','count'], $rfk->getName())
+			->replace([$tableName,'order','dir'], 'asc')
+			->remove([$tableName,'page'])}{$hash}'>";
+		}
+
 		echo $inflector->pluralize(ucwords(str_replace('_', ' ', 
 			$sourceTable->getName()
 		)));
+
+		echo "</a> ";
+		echo "<a href='?{$baseQuery
+			->remove([$tableName,'order','col'])
+			->replace([$tableName,'order','count'], $rfk->getName())
+			->replace([$tableName,'order','dir'], 'asc')
+			->remove([$tableName,'page'])
+		}{$hash}' class=sort>";
+		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['count'] == (string)$rfk->getName()) {
+			echo "▲";
+		} else {
+			echo "△";
+		}
+		echo "</a>";
+		echo "<a href='?{$baseQuery
+			->remove([$tableName,'order','col'])
+			->replace([$tableName,'order','count'], $rfk->getName())
+			->replace([$tableName,'order','dir'], 'desc')
+			->remove([$tableName,'page'])
+		}{$hash}' class=sort>";
+		if($_GET[(string)$tableName]['order']['dir'] == 'desc' && $_GET[(string)$tableName]['order']['count'] == (string)$rfk->getName()) {
+			echo "▼";
+		} else {
+			echo "▽";
+		}
+		echo "</a>";
 		
 		echo "</th>";
 	}
@@ -1470,6 +1525,7 @@ function buildTableQuery($table, $single = false, $includeChildCounts = FALSE, $
 		$columns []= $table->getName() . '.' . $col->getName() . ' AS ' . $table->getName() . '_' . $col->getName();
 	}
 
+	$orderByCount = false;
 	if($includeChildCounts) {
 		foreach($table->reverseForeignKeys() AS $rfk) {
 			$sourceCols = $rfk->getOwnColumns();
@@ -1485,13 +1541,19 @@ function buildTableQuery($table, $single = false, $includeChildCounts = FALSE, $
 				$rfk->getName(),
 				implode(" \n\t\tAND \n\t\t", $subQueryConditions));
 			$columns []= $countQuery . ' AS '. $rfk->getName() . '_count';
+
+			if($orderBy === (string)$rfk->getName()) {
+				$orderByCount = true;
+			}
 		}
 	}
 
 	if($orderBy === NULL) {
 		$order = $table->hasPrimaryKeys() ? implode(', ', array_map(function($c) use ($table, $orderDir) {
-			return $table->getName() . '_' . $c->getName() . ' ' . ($orderDir == 'desc' ? 'desc' : 'asc');
+			return $table->getName() . '_' . $c->getName() . ' ' . 'asc';
 		}, iterator_to_array($table->primaryKeys()))) : '1';
+	} elseif($orderByCount) {
+		$order = sprintf('%s_count %s', $orderBy, ($orderDir == 'desc' ? 'desc' : 'asc'));
 	} else {
 		$order = sprintf('%s_%s %s', $table->getName(), $table->column($orderBy)->getName(), ($orderDir == 'desc' ? 'desc' : 'asc'));
 	}

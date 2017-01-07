@@ -16,4 +16,18 @@ final class Decimal implements ColumnType {
 	public function coerce($value) {
 		return \floatval($value);
 	}
+
+	public function serialize() {
+		return serialize([
+			$this->totalDigits,
+			$this->decimalPlaces,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->totalDigits,
+			$this->decimalPlaces
+		) = unserialize($data);
+	}
 }

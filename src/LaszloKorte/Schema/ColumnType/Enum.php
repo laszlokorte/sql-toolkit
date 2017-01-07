@@ -24,4 +24,20 @@ final class Enum implements ColumnType, Enumerable {
 	public function allowMultiple() {
 		return $this->multi;
 	}
+
+	public function serialize() {
+		return serialize([
+			$this->name,
+			$this->multi,
+			$this->options,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->name,
+			$this->multi,
+			$this->options
+		) = unserialize($data);
+	}
 }

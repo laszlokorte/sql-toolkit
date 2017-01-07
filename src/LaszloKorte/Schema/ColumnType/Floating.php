@@ -15,4 +15,16 @@ final class Floating implements ColumnType, Serialable {
 	public function coerce($value) {
 		return \floatval($value);
 	}
+
+	public function serialize() {
+		return serialize([
+			$this->bits,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->bits
+		) = unserialize($data);
+	}
 }

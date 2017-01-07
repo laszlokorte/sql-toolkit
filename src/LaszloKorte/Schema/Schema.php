@@ -28,4 +28,8 @@ final class Schema {
 	public function getOwnTargetTableName($fkId) {
 		return $this->schemaDefinition->getForeignKeyDefinition($fkId)->getOwnTableName();
 	}
+
+	public function getDef() {
+		return $this->schemaDefinition;
+	}
 }
