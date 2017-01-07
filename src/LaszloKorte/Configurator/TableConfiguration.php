@@ -5,6 +5,7 @@ namespace LaszloKorte\Configurator;
 use LaszloKorte\Schema\Column;
 use LaszloKorte\Schema\Table;
 use LaszloKorte\Schema\IdentifierMap;
+use LaszloKorte\Schema\Identifier;
 
 class TableConfiguration {
 	private $table;
@@ -28,5 +29,26 @@ class TableConfiguration {
 		$this->columnConfigurations[$idx] = $conf;
 
 		return $conf;
+	}
+
+	public function getColumnIds() {
+		$result = [];
+		foreach($this->columnConfigurations AS $c) {
+			$result[] = $c;
+		}
+
+		return $result;
+	}
+
+	public function getColumnConf(Identifier $id) {
+		return $this->columnConfigurations[$id];
+	}
+
+	public function getTable() {
+		return $this->table;
+	}
+
+	public function getAnnotations() {
+		return $this->annotations;
 	}
 }

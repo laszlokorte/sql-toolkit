@@ -30,6 +30,8 @@ class ConfigurationBuilder {
 				$tableConf->configureColumn($col, $this->parseColumn($col));
 			}
 		}
+
+		return $conf;
 	}
 
 	private function parseTable(Table $table) {

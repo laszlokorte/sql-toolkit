@@ -35,6 +35,7 @@
 	use LaszloKorte\Query\ParameterBag;
 
 	use LaszloKorte\Configurator\ConfigurationBuilder;
+	use LaszloKorte\Presenter\ApplicationBuilder;
 
 	use Doctrine\Common\Annotations\AnnotationRegistry;
 	use Doctrine\Common\Inflector\Inflector;
@@ -72,6 +73,10 @@ $inflector = new Inflector();
 $confBuilder = new ConfigurationBuilder();
 
 $schemaConf = $confBuilder->buildConfigurationFor($schema);
+
+$appBuilder = new ApplicationBuilder();
+
+$appDef = $appBuilder->buildApplication($schemaConf);
 
 $app = new Application();
 

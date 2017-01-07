@@ -10,4 +10,12 @@ class ColumnConfiguration {
 		$this->column = $column;
 		$this->annotations = $annotations;
 	}
+
+	public function getColumn() {
+		return $this->column;
+	}
+
+	public function getAnnotations() {
+		return $this->annotations;
+	}
 }

@@ -5,6 +5,7 @@ namespace LaszloKorte\Configurator;
 
 use LaszloKorte\Schema\Table;
 use LaszloKorte\Schema\IdentifierMap;
+use LaszloKorte\Schema\Identifier;
 
 class SchemaConfiguration {
 	private $tableConfigurations;
@@ -24,5 +25,18 @@ class SchemaConfiguration {
 		$this->tableConfigurations[$idx] = $conf;
 
 		return $conf;
+	}
+
+	public function getTableIds() {
+		$result = [];
+		foreach($this->tableConfigurations AS $t) {
+			$result[] = $t;
+		}
+
+		return $result;
+	}
+
+	public function getTableConf(Identifier $id) {
+		return $this->tableConfigurations[$id];
 	}
 }
