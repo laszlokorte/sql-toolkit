@@ -389,6 +389,14 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 			echo "<div class='debug'>";
 
+			echo "<h3>Comment</h3>";
+
+			echo "<p>";
+
+			echo $table->getComment();
+
+			echo "</p>";
+
 			echo "<h3>Primary Key</h3>";
 
 			if($table->hasPrimaryKeys()) {
