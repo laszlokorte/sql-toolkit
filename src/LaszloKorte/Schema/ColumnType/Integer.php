@@ -3,6 +3,7 @@
 namespace LaszloKorte\Schema\ColumnType;
 
 final class Integer implements ColumnType, Serialable {
+	private $bits;
 	private $unsigned;
 
 	public function __construct($bits, $unsigned) {

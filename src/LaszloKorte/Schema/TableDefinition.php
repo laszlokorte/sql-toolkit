@@ -11,13 +11,12 @@ final class TableDefinition implements Serializable {
 	private $columnDefinitions;
 	private $comment;
 
-	private $primaryKeyColumns = [];
 	private $serialColumn = NULL;
+	private $primaryKeyColumns = [];
 	private $indices;
 
 	public function __construct($comment) {
 		$this->columnDefinitions = new IdentifierMap();
-		$this->foreignKeys = new IdentifierMap();
 		$this->indices = new IdentifierMap();
 		$this->comment = $comment;
 	}
