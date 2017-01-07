@@ -7,8 +7,10 @@ namespace LaszloKorte\Configurator\ColumnAnnotation;
  */
 class Interface {
 	private $name;
+	private $params;
 
-	public function __construct($name) {
-		$this->name = $name;
+	public function __construct($params) {
+		$this->name = $params['value'];
+		$this->params = $params;
 	}
 }

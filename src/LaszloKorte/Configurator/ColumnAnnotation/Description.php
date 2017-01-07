@@ -8,7 +8,7 @@ namespace LaszloKorte\Configurator\ColumnAnnotation;
 class Description {
 	private $text;
 
-	public function __construct($text) {
-		$this->text = $text;
+	public function __construct($params) {
+		$this->text = $params['value'];
 	}
 }

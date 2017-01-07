@@ -8,7 +8,7 @@ namespace LaszloKorte\Configurator\TableAnnotation;
 class NavGroup {
 	private $groupName;
 
-	public function __construct($groupName) {
-		$this->groupName = $groupName;
+	public function __construct($params) {
+		$this->groupName = isset($params['name']) ? $params['name'] : $params['value'];
 	}
 }

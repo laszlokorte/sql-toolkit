@@ -8,7 +8,7 @@ namespace LaszloKorte\Configurator\TableAnnotation;
 class Sort {
 	private $columnName;
 
-	public function __construct($columnName) {
-		$this->columnName = $columnName;
+	public function __construct($params) {
+		$this->columnName = $params['value'];
 	}
 }

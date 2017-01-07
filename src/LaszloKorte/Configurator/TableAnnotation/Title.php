@@ -9,13 +9,14 @@ class Title {
 	private $singular;
 	private $plural;
 
-	public function __construct($title) {
-		if(isset($title['value'])) {
-			$this->singular = $title['value'];
+	public function __construct($params) {
+		if(isset($params['value'])) {
+			$this->singular = (string)$params['value'];
 			$this->plural = NULL;
-		} else if(isset($title['singular'])) {
-			$this->singular = $title['singular'];
-			$this->plural = isset($title['plural']) ? $title['plural'] : null;
+		} else if(isset($params['singular'])) {
+			$this->singular = (string)$params['singular'];
+			$this->plural = isset($params['plural']) ? 
+				(string)$params['plural'] : null;
 		}
 	}
 }

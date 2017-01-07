@@ -9,8 +9,8 @@ class SyntheticInterface {
 	private $interfaceName;
 	private $params;
 
-	public function __construct($interfaceName, ...$params) {
-		$this->interfaceName = $interfaceName;
+	public function __construct($params) {
+		$this->interfaceName = $params['value'];
 		$this->params = $params;
 	}
 }

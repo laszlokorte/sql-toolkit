@@ -8,7 +8,7 @@ namespace LaszloKorte\Configurator\TableAnnotation;
 class ParentRel {
 	private $parentName;
 
-	public function __construct($parentName) {
-		$this->parentName = $parentName;
+	public function __construct($params) {
+		$this->parentName = $params['value'];
 	}
 }

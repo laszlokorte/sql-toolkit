@@ -9,7 +9,7 @@ namespace LaszloKorte\Configurator\ColumnAnnotation;
 class Display {
 	private $templateString;
 
-	public function __construct($templateString) {
-		$this->templateString = $templateString;
+	public function __construct($params) {
+		$this->templateString = $params['value'];
 	}
 }

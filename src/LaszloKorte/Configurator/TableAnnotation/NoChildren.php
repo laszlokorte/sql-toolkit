@@ -6,6 +6,9 @@ namespace LaszloKorte\Configurator\TableAnnotation;
  * @Annotation 
  */
 class NoChildren {
-	public function __construct($relNames = NULL) {
+	private $fkNames;
+
+	public function __construct($params) {
+		$this->fkNames = isset($params['fks']) ? params['fks'] : null;
 	}
 }

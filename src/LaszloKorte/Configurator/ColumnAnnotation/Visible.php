@@ -8,7 +8,7 @@ namespace LaszloKorte\Configurator\ColumnAnnotation;
 class Visible {
 	private $isVisible;
 
-	public function __construct($isVisible) {
-		$this->isVisible = $isVisible;
+	public function __construct($params) {
+		$this->isVisible = $params['value'];
 	}
 }

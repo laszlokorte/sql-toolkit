@@ -8,7 +8,7 @@ namespace LaszloKorte\Configurator\TableAnnotation;
 class Description {
 	private $text;
 
-	public function __construct($text) {
-		$this->text = $text;
+	public function __construct($params) {
+		$this->text = (string)$prams['value'];
 	}
 }
