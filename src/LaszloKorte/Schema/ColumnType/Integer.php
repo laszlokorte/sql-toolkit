@@ -29,7 +29,7 @@ final class Integer implements ColumnType, Serialable {
 	public function unserialize($data) {
 		list(
 			$this->bits,
-			$this->unsigned
+			$this->unsigned,
 		) = unserialize($data);
 	}
 }

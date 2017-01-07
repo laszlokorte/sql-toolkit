@@ -125,20 +125,20 @@ final class TableDefinition implements Serializable {
 	public function serialize() {
 		return serialize([
 			$this->columnDefinitions,
-			$this->comment,
 			$this->primaryKeyColumns,
 			$this->serialColumn,
 			$this->indices,
+			$this->comment,
 		]);
 	}
 
 	public function unserialize($data) {
 		list(
 			$this->columnDefinitions,
-			$this->comment,
 			$this->primaryKeyColumns,
 			$this->serialColumn,
-			$this->indices
+			$this->indices,
+			$this->comment,
 		) = unserialize($data);
 	}
 }

@@ -94,15 +94,15 @@ final class SchemaDefinition implements Serializable {
 
 	public function serialize() {
 		return serialize([
-			$this->tableDefinitions,
 			$this->foreignKeys,
+			$this->tableDefinitions,
 		]);
 	}
 
 	public function unserialize($data) {
 		list(
+			$this->foreignKeys,
 			$this->tableDefinitions, 
-			$this->foreignKeys
 		) = unserialize($data);
 	}
 }

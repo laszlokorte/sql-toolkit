@@ -69,9 +69,9 @@ final class SchemaBuilder {
 
 		foreach ($result as $row) {
 			$colId = new Identifier($row->name);
-			$columnDef = $tableDef->defineColumn($colId, $this->fromSqlType($row->type), $row->nullable === 'YES', $row->default_vlue, $row->comment);
+			$columnDef = $tableDef->defineColumn($colId, $this->fromSqlType($row->type), $row->nullable === 'YES', $row->default_value, $row->comment);
 			if($row->extra === 'auto_increment') {
-				$tableDef->defineSerial($colId);
+				$tableDef->defineSerial(clone $colId);
 			}
 		}
 	}
@@ -230,9 +230,9 @@ final class SchemaBuilder {
 
 		switch($name) {
 			case 'char':
-				return new ColumnType\String((int)($m['args']), false);
+				return new ColumnType\Chars((int)($m['args']), false);
 			case 'varchar':
-				return new ColumnType\String((int)($m['args']), true);
+				return new ColumnType\Chars((int)($m['args']), true);
 			case 'tinytext':
 				return new ColumnType\Blob(8, false);
 			case 'mediumtext':

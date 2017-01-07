@@ -356,7 +356,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 		foreach ($tables as $t) {
 			$tableTitle = ucwords(str_replace('_', ' ', $t->getName()));
 
-			$currentTable = $t->getName() == $_GET['table'] ? 'state-active' : '';
+			$currentTable = $t->getName() == ($_GET['table']??null) ? 'state-active' : '';
 			$jtPrefix = isJoinTable($t) ? '_': '';
 			echo "<li><a class='nav-table $currentTable' href='?table={$t->getName()}'>{$jtPrefix}{$inflector->pluralize($tableTitle)}</a></li>";
 		}
@@ -368,7 +368,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 	echo "<ul class=nav-list>";
 	foreach ($uncategorized as $t) {
 		$tableTitle = ucwords(str_replace('_', ' ', $t->getName()));
-		$currentTable = $t->getName() === $_GET['table'] ? 'state-active' : '';
+		$currentTable = $t->getName() == $_GET['table'] ? 'state-active' : '';
 		echo "<li><a class='nav-table $currentTable' href='?table={$t->getName()}'>{$inflector->pluralize($tableTitle)}</a></li>";
 	}
 	echo "</ul>";
@@ -388,6 +388,8 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			echo "<h2>{$inflector->pluralize($tableTitle)}</h2>";
 
 			echo "<div class='debug'>";
+
+			echo "<pre>";
 
 			echo "<h3>Comment</h3>";
 
@@ -437,14 +439,15 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			}
 			echo "</ul>";
 			echo "</div>";
-			$orderCol = $queryBag[(string)$table->getName()]['order']['col'];
-			$orderCount = $queryBag[(string)$table->getName()]['order']['count'];
-			$orderDir = $queryBag[(string)$table->getName()]['order']['dir'];
-			$sql = buildTableQuery($table, false, true, $orderCol !== null ? $orderCol : $orderCount, $orderDir);
+			$orderCol = $queryBag[(string)$table->getName()]['order']['col'] ?? null;
+			$orderCount = $queryBag[(string)$table->getName()]['order']['count'] ?? null;
+			$orderRef = $queryBag[(string)$table->getName()]['order']['ref'] ?? null;
+			$orderDir = $queryBag[(string)$table->getName()]['order']['dir'] ?? null;
+			$sql = buildTableQuery($table, false, true, $orderCol ?? $orderCount ?? $orderRef, $orderDir);
 			$stmt = $connection->prepare($sql);
 
 			$limit = isset($_GET['export']) ? 1000000 : 20;
-			$page = (int)($_GET[(string)$tableName]['page']);
+			$page = (int)(($_GET[(string)$tableName]['page']) ?? 0);
 			$stmt->bindValue(':offset', $page * $limit, PDO::PARAM_INT);
 			$stmt->bindValue(':limit', $limit + 1, PDO::PARAM_INT);
 			echo "<div class='sql debug'>$sql</div>";
@@ -454,9 +457,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 
 			renderTable($table, $data, $page, $queryBag, null);
 		} elseif($_GET['action'] === 'add') {
-			if(isset($_GET['template'])) {
-				$copy = true;
-			}
+			$copy = isset($_GET['template']);
 			if($copy) {
 				echo "<h2>New $tableTitle by duplicating XXX</h2>";
 			} else {
@@ -546,13 +547,15 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				if(array_key_exists('Secret', $attributes)) {
 					$val = '******';
 				}
-				if($attributes['Hyper'] === 'email') {
-					echo " <a class='hyper' href='mailto:$val'>💬</a> ";
-				} elseif($attributes['hyper'] === 'country') {
-					$lower = strtolower($val);
-						echo "<img width='50' src='https://lipis.github.io/flag-icon-css/flags/4x3/$lower.svg' alt='$val' /> ";
+				if(array_key_exists('Hyper', $attributes)) {
+					if($attributes['Hyper'] === 'email') {
+						echo " <a class='hyper' href='mailto:$val'>💬</a> ";
+					} elseif($attributes['Hyper'] === 'country') {
+						$lower = strtolower($val);
+							echo "<img width='50' src='https://lipis.github.io/flag-icon-css/flags/4x3/$lower.svg' alt='$val' /> ";
+					}
 				}
-				switch($attributes['Display']) {
+				switch($attributes['Display'] ?? null) {
 					case 'boolean':
 						echo $val === '1' ? '<input type="checkbox" checked disabled>' : '<input type="checkbox" disabled>';
 						break;
@@ -633,17 +636,18 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				if(false && isJoinTable($sourceTable)) {
 					continue;
 				} else {
-					$orderCol = $queryBag[(string)$sourceTable->getName()]['order']['col'];
-					$orderCount = $queryBag[(string)$sourceTable->getName()]['order']['count'];
-					$orderDir = $queryBag[(string)$sourceTable->getName()]['order']['dir'];
+					$orderCol = $queryBag[(string)$sourceTable->getName()]['order']['col'] ?? null;
+					$orderCount = $queryBag[(string)$sourceTable->getName()]['order']['count'] ?? null;
+					$orderRef = $queryBag[(string)$sourceTable->getName()]['order']['ref'] ?? null;
+					$orderDir = $queryBag[(string)$sourceTable->getName()]['order']['dir'] ?? null;
 					$sql = 
-						buildTableQuery($sourceTable, $assoc, true, $orderCol !== null ? $orderCol : $orderCount, $orderDir);
+						buildTableQuery($sourceTable, $assoc, true, $orderCol ?? $orderCount ?? $orderRef, $orderDir);
 					$stmt = $connection->prepare($sql);
 				}
 
 
 				$limit = isset($_GET['export']) ? 1000000 : 20;
-				$page = (int)($_GET[(string)$sourceTable->getName()]['page']);
+				$page =  (int)(($_GET[(string)$sourceTable->getName()]['page']) ?? 0);
 				$stmt->bindValue(':offset', $page * $limit, PDO::PARAM_INT);
 				$stmt->bindValue(':limit', $limit + 1, PDO::PARAM_INT);
 				foreach($assoc->getForeignColumns() AS $cix => $c) {
@@ -673,7 +677,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 				$name = implode(',', array_map(function($c) use ($tableName, $data) {
 					$key = $tableName . '_' . $c->getName();
 					return $data->$key;
-				}, $table->primaryKeys()));
+				}, iterator_to_array($table->primaryKeys())));
 			}
 			$idQ = buildIdQuery($table, $data);
 
@@ -857,7 +861,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	}
 
 
-	echo "<div class=searchbox><input placeholder=term... type='search' /><button>Search</button></div>";
+	echo "<div class=searchbox><form enctype='text/plain' method=get action='?'><input type=hidden name=table value=$tableName /><input placeholder=term... type='search' name='{$tableName}[search]' /><button>Search</button></form></div>";
 	
 
 	echo "<table>";
@@ -872,16 +876,18 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		}
 		$colCount++;
 		echo "<th>";
-		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
+		if(($_GET[(string)$tableName]['order']['dir']??null) == 'asc' && ($_GET[(string)$tableName]['order']['col']??null) == (string)$col->getName()) {
 			
 			echo " <a href='?{$baseQuery
 			->remove([$tableName,'order','count'])
+			->remove([$tableName,'order','ref'])
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'desc')
 			->remove([$tableName,'page'])}{$hash}'>";
 		} else {
 			echo " <a href='?{$baseQuery
 			->remove([$tableName,'order','count'])
+			->remove([$tableName,'order','ref'])
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'asc')
 			->remove([$tableName,'page'])}{$hash}'>";
@@ -896,11 +902,12 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		echo "</a> ";
 		echo "<a href='?{$baseQuery
 			->remove([$tableName,'order','count'])
+			->remove([$tableName,'order','ref'])
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'asc')
 			->remove([$tableName,'page'])
 		}{$hash}' class=sort>";
-		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
+		if(($_GET[(string)$tableName]['order']['dir']??null) == 'asc' && ($_GET[(string)$tableName]['order']['col']??null) == (string)$col->getName()) {
 			echo "▲";
 		} else {
 			echo "△";
@@ -908,11 +915,12 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		echo "</a>";
 		echo "<a href='?{$baseQuery
 			->remove([$tableName,'order','count'])
+			->remove([$tableName,'order','ref'])
 			->replace([$tableName,'order','col'], $col->getName())
 			->replace([$tableName,'order','dir'], 'desc')
 			->remove([$tableName,'page'])
 		}{$hash}' class=sort>";
-		if($_GET[(string)$tableName]['order']['dir'] == 'desc' && $_GET[(string)$tableName]['order']['col'] == (string)$col->getName()) {
+		if(($_GET[(string)$tableName]['order']['dir']??null) == 'desc' && ($_GET[(string)$tableName]['order']['col']??null) == (string)$col->getName()) {
 			echo "▼";
 		} else {
 			echo "▽";
@@ -926,9 +934,54 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		
 		$targetTable = $fk->getTargetTable();
 
+		if(($_GET[(string)$tableName]['order']['dir']??null) == 'asc' && ($_GET[(string)$tableName]['order']['ref']??null) == (string)$fk->getName()) {
+			
+			echo " <a href='?{$baseQuery
+			->remove([$tableName,'order','col'])
+			->remove([$tableName,'order','count'])
+			->replace([$tableName,'order','ref'], $fk->getName())
+			->replace([$tableName,'order','dir'], 'desc')
+			->remove([$tableName,'page'])}{$hash}'>";
+		} else {
+			echo " <a href='?{$baseQuery
+			->remove([$tableName,'order','col'])
+			->remove([$tableName,'order','count'])
+			->replace([$tableName,'order','ref'], $fk->getName())
+			->replace([$tableName,'order','dir'], 'asc')
+			->remove([$tableName,'page'])}{$hash}'>";
+		}
+
 		echo ucwords(str_replace('_', ' ', 
 			preg_replace('/^fk_.+__/i', '', $fk->getName())
 		));
+
+		echo "</a> ";
+		echo "<a href='?{$baseQuery
+			->remove([$tableName,'order','col'])
+			->remove([$tableName,'order','ref'])
+			->remove([$tableName,'order','count'])
+			->replace([$tableName,'order','ref'], $fk->getName())
+			->replace([$tableName,'order','dir'], 'asc')
+			->remove([$tableName,'page'])
+		}{$hash}' class=sort>";
+		if(($_GET[(string)$tableName]['order']['dir']??null) == 'asc' && ($_GET[(string)$tableName]['order']['ref']??null) == (string)$fk->getName()) {
+			echo "▲";
+		} else {
+			echo "△";
+		}
+		echo "<a href='?{$baseQuery
+			->remove([$tableName,'order','col'])
+			->remove([$tableName,'order','count'])
+			->replace([$tableName,'order','ref'], $fk->getName())
+			->replace([$tableName,'order','dir'], 'desc')
+			->remove([$tableName,'page'])
+		}{$hash}' class=sort>";
+		if(($_GET[(string)$tableName]['order']['dir']??null) == 'desc' && ($_GET[(string)$tableName]['order']['ref']??null) == (string)$fk->getName()) {
+			echo "▼";
+		} else {
+			echo "▽";
+		}
+		echo "</a>";
 		
 		echo "</th>";
 	}
@@ -938,16 +991,18 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		
 		$sourceTable = $rfk->getOwnTable();
 
-		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['count'] == (string)$rfk->getName()) {
+		if(($_GET[(string)$tableName]['order']['dir']??null) == 'asc' && ($_GET[(string)$tableName]['order']['count']??null) == (string)$rfk->getName()) {
 			
 			echo " <a href='?{$baseQuery
 			->remove([$tableName,'order','col'])
+			->remove([$tableName,'order','ref'])
 			->replace([$tableName,'order','count'], $rfk->getName())
 			->replace([$tableName,'order','dir'], 'desc')
 			->remove([$tableName,'page'])}{$hash}'>";
 		} else {
 			echo " <a href='?{$baseQuery
 			->remove([$tableName,'order','col'])
+			->remove([$tableName,'order','ref'])
 			->replace([$tableName,'order','count'], $rfk->getName())
 			->replace([$tableName,'order','dir'], 'asc')
 			->remove([$tableName,'page'])}{$hash}'>";
@@ -960,11 +1015,12 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		echo "</a> ";
 		echo "<a href='?{$baseQuery
 			->remove([$tableName,'order','col'])
+			->remove([$tableName,'order','ref'])
 			->replace([$tableName,'order','count'], $rfk->getName())
 			->replace([$tableName,'order','dir'], 'asc')
 			->remove([$tableName,'page'])
 		}{$hash}' class=sort>";
-		if($_GET[(string)$tableName]['order']['dir'] == 'asc' && $_GET[(string)$tableName]['order']['count'] == (string)$rfk->getName()) {
+		if(($_GET[(string)$tableName]['order']['dir']??null) == 'asc' && ($_GET[(string)$tableName]['order']['count']??null) == (string)$rfk->getName()) {
 			echo "▲";
 		} else {
 			echo "△";
@@ -972,11 +1028,12 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 		echo "</a>";
 		echo "<a href='?{$baseQuery
 			->remove([$tableName,'order','col'])
+			->remove([$tableName,'order','ref'])
 			->replace([$tableName,'order','count'], $rfk->getName())
 			->replace([$tableName,'order','dir'], 'desc')
 			->remove([$tableName,'page'])
 		}{$hash}' class=sort>";
-		if($_GET[(string)$tableName]['order']['dir'] == 'desc' && $_GET[(string)$tableName]['order']['count'] == (string)$rfk->getName()) {
+		if(($_GET[(string)$tableName]['order']['dir']??null) == 'desc' && ($_GET[(string)$tableName]['order']['count']??null) == (string)$rfk->getName()) {
 			echo "▼";
 		} else {
 			echo "▽";
@@ -1053,19 +1110,22 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 					$val = '*****';
 				}
 
-				if($attributes['Hyper'] === 'email') {
-					echo " <a class='hyper' href='mailto:$val'>💬</a> ";
-				} elseif($attributes['hyper'] === 'country') {
-					$lower = strtolower($val);
-					echo "<img width='50' src='https://lipis.github.io/flag-icon-css/flags/4x3/$lower.svg' alt='$val' /> ";
+				if(array_key_exists('Hyper', $attributes)) {
+					if($attributes['Hyper'] === 'email') {
+						echo " <a class='hyper' href='mailto:$val'>💬</a> ";
+					} elseif($attributes['Hyper'] === 'country') {
+						$lower = strtolower($val);
+						echo "<img width='50' src='https://lipis.github.io/flag-icon-css/flags/4x3/$lower.svg' alt='$val' /> ";
+					}
 				}
+				
 
 				if ($isLink) {
 					$idQ = buildIdQuery($table, $row);
 					echo "<a href='?$idQ'>";
 				}
 
-				switch($attributes['Display']) {
+				switch($attributes['Display'] ?? null) {
 					case 'boolean':
 						echo $val === '1' ? '<input type="checkbox" checked disabled>' : '<input type="checkbox" disabled>';
 						break;
@@ -1195,7 +1255,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	}'>CSV</a>";
 	echo "</div>";
 
-	echo "<div><a href='$addUrl'>+ New $tableTitle</a></div>";
+	echo "<div><a href='?$addUrl'>+ New $tableTitle</a></div>";
 }
 
 function renderCSV($table, $data) {
@@ -1483,7 +1543,7 @@ function parseColumnAttributes($string) {
 			if(array_key_exists($conf['key'], $attributes)) {
 				throw new \Exception("Duplicate attribute {$conf['key']}");
 			}
-			$attributes[$conf['key']] = $conf['val'];
+			$attributes[$conf['key']] = isset($conf['val']) ? $conf['val'] : null;
 		}
 	}
 
@@ -1504,7 +1564,11 @@ function buildTableQuery($table, $single = false, $includeChildCounts = FALSE, $
 		}
 	}
 
+	$orderByRel = null;
 	foreach ($table->foreignKeys() as $fk) {
+		if($orderBy == $fk->getName()) {
+			$orderByRel = $fk;
+		}
 		$targetTable = $fk->getTargetTable();
 
 		$sourceCols = $fk->getOwnColumns();
@@ -1557,14 +1621,35 @@ function buildTableQuery($table, $single = false, $includeChildCounts = FALSE, $
 	}
 
 	if($orderBy === NULL) {
-		$order = $table->hasPrimaryKeys() ? implode(', ', array_map(function($c) use ($table, $orderDir) {
-			return $table->getName() . '_' . $c->getName() . ' ' . 'asc';
-		}, iterator_to_array($table->primaryKeys()))) : '1';
-	} elseif($orderByCount) {
-		$order = sprintf('%s_count %s', $orderBy, ($orderDir == 'desc' ? 'desc' : 'asc'));
+		$order = [];
+	} elseif($orderByRel) {
+		$order = [];
+		$orderTarget = $orderByRel->getTargetTable();
+		$targetComment = $orderTarget->getComment();
+		$targetAttributes = parseColumnAttributes($targetComment);
+		
+		if(array_key_exists('Display', $targetAttributes)) {
+			preg_match_all('~\{(?<col>[^\}]+)\}~i', $targetAttributes['Display'], $cols);
+
+			$colNames = array_merge($cols['col'], array_map(function($c) {
+				return $c->getName();
+			}, iterator_to_array($orderByRel->getForeignColumns())));
+
+			if(!empty($colNames)) {
+				$order = array_map(function($c) use($orderDir, $orderByRel) {
+					return sprintf('%s_%s %s', $orderByRel->getName(), $c, ($orderDir == 'desc' ? 'desc' : 'asc'));
+				}, $colNames);
+			}
+		}
+	}  elseif($orderByCount) {
+		$order = [sprintf('%s_count %s', $orderBy, ($orderDir == 'desc' ? 'desc' : 'asc'))];
 	} else {
-		$order = sprintf('%s_%s %s', $table->getName(), $table->column($orderBy)->getName(), ($orderDir == 'desc' ? 'desc' : 'asc'));
+		$order = [sprintf('%s_%s %s', $table->getName(), $table->column($orderBy)->getName(), ($orderDir == 'desc' ? 'desc' : 'asc'))];
 	}
+
+	$order = $table->hasPrimaryKeys() ? implode(', ', array_merge($order, array_map(function($c) use ($table, $orderDir) {
+			return $table->getName() . '_' . $c->getName() . ' ' . 'asc';
+		}, iterator_to_array($table->primaryKeys())))) : '1';
 
 	return sprintf("SELECT \n\t%s \nFROM\n\t%s\n%s \nWHERE \n\t%s \nORDER BY %s \nLIMIT :limit \nOFFSET :offset",implode(", \n\t", $columns), implode(', ', $tables), empty($joins) ? '' : "LEFT JOIN\n\t" . implode("\nLEFT JOIN\n\t", $joins), implode(' AND ', $conditions) ?: '1', $order);
 }

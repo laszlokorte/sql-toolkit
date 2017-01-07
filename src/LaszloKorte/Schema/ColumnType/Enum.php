@@ -37,7 +37,7 @@ final class Enum implements ColumnType, Enumerable {
 		list(
 			$this->name,
 			$this->multi,
-			$this->options
+			$this->options,
 		) = unserialize($data);
 	}
 }

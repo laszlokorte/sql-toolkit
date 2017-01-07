@@ -47,7 +47,7 @@ final class ColumnDefinition implements Serializable {
 			$this->dataType,
 			$this->allowNull,
 			$this->defaultValue,
-			$this->comment
+			$this->comment,
 		) = unserialize($data);
 	}
 }

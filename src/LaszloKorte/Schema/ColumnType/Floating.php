@@ -24,7 +24,7 @@ final class Floating implements ColumnType, Serialable {
 
 	public function unserialize($data) {
 		list(
-			$this->bits
+			$this->bits,
 		) = unserialize($data);
 	}
 }

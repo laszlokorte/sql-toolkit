@@ -79,7 +79,7 @@ final class Table {
 		return count($this->def()->getPrimaryKeys()) !== 0;
 	}
 
-	private function def() {
+	public function def() {
 		return $this->schemaDefinition->getTableDefinition($this->tableName);
 	}
 }

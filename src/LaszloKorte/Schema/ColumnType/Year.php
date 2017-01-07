@@ -24,6 +24,6 @@ final class Year implements ColumnType {
 
 	public function unserialize($data) {
 		list(
-			$this->length
+			$this->length,
 		) = unserialize($data);
 	}

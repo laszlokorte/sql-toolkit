@@ -26,7 +26,7 @@ final class Blob implements ColumnType {
 	public function unserialize($data) {
 		list(
 			$this->length,
-			$this->binary
+			$this->binary,
 		) = unserialize($data);
 	}
 }

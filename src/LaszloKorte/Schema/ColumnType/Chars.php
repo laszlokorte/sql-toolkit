@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Schema\ColumnType;
 
-final class String implements ColumnType {
+final class Chars implements ColumnType {
 	public function __construct($length, $varLength) {
 		$this->length = $length;
 		$this->varLength = $varLength;
@@ -26,7 +26,7 @@ final class String implements ColumnType {
 	public function unserialize($data) {
 		list(
 			$this->length,
-			$this->varLength
+			$this->varLength,
 		) = unserialize($data);
 	}
 }

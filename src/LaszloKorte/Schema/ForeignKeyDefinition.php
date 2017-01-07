@@ -97,7 +97,7 @@ final class ForeignKeyDefinition implements Serializable {
 			$this->ownColumns,
 			$this->foreignColumns,
 			$this->onUpdate,
-			$this->onDelete
+			$this->onDelete,
 		) = unserialize($data);
 	}
 }
