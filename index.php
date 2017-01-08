@@ -866,7 +866,16 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 	}
 
 
-	echo "<div class=searchbox><form enctype='text/plain' method=get action='?'><input type=hidden name=table value=$tableName /><input placeholder=term... type='search' name='{$tableName}[search]' /><button>Search</button></form></div>";
+	echo "<div class=searchbox><form method=get action='?$hash'>";
+	$hiddenParams = explode('&', (string)$baseQuery->remove([$exportName, 'search']));
+	foreach($hiddenParams AS $hp) {
+		$split = explode('=', $hp, 2);
+		$n = $split[0];
+		$v = $split[1];
+		echo "<input type='hidden' name='$n' value='$v' />";
+	}
+	$currentValue = $baseQuery[$exportName]['search'] ?? '';
+	echo "<input placeholder='term...' value='$currentValue' type='search' name='{$exportName}[search]' /><button>Search</button></form></div>";
 	
 
 	echo "<table>";
