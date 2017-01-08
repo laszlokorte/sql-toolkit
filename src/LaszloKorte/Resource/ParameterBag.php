@@ -1,6 +1,6 @@
 <?php
 
-namespace LaszloKorte\Query;
+namespace LaszloKorte\Resource;
 
 use ArrayAccess;
 

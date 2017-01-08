@@ -32,7 +32,7 @@
 
 	use LaszloKorte\Resource\IdConverter;
 	use LaszloKorte\Resource\TableConverter;
-	use LaszloKorte\Query\ParameterBag;
+	use LaszloKorte\Resource\ParameterBag;
 
 	use LaszloKorte\Configurator\ConfigurationBuilder;
 	use LaszloKorte\Presenter\ApplicationBuilder;
