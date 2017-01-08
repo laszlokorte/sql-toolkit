@@ -1,0 +1,24 @@
+Ws                ::= S*
+Open              ::= "{{"
+Close             ::= "}}"
+PathSeperator     ::= "."
+FilterSeperator   ::= "|"
+Char              ::= [0-9a-zA-Z$_]
+FilterName        ::= Char+
+Chars             ::= Char+
+CharInQuotes      ::= [^`]
+CharsInQuote      ::= (CharInQuotes QuoteEscape)+
+Quote             ::= "`"
+QuoteEscape       ::= "\\"* "\`"*
+IdentSimple       ::= Chars // mysql identifier
+IdentQuoted       ::= Quote CharsInQuote Quote
+Identifier        ::= IdentSimple | IdentQuoted
+
+Path              ::= Identifier (PathSeperator Identifier)*
+Filter            ::= filterName
+Block             ::= Open Ws Path Ws (FilterSeperator Filter)* Ws Close
+
+ForeignChar       ::= [^{]
+ForeignEscape     ::= "\\"* "\{"*
+Foreign           ::= (ForeignChar ForeignEscape)+
+Template          ::= (Foreign | Block)*

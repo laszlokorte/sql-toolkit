@@ -1,0 +1,36 @@
+<Whitespace>        ::= [\s]
+<Ws>                ::= <Whitespace>*
+<Open>              ::= "{{"
+<Close>             ::= "}}"
+<PathSeperator>     ::= "."
+<FilterSeperator>   ::= "|"
+<Char>              ::= [0-9a-zA-Z$_]
+<FilterName>        ::= <Char>+
+<Chars>             ::= <Char>+
+<CharInQuotes>      ::= [^`]
+<CharsInQuote>      ::= (<CharInQuotes> <QuoteEscape>)+
+<Quote>             ::= "`"
+<QuoteEscape>       ::= "\\"* "\`"*
+<IdentSimple>       ::= <Chars> // mysql identifier
+<IdentQuoted>       ::= <Quote> <CharsInQuote> <Quote>
+<Identifier>        ::= <IdentSimple> | <IdentQuoted>
+
+<Path>              ::= <Identifier> (<PathSeperator> <Identifier>)*
+<Filter>            ::= <filterName>
+<Block>             ::= <Open> <Ws> <Path> <Ws> (<FilterSeperator> <Filter>)* <Ws> <Close>
+
+<ForeignChar>       ::= [^{]
+<ForeignEscape>     ::= "\\"* "\{"*
+<Foreign>           ::= (<ForeignChar> <ForeignEscape>)+
+<Template>          ::= (<Foreign> | <Block>)*
+
+/*
+Examples:
+{{ column_foo }}
+{{ fk_foo }}
+{{ fk_foo.column_bar }}
+{{ fk_foo.fk_bar.column_baz }}
+
+{{ column_foo | filter }}
+{{ fk_foo | filterA | filterB }}
+*/
