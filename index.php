@@ -1166,6 +1166,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 					case 'sort':
 						echo '☰';
 						echo $val;
+						break;
 					default:
 						echo is_null($val) ? '<span class="empty">-</span>' : $val;
 				}
