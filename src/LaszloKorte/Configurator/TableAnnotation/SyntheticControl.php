@@ -5,12 +5,12 @@ namespace LaszloKorte\Configurator\TableAnnotation;
 /**
  * @Annotation 
  */
-class SyntheticInterface {
-	private $interfaceName;
-	private $params;
+class SyntheticControl implements Annotation {
+	public $interfaceName;
+	public $params;
 
 	public function __construct($params) {
 		$this->interfaceName = $params['value'];
-		$this->params = $params;
+		$this->params = array_diff_key($params, array_flip(['value']));
 	}
 }

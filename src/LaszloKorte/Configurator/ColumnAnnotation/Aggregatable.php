@@ -5,7 +5,7 @@ namespace LaszloKorte\Configurator\ColumnAnnotation;
 /**
  * @Annotation 
  */
-class Aggregatable {
+class Aggregatable implements Annotation {
 
 	public function __construct() {
 	}

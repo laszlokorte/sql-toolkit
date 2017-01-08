@@ -5,12 +5,10 @@ namespace LaszloKorte\Configurator\ColumnAnnotation;
 /**
  * @Annotation 
  */
-class Interface {
-	private $name;
-	private $params;
+class Priority implements Annotation {
+	public $value;
 
 	public function __construct($params) {
-		$this->name = $params['value'];
-		$this->params = $params;
+		$this->value = $params['value'];
 	}
 }

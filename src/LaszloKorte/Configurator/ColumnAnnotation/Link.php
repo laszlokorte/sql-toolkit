@@ -6,7 +6,7 @@ namespace LaszloKorte\Configurator\ColumnAnnotation;
 /**
  * @Annotation 
  */
-class Link {
+class Link implements Annotation {
 
 	public function __construct() {
 	}

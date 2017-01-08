@@ -10,17 +10,19 @@ final class Lexer {
 	const T_PATH_SEPARATOR = 'T_PATH_SEPARATOR';
 	const T_FILTER_SEPARATOR = 'T_FILTER_SEPARATOR';
 	const T_IDENTIFIER = 'T_IDENTIFIER';
+	const T_IDENTIFIER_QUOTED = 'T_IDENTIFIER_QUOTED';
 	const T_FOREIGN = 'T_FOREIGN';
 
 
 	private $terminals = [
-		 'T_WHITESPACE' => '~(\s+)~iA',
-		 'T_OPEN' => '~(\{\{)~iA',
-		 'T_CLOSE' => '~(\}\})~iA',
-		 'T_PATH_SEPARATOR' => '~(\.)~iA',
-		 'T_FILTER_SEPARATOR' => '~(\|)~iA',
-		 'T_IDENTIFIER' => '~(?:(?:([0-9a-zA-Z\$\_]+)|\`((?:[^\`]|\\|\`)+)\`))~iA',
-		 'T_FOREIGN' => '~((?:{[^{])*(?:[^{](?:\\\\)*(?:\\{)*)+)~iA',
+		 self::T_WHITESPACE => '~\s+~iA',
+		 self::T_OPEN => '~\{\{~iA',
+		 self::T_CLOSE => '~\}\}~iA',
+		 self::T_PATH_SEPARATOR => '~\.~iA',
+		 self::T_FILTER_SEPARATOR => '~\|~iA',
+		 self::T_IDENTIFIER_QUOTED => '~\`(?:[^\`]|\\|\`)+\`~iA',
+		 self::T_IDENTIFIER => '~[0-9a-zA-Z\$\_]+~iA',
+		 self::T_FOREIGN => '~(?:\{[^\{])*(?:[^{](?:\\\\)*(?:\\{)*)+~iA',
 	];
 
 	public function __construct() {
@@ -36,7 +38,7 @@ final class Lexer {
 				throw new \Exception(sprintf("Unexpected char '%s' at offset %d", $string[$offset], $offset));
 			}
 			$tokens[] = $result;
-			$offset += strlen($result['match']);
+			$offset += strlen($result['text']);
 		}
 
 		return $tokens;
@@ -46,7 +48,7 @@ final class Lexer {
 		foreach($this->terminals as $name => $pattern) {
 			if(preg_match($pattern, $string, $matches, 0, $offset)) {
 				return array(
-					'match' => $matches[1],
+					'text' => $matches[0],
 					'token_type' => $name,
 					'offset' => $offset,
 				);

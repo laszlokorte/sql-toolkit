@@ -5,8 +5,8 @@ namespace LaszloKorte\Configurator\TableAnnotation;
 /**
  * @Annotation 
  */
-class ParentRel {
-	private $parentName;
+class ParentRel implements Annotation {
+	public $parentName;
 
 	public function __construct($params) {
 		$this->parentName = $params['value'];

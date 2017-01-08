@@ -5,8 +5,8 @@ namespace LaszloKorte\Configurator\ColumnAnnotation;
 /**
  * @Annotation 
  */
-class Description {
-	private $text;
+class Description implements Annotation {
+	public $text;
 
 	public function __construct($params) {
 		$this->text = $params['value'];

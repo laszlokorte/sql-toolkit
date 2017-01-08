@@ -5,9 +5,9 @@ namespace LaszloKorte\Configurator\TableAnnotation;
 /**
  * @Annotation 
  */
-class Title {
-	private $singular;
-	private $plural;
+class Title implements Annotation {
+	public $singular;
+	public $plural;
 
 	public function __construct($params) {
 		if(isset($params['value'])) {

@@ -80,6 +80,7 @@ $appDef = $appBuilder->buildApplication($schemaConf);
 
 $app = new Application();
 
+
 $app['helper.inflector'] = function() {
 	return new Inflector();
 };
@@ -611,7 +612,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 					if(array_key_exists('Display', $tableAttributes)) {
 						$template = $tableAttributes['Display'];
 
-						echo preg_replace_callback('~\{(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}~i', function($m) use ($data, $targetName) {
+						echo preg_replace_callback('~\{\{(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}\}~i', function($m) use ($data, $targetName) {
 							$idx = $targetName . '_' . $m['col'];
 							return $data->$idx ?: '';
 						}, $template);
@@ -1189,7 +1190,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 					if(array_key_exists('Display', $tableAttributes)) {
 						$template = $tableAttributes['Display'];
 
-						$val = preg_replace_callback('~\{(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}~i', function($m) use ($row, $targetName) {
+						$val = preg_replace_callback('~\{\{(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}\}~i', function($m) use ($row, $targetName) {
 							$idx = $targetName . '_' . $m['col'];
 							return $row->$idx ?: '';
 						}, $template);
@@ -1389,7 +1390,7 @@ function renderForm($table, $connection, $scope, $parentFk = NULL, $hideParent =
 			$optTemplate = '{id}';
 		}
 
-		preg_match_all('~\{(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}~i', $optTemplate, $colRefs);
+		preg_match_all('~\{\{(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}\}~i', $optTemplate, $colRefs);
 
 		$colRefs = $colRefs['col'];
 		$uniqIndices = [];
@@ -1426,7 +1427,7 @@ function renderForm($table, $connection, $scope, $parentFk = NULL, $hideParent =
 			$xComment = $f->getTargetTable()->getComment();
 			$xAttributes = parseColumnAttributes($xComment);
 			if(array_key_exists('Display', $xAttributes)) {
-				return preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}~i', function($m) use ($fkName) {
+				return preg_replace_callback('~\{\{((?<fk>[^\}:]+):)?(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}\}~i', function($m) use ($fkName) {
 					$pre = !empty($m['fk']) ? $m['fk'] : $fkName;
 					$idx = $pre . ':' . $m['col'];
 					return "[{".$idx."}]";
@@ -1454,7 +1455,7 @@ function renderForm($table, $connection, $scope, $parentFk = NULL, $hideParent =
 					break;
 				}
 				echo "<option value=''>";
-				echo preg_replace_callback('~(?<pre>\s*)\{((?<fk>[^\}:]+):)?(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}(?<post>\s*)~i', function($m) use ($opt, $optTargetName) {
+				echo preg_replace_callback('~(?<pre>\s*)\{\{((?<fk>[^\}\}:]+):)?(?<col>[^\}\|]+)(\|(?<mod>[^\}\}\|]+))?\}\}(?<post>\s*)~i', function($m) use ($opt, $optTargetName) {
 					if(isset($m['mod']) && $m['mod'] === 'raw') {
 						return '';
 					}
@@ -1656,7 +1657,7 @@ function buildTableQuery($table, $single = false, $includeChildCounts = FALSE, $
 		$targetAttributes = parseColumnAttributes($targetComment);
 		
 		if(array_key_exists('Display', $targetAttributes)) {
-			preg_match_all('~\{(?<col>[^\}\|]+)\}~i', $targetAttributes['Display'], $cols);
+			preg_match_all('~\{\{(?<col>[^\}\|]+)\}\}~i', $targetAttributes['Display'], $cols);
 
 			$colNames = array_merge($cols['col'], array_map(function($c) {
 				return $c->getName();

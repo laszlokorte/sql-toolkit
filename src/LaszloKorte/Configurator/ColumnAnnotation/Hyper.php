@@ -6,9 +6,9 @@ namespace LaszloKorte\Configurator\ColumnAnnotation;
 /**
  * @Annotation 
  */
-class Hyper {
+class Hyper implements Annotation {
 
-	private $type;
+	public $type;
 
 	public function __construct($params) {
 		$this->type = $params['value'];

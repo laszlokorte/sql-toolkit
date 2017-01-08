@@ -2,73 +2,68 @@
 
 namespace LaszloKorte\Resource\Template;
 
-require 'Lexer.php';
+use LaszloKorte\Resource\Template\Nodes\Filter;
+use LaszloKorte\Resource\Template\Nodes\OutputTag;
+use LaszloKorte\Resource\Template\Nodes\Path;
+use LaszloKorte\Resource\Template\Nodes\Sequence;
+use LaszloKorte\Resource\Template\Nodes\StaticText;
 
 final class Parser {
 
-	const STATE_FOREIGN = 1;
-	const STATE_BLOCK_BEGIN = 2;
-	const STATE_PATH_BEGIN = 4;
-	const STATE_PATH_COMPLETE = 8;
-	const STATE_PATH_AFTER = 16;
-	const STATE_FILTER_BEGIN = 32;
-	const STATE_FILTER_COMPLETE = 64;
+	const STATE_STATIC = 1;
+	const STATE_PATH_BEGIN = 2;
+	const STATE_PATH_COMPLETE = 4;
+	const STATE_FILTER_BEGIN = 8;
+	const STATE_FILTER_COMPLETE = 16;
+	const STATE_TAG_BEGIN = 32;
 
-	private $state = self::STATE_FOREIGN;
-	private $result = null;
+	private $state = self::STATE_STATIC;
+	private $stack = [];
 
 	public function __construct() {
 	}
 
 	public function parse(array $tokens) {
+		$this->state = self::STATE_STATIC;
+		$this->stack = [new Sequence()];
 		foreach($tokens AS $token) {
-			var_dump($token['token_type']);
+			if($token['token_type'] == Lexer::T_WHITESPACE) {
+				continue;
+			}
 			$this->state = $this->consume($token);
 		}
 
-		return $this->result;
+		return $this->stack[0];
 	}
 
 	private function consume($token) {
 		switch($this->state) {
-			case self::STATE_FOREIGN:
+			case self::STATE_STATIC:
 				switch($token['token_type']) {
-					case Lexer::T_WHITESPACE:
-						return self::STATE_FOREIGN;
-						break;
 					case Lexer::T_OPEN:
-						return self::STATE_BLOCK_BEGIN;
+						array_unshift($this->stack, new Path());
+						return self::STATE_TAG_BEGIN;
 						break;
 					default:
-						throw $this->expectationFailed($token, [
-							Lexer::T_WHITESPACE,
-							Lexer::T_OPEN,
-						]);
+						$this->stack[0]->append(new StaticText($token['text']));
+						return self::STATE_STATIC;
 				}
 				break;
-			case self::STATE_BLOCK_BEGIN:
-				switch($token['token_type']) {
-					case Lexer::T_WHITESPACE:
-						return self::STATE_PATH_BEGIN;
-						break;
-					case Lexer::T_IDENTIFIER:
-						return self::STATE_PATH_COMPLETE;
-						break;
-					default:
-						throw $this->expectationFailed($token, [
-							Lexer::T_WHITESPACE,
-							Lexer::T_IDENTIFIER,
-						]);
-				}
-				break;
+			case self::STATE_TAG_BEGIN:
 			case self::STATE_PATH_BEGIN:
 				switch($token['token_type']) {
 					case Lexer::T_IDENTIFIER:
+						$this->stack[0]->extend($token['text']);
+						return self::STATE_PATH_COMPLETE;
+						break;
+					case Lexer::T_IDENTIFIER_QUOTED:
+						$this->stack[0]->extend($this->unquoteIdentifier($token['text']));
 						return self::STATE_PATH_COMPLETE;
 						break;
 					default:
 						throw $this->expectationFailed($token, [
 							Lexer::T_IDENTIFIER,
+							Lexer::T_IDENTIFIER_QUOTED,
 						]);
 				}
 				break;
@@ -78,59 +73,47 @@ final class Parser {
 						return self::STATE_PATH_BEGIN;
 						break;
 					case Lexer::T_FILTER_SEPARATOR:
+						$path = array_shift($this->stack);
+						array_unshift($this->stack, new OutputTag($path));
 						return self::STATE_FILTER_BEGIN;
 						break;
-					case Lexer::T_WHITESPACE:
-						return self::STATE_PATH_AFTER;
+					case Lexer::T_CLOSE:
+						$path = array_shift($this->stack);
+						$output = new OutputTag($path);
+						$this->stack[0]->append($output);
+						return self::STATE_STATIC;
 						break;
 					default:
 						throw $this->expectationFailed($token, [
 							Lexer::T_PATH_SEPARATOR,
-							Lexer::T_WHITESPACE,
-							Lexer::T_FILTER_SEPARATOR,
-						]);
-				}
-				break;
-			case self::STATE_PATH_AFTER:
-				switch($token['token_type']) {
-					case Lexer::T_FILTER_SEPARATOR:
-						return self::STATE_FILTER_BEGIN;
-						break;
-					default:
-						throw $this->expectationFailed($token, [
 							Lexer::T_FILTER_SEPARATOR,
 						]);
 				}
 				break;
 			case self::STATE_FILTER_BEGIN:
 				switch($token['token_type']) {
-					case Lexer::T_WHITESPACE:
-						return self::STATE_FILTER_BEGIN;
-						break;
 					case Lexer::T_IDENTIFIER:
+						$this->stack[0]->addFilter(new Filter($token['text']));
 						return self::STATE_FILTER_COMPLETE;
 						break;
 					default:
 						throw $this->expectationFailed($token, [
-							Lexer::T_WHITESPACE,
 							Lexer::T_IDENTIFIER,
 						]);
 				}
 				break;
 			case self::STATE_FILTER_COMPLETE:
 				switch($token['token_type']) {
-					case Lexer::T_WHITESPACE:
-						return self::STATE_FILTER_COMPLETE;
-						break;
 					case Lexer::T_FILTER_SEPARATOR:
 						return self::STATE_FILTER_BEGIN;
 						break;
 					case Lexer::T_CLOSE:
-						return self::STATE_FOREIGN;
+						$output = array_shift($this->stack);
+						$this->stack[0]->append($output);
+						return self::STATE_STATIC;
 						break;
 					default:
 						throw $this->expectationFailed($token, [
-							Lexer::T_WHITESPACE,
 							Lexer::T_FILTER_SEPARATOR,
 							Lexer::T_CLOSE,
 						]);
@@ -144,14 +127,8 @@ final class Parser {
 	private function expectationFailed($token, array $expected) {
 		return new \Exception(sprintf('Unexpected token "%s" at offset %s expected one of %s (%s)', $token['token_type'], $token['offset'], implode(', ', $expected), $this->state));
 	}
+
+	private function unquoteIdentifier($string) {
+		return substr($string, 1, -1);
+	}
 }
-
-
-$test = '{{ foo.bar.baz | filter | asd }}';
-$lexer = new Lexer();
-$parser = new Parser();
-
-// preg_match('~(\s+)~iA', $test, $m, 0, 2);
-// var_dump($m);
-
-var_dump($parser->parse($lexer->tokenize($test)));

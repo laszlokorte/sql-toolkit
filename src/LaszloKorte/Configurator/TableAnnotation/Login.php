@@ -5,9 +5,9 @@ namespace LaszloKorte\Configurator\TableAnnotation;
 /**
  * @Annotation 
  */
-class Login {
-	private $loginColumn;
-	private $passwordColumn;
+class Login implements Annotation {
+	public $loginColumn;
+	public $passwordColumn;
 
 	public function __construct($params) {
 		$this->loginColumn = isset($params['login']) ? $params['login'] : null;

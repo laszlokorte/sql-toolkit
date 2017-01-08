@@ -5,10 +5,10 @@ namespace LaszloKorte\Configurator\TableAnnotation;
 /**
  * @Annotation 
  */
-class RelationName {
-	private $fkName;
-	private $singular;
-	private $plural;
+class RelationName implements Annotation {
+	public $fkName;
+	public $singular;
+	public $plural;
 
 	public function __construct($params) {
 		$this->fkName = $params['fk'] ?? $params['value'];
