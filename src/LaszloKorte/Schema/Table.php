@@ -44,7 +44,7 @@ final class Table {
 	}
 
 	public function foreignKey($name) {
-		return new ForeignKey(new Identifier($name), $this->tableName, $this->schemaDefinition);
+		return new ForeignKey(new Identifier($name), $this->schemaDefinition);
 	}
 
 	public function index($name) {

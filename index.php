@@ -470,7 +470,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 			}
 			echo "<form method='post'>";
 			
-			renderForm($table, $connection, [$tableName]);
+			renderForm($table, $connection, [$tableName], isset($_GET['parent']) ? $table->foreignKey($_GET['parent']) : null, false);
 
 			echo "<button>Create $tableTitle</button>";
 			echo " | <a href='?table=$tableName'>Cancel</a>";
@@ -611,7 +611,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 					if(array_key_exists('Display', $tableAttributes)) {
 						$template = $tableAttributes['Display'];
 
-						echo preg_replace_callback('~\{(?<col>[^\}]+)\}~i', function($m) use ($data, $targetName) {
+						echo preg_replace_callback('~\{(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}~i', function($m) use ($data, $targetName) {
 							$idx = $targetName . '_' . $m['col'];
 							return $data->$idx ?: '';
 						}, $template);
@@ -1189,7 +1189,7 @@ function renderTable($table, $data, $page, $baseQuery, $parentFK = NULL) {
 					if(array_key_exists('Display', $tableAttributes)) {
 						$template = $tableAttributes['Display'];
 
-						$val = preg_replace_callback('~\{(?<col>[^\}]+)\}~i', function($m) use ($row, $targetName) {
+						$val = preg_replace_callback('~\{(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}~i', function($m) use ($row, $targetName) {
 							$idx = $targetName . '_' . $m['col'];
 							return $row->$idx ?: '';
 						}, $template);
@@ -1344,7 +1344,7 @@ function maybeEncodeCSVField($string) {
     return $string;
 }
 
-function renderForm($table, $connection, $scope, $parentFk = NULL) {
+function renderForm($table, $connection, $scope, $parentFk = NULL, $hideParent = true) {
 	echo "<dl class='prop-list'>";
 	$scopeString = scopeToFieldName($scope);
 	$tableComment = $table->getComment();
@@ -1352,7 +1352,7 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 	
 
 	foreach ($table->foreignKeys() as $fk) {
-		if($fk == $parentFk) {
+		if($hideParent && $fk == $parentFk) {
 			continue;
 		}
 		echo "<dt>";
@@ -1362,6 +1362,12 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 		echo $fkTitle;
 		echo "</dt>";
 		echo "<dd>";
+
+		if(!$hideParent && $fk == $parentFk) {
+			echo "[XXX]";
+			echo "</dd>";
+			continue;
+		}
 		
 		$optTargetTable = $fk->getTargetTable();
 		$optionComment = $optTargetTable->getComment();
@@ -1383,7 +1389,7 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 			$optTemplate = '{id}';
 		}
 
-		preg_match_all('~\{(?<col>[^\}]+)\}~i', $optTemplate, $colRefs);
+		preg_match_all('~\{(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}~i', $optTemplate, $colRefs);
 
 		$colRefs = $colRefs['col'];
 		$uniqIndices = [];
@@ -1420,7 +1426,7 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 			$xComment = $f->getTargetTable()->getComment();
 			$xAttributes = parseColumnAttributes($xComment);
 			if(array_key_exists('Display', $xAttributes)) {
-				return preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}]+)\}~i', function($m) use ($opt, $fkName) {
+				return preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}~i', function($m) use ($fkName) {
 					$pre = !empty($m['fk']) ? $m['fk'] : $fkName;
 					$idx = $pre . ':' . $m['col'];
 					return "[{".$idx."}]";
@@ -1448,10 +1454,13 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 					break;
 				}
 				echo "<option value=''>";
-				echo preg_replace_callback('~\{((?<fk>[^\}:]+):)?(?<col>[^\}]+)\}~i', function($m) use ($opt, $optTargetName) {
+				echo preg_replace_callback('~(?<pre>\s*)\{((?<fk>[^\}:]+):)?(?<col>[^\}\|]+)(\|(?<mod>[^\}\|]+))?\}(?<post>\s*)~i', function($m) use ($opt, $optTargetName) {
+					if(isset($m['mod']) && $m['mod'] === 'raw') {
+						return '';
+					}
 					$pre = !empty($m['fk']) ? $m['fk'] : $optTargetName;
 					$idx = $pre . '_' . $m['col'];
-					return $opt->$idx ?: '';
+					return $m['pre'] . ($opt->$idx ?: '') . $m['post'];
 				}, $optTemplate);
 				echo "</option>";
 			}
@@ -1526,18 +1535,21 @@ function renderForm($table, $connection, $scope, $parentFk = NULL) {
 	global $inflector;
 
 	if(
-		!$parentFk && 
+		!$hideParent ||
+		!$parentFk
 		//!array_key_exists('NoChildren', $tableAttributes) && 
-		count($table->reverseForeignKeys())
 	) {
-		echo "<h2>Child Data</h2>";
+		if(count($table->reverseForeignKeys())) {
+			echo "<h2>Child Data</h2>";
+		}
 		foreach ($table->reverseForeignKeys() as $assoc) {
 			$sourceTable = $assoc->getOwnTable();
 			$relTitle = ucwords(str_replace('_', ' ', 
 				preg_replace('/^fk_.+__/i', '', $assoc->getName())
 			));
 			$sourceTitle = ucwords(str_replace('_', ' ', $sourceTable->getName()));
-			echo "<h3>{$inflector->pluralize($sourceTitle)} this is a {$relTitle} of</h3>";
+			echo "<h3>{$inflector->pluralize($sourceTitle)}</h3>";
+			//  this is a {$relTitle} of
 			echo "<div class=child-records>";
 
 			renderForm($sourceTable, $connection, [], $assoc);
@@ -1644,7 +1656,7 @@ function buildTableQuery($table, $single = false, $includeChildCounts = FALSE, $
 		$targetAttributes = parseColumnAttributes($targetComment);
 		
 		if(array_key_exists('Display', $targetAttributes)) {
-			preg_match_all('~\{(?<col>[^\}]+)\}~i', $targetAttributes['Display'], $cols);
+			preg_match_all('~\{(?<col>[^\}\|]+)\}~i', $targetAttributes['Display'], $cols);
 
 			$colNames = array_merge($cols['col'], array_map(function($c) {
 				return $c->getName();
