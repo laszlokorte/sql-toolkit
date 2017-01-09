@@ -7,7 +7,17 @@ use LaszloKorte\Schema\Column;
 
 final class FieldBuilder {
 	private $prevAnnotations = [];
-	private $columns;
+	private $column;
+
+	private $isAggregatable = false;
+	private $description = null;
+	private $visibleInCollection = true;
+	private $typeName = null;
+	private $typeParams = null;
+	private $isLinked = null;
+	private $isSecret = false;
+	private $title = null;
+	private $isVisible = true;
 
 	public function __construct(Column $column) {
 		$this->column = $column;

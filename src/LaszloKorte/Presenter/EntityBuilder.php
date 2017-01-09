@@ -9,6 +9,19 @@ final class EntityBuilder {
 	private $prevAnnotations = [];
 	private $table;
 
+	private $description = NULL;
+	private $group = NULL;
+	private $hasChildren = true;
+	private $parentName = NULL;
+	private $priority = 0;
+	private $sortColumn = null;
+	private $singularTitle = null;
+	private $pluralTitle = null;
+	private $isVisible = true;
+	private $collectionViews = [];
+	private $foreignKeyNames = [];
+	private $syntheticControls = [];
+
 	public function __construct(Table $table) {
 		$this->table = $table;
 	}
@@ -23,7 +36,7 @@ final class EntityBuilder {
 	}
 
 	public function attachFieldBuilder(FieldBuilder $fieldBuilder) {
-		
+
 	}
 
 	public function setDescription($description) {
