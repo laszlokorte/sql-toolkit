@@ -3,12 +3,14 @@
 namespace LaszloKorte\Presenter;
 
 use LaszloKorte\Configurator\SchemaConfiguration;
+use LaszloKorte\Configurator\TableAnnotation as TA;
+use LaszloKorte\Configurator\ColumnAnnotation as CA;
 
 use LaszloKorte\Resource\Template\Parser;
 use LaszloKorte\Resource\Template\Lexer;
 
-use LaszloKorte\Configurator\TableAnnotation as TA;
-use LaszloKorte\Configurator\ColumnAnnotation as CA;
+use LaszloKorte\Schema\IdentifierMap;
+
 
 final class ApplicationBuilder {
 
@@ -21,10 +23,12 @@ final class ApplicationBuilder {
 	}
 
 	public function buildApplication(SchemaConfiguration $configuration) {
-		$app = new ApplicationDefinition();
+		$appDef = new ApplicationDefinition();
+		$entityBuilders = new IdentifierMap();
 
 		foreach($configuration->getTableIds() as $tableId) {
 			$tableConf = $configuration->getTableConf($tableId);
+
 
 			$entityBuilder = new EntityBuilder($tableConf->getTable());
 
@@ -44,6 +48,13 @@ final class ApplicationBuilder {
 			}
 
 			$entityBuilder->attachFieldBuilder($fieldBuilder);
+			$entityBuilders[$tableId] = $entityBuilder;
+		}
+
+		foreach($entityBuilders AS $tableId) {
+			$builder = $entityBuilders[$tableId];
+
+			$builder->buildEntity($appDef);
 		}
 	}
 

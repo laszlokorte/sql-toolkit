@@ -33,35 +33,60 @@ final class FieldBuilder {
 	}
 
 	public function setAggregatable($isAggregatable) {
-
+		if(!is_bool($isAggregatable)) {
+			throw new \InvalidArgumentException(__METHOD__);
+		}
+		$this->isAggregatable = $isAggregatable;
 	}
 
 	public function setDescription($description) {
-
+		if(!is_string($description)) {
+			throw new \InvalidArgumentException(__METHOD__);
+		}
+		$this->description = $description;
 	}
 
 	public function setCollectionVisible($visible) {
-
+		if(!is_bool($visible)) {
+			throw new \InvalidArgumentException(__METHOD__);
+		}
+		$this->visibleInCollection = $visible;
 	}
 
-	public function setType($type, $params) {
-
+	public function setType($type, array $params) {
+		if(!is_string($type)) {
+			throw new \InvalidArgumentException(__METHOD__);
+		}
+		$this->type = $type;
+		$this->typeParams = $params;
 	}
 
 	public function setLinked($isLinked) {
-
+		if(!is_bool($isLinked)) {
+			throw new \InvalidArgumentException(__METHOD__);
+		}
+		$this->isLinked = $isLinked;
 	}
 
 	public function setSecret($isSecret) {
-
+		if(!is_bool($isSecret)) {
+			throw new \InvalidArgumentException(__METHOD__);
+		}
+		$this->isSecret = $isSecret;
 	}
 
 	public function setTitle($title) {
-
+		if(!is_string($title)) {
+			throw new \InvalidArgumentException(__METHOD__);
+		}
+		$this->title = $title;
 	}
 
 	public function setVisible($isVisible) {
-
+		if(!is_bool($isVisible)) {
+			throw new \InvalidArgumentException(__METHOD__);
+		}
+		$this->isVisible = $isVisible;
 	}
 
 }
