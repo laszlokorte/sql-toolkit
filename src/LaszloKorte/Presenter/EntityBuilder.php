@@ -12,6 +12,7 @@ final class EntityBuilder {
 	private $table;
 	private $fieldBuilders = [];
 
+	private $id = NULL;
 	private $description = NULL;
 	private $group = NULL;
 	private $hasChildren = true;
@@ -58,6 +59,13 @@ final class EntityBuilder {
 
 	public function disableChildren() {
 		$this->hasChildren = false;
+	}
+
+	public function setId($id) {
+		if(!is_string($id)) {
+			throw new \InvalidArgumentException(__METHOD__);
+		}
+		$this->id = $id;
 	}
 
 	public function setParent($parentName) {

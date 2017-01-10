@@ -111,6 +111,10 @@ final class ApplicationBuilder {
 				$entityBuilder->requireUnique($tblAnn);
 				$entityBuilder->setDescription($tblAnn->text);
 				break;
+			case TA\Id::class:
+				$entityBuilder->requireUnique($tblAnn);
+				$entityBuilder->setId($tblAnn->id);
+				break;
 			case TA\Login::class:
 				$this->requireUnique($tblAnn);
 				break;
