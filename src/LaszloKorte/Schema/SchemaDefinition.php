@@ -59,6 +59,10 @@ final class SchemaDefinition implements Serializable {
 		return $this->foreignKeys[$name];
 	}
 
+	public function hasForeignKeyDefinition(Identifier $name) {
+		return isset($this->foreignKeys[$name]);
+	}
+
 	public function getForeignKeyIds($tableName) {
 		$result = [];
 		foreach($this->foreignKeys AS $id) {

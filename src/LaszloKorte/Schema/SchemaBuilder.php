@@ -78,7 +78,7 @@ final class SchemaBuilder {
 
 	private function definePrimaryKeys($tableDefs, $connection, $tableName, $databaseName) {
 
-    	$stmt = $connection->prepare('
+		$stmt = $connection->prepare('
 		SELECT 
 			t.table_name AS table_name,
 			k.COLUMN_NAME AS column_name
@@ -94,7 +94,7 @@ final class SchemaBuilder {
 				t.table_name = k.table_name
 		WHERE 
 			t.constraint_type=\'PRIMARY KEY\'
-		    AND t.table_schema=:database
+			AND t.table_schema=:database
 		');
 		$stmt->bindValue(':database', $databaseName);
 		$stmt->execute();

@@ -34,11 +34,11 @@ final class ResultSet implements Iterator {
 	}
 
 	public function next() {
-        $this->next = each($this->cache);
+		$this->next = each($this->cache);
 
-        if (FALSE === $this->next) {
-            $this->doFetch();
-        }
+		if (FALSE === $this->next) {
+			$this->doFetch();
+		}
 	}
 
 	private function doFetch() {
@@ -49,7 +49,7 @@ final class ResultSet implements Iterator {
 		$row = $this->stmt->fetch(PDO::FETCH_OBJ);
 
 		if ($row) {
-		    $this->cache[] = $row;
+			$this->cache[] = $row;
 		}
 
 		$this->next = each($this->cache);

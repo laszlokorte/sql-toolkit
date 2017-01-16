@@ -11,15 +11,18 @@ use LaszloKorte\Resource\Template\Lexer;
 
 use LaszloKorte\Schema\IdentifierMap;
 
+use Doctrine\Common\Inflector\Inflector;
 
 final class ApplicationBuilder {
 
 	private $templateParser;
 	private $templateLexer;
+	private $inflector;
 
 	public function __construct() {
 		$this->templateParser = new Parser();
 		$this->templateLexer = new Lexer();
+		$this->inflector = new Inflector();
 	}
 
 	public function buildApplication(SchemaConfiguration $configuration) {
@@ -54,7 +57,7 @@ final class ApplicationBuilder {
 		foreach($entityBuilders AS $tableId) {
 			$builder = $entityBuilders[$tableId];
 
-			$builder->buildEntity($appDef);
+			$builder->buildEntity($this, $appDef);
 		}
 	}
 
@@ -106,6 +109,7 @@ final class ApplicationBuilder {
 			case TA\Display::class:
 				$entityBuilder->requireUnique($tblAnn);
 				$template = $this->templateParser->parse($this->templateLexer->tokenize($tblAnn->templateString));
+				$entityBuilder->setDisplayTemplate($template);
 				break;
 			case TA\Description::class:
 				$entityBuilder->requireUnique($tblAnn);
@@ -171,5 +175,12 @@ final class ApplicationBuilder {
 		}
 
 		$this->prevAnnotations []= $class;
+	}
+
+	public function pluralize($string) {
+		$parts = explode(' ', $string);
+		$last = array_pop($parts);
+		array_push($parts, $this->inflector->pluralize($last));
+		implode(' ', $parts);
 	}
 }

@@ -4,8 +4,10 @@ namespace LaszloKorte\Presenter;
 
 use LaszloKorte\Configurator\TableAnnotation as TA;
 use LaszloKorte\Schema\Table;
+use LaszloKorte\Resource\Template\Nodes\Sequence;
+use LaszloKorte\Resource\Template\Nodes\OutputTag;
 
-use LaszloKorte\Schema\IdentifierMap;
+use LaszloKorte\Presenter\Identifier;
 
 final class EntityBuilder {
 	private $prevAnnotations = [];
@@ -13,8 +15,9 @@ final class EntityBuilder {
 	private $fieldBuilders = [];
 
 	private $id = NULL;
+	private $displayTemplate = NULL;
 	private $description = NULL;
-	private $group = NULL;
+	private $groupName = NULL;
 	private $hasChildren = true;
 	private $parentName = NULL;
 	private $priority = 0;
@@ -41,6 +44,41 @@ final class EntityBuilder {
 
 	public function attachFieldBuilder(FieldBuilder $fieldBuilder) {
 		$this->fieldBuilders []= $fieldBuilder;
+	}
+
+	public function setDisplayTemplate(Sequence $template) {
+		if(!$this->validTemplate($template)) {
+			throw new \Exception(sprintf("Invalid display template for table '%s'", $this->table->getName()));
+		}
+		$this->displayTemplate = $template;
+	}
+
+	private function validTemplate(Sequence $seq) {
+		foreach ($seq as $value) {
+			if(!$value instanceof OutputTag) {
+				continue;
+			}
+
+			$p = array_reduce(iterator_to_array($value->getPath()), function($acc, $segment) {
+
+				if(!$acc instanceof Table) {
+					return false;
+				}
+				if($acc->hasForeignKey($segment)) {
+					return $acc->foreignKey($segment)->getTargetTable();
+				} elseif($acc->hasColumn($segment)) {
+					return true;
+				} else {
+					return false;
+				}
+			}, $this->table);
+
+			if($p === false) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	public function setDescription($description) {
@@ -147,8 +185,38 @@ final class EntityBuilder {
 		];
 	}
 
-	public function buildEntity(ApplicationDefinition $appDef) {
+	public function buildEntity(ApplicationBuilder $ab, ApplicationDefinition $appDef) {
 
+		$id = new Identifier((string)$this->table->getName());
+		$singularTitle = $this->singularTitle;
+		$pluralTitle = $this->pluralTitle;
+		$idColumns = array_map(function($c) {
+			return new Identifier((string) $c->getName());
+		}, iterator_to_array($this->table->primaryKeys()));
+
+		$entityDef = $appDef->defineEntity($id, $singularTitle, $pluralTitle, $idColumns);
+
+		$entityDef->setVisibility($this->isVisible);
+
+		if($this->groupName !== NULL) {
+			$group = $appDef->putEntityIntoGroup($id, new Identifier($this->groupName), $this->priority);
+		}
+
+		if($this->displayTemplate !== NULL) {
+			$entityDef->setDisplayTemplate($this->displayTemplate);
+		}
+
+		if($this->description !== NULL) {
+			$entityDef->setDiscription($this->description);
+		}
+
+		if($this->parentName !== NULL) {
+			$entityDef->setParent(new Identifier($this->parentName));
+		}
+
+		if($this->sortColumn !== NULL) {
+			$entityDef->setOrderColumn(new Identifier($this->sortColumn));
+		}
 	}
 
 

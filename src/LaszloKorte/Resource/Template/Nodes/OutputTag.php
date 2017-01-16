@@ -15,4 +15,12 @@ final class OutputTag {
 	public function addFilter(Filter $filter) {
 		$this->filters []= $filter; 
 	}
+
+	public function getPath() {
+		return $this->path;
+	}
+
+	public function getFilters() {
+		return $this->filters;
+	}
 }

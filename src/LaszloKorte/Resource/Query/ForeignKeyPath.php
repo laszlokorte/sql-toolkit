@@ -6,11 +6,11 @@ use LaszloKorte\Schema\ForeignKey;
 
 final class ForeignKeyPath {
 
-    private $foreignKeys;
+	private $foreignKeys;
 
-    public function __construct(array $foreignKeys) {
-        $this->foreignKeys = $foreignKeys;
-    }
+	public function __construct(array $foreignKeys) {
+		$this->foreignKeys = $foreignKeys;
+	}
 
 	public function length() {
 		return count($this->foreignKeys);

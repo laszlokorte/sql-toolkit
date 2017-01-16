@@ -4,7 +4,16 @@ namespace LaszloKorte\Presenter;
 
 final class FieldDefinition {
 
-	public function __construct($fieldType) {
+	private $type;
+	private $title;
+	private $description;
+	private $isRequired;
+	private $isVisible;
+	private $isVisibleInCollection;
+
+	public function __construct($title, $fieldType) {
+		$this->title = $title;
+		$this->type = $fieldType;
 	}
 
 	public function setTitle($title) {
@@ -27,7 +36,7 @@ final class FieldDefinition {
 		
 	}
 
-	public function setPriority($isVisible) {
+	public function setPriority($prio) {
 		
 	}
 

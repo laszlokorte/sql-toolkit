@@ -2,7 +2,10 @@
 
 namespace LaszloKorte\Resource\Template\Nodes;
 
-final class Sequence {
+use IteratorAggregate;
+use ArrayIterator;
+
+final class Sequence implements IteratorAggregate {
 
 	private $children;
 
@@ -12,5 +15,9 @@ final class Sequence {
 
 	public function append($node) {
 		$this->children[] = $node;
+	}
+
+	public function getIterator() {
+		return new ArrayIterator($this->children);
 	}
 }

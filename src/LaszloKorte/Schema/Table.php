@@ -43,8 +43,18 @@ final class Table {
 		return new Column($id, $this->tableName, $this->schemaDefinition);
 	}
 
+	public function hasColumn($name) {
+		return $this->def()->hasColumnDefinition(new Identifier($name));
+	}
+
 	public function foreignKey($name) {
 		return new ForeignKey(new Identifier($name), $this->schemaDefinition);
+	}
+
+	public function hasForeignKey($name) {
+		$id = new Identifier($name);
+		return $this->schemaDefinition->hasForeignKeyDefinition($id)
+			&& $this->schemaDefinition->getForeignKeyDefinition($id)->getOwnTableName() == $this->tableName;
 	}
 
 	public function index($name) {

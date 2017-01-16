@@ -2,7 +2,10 @@
 
 namespace LaszloKorte\Resource\Template\Nodes;
 
-final class Path {
+use IteratorAggregate;
+use ArrayIterator;
+
+final class Path implements IteratorAggregate {
 
 	private $segments;
 
@@ -12,5 +15,9 @@ final class Path {
 
 	public function extend($segment) {
 		$this->segments [] = $segment;
+	}
+
+	public function getIterator() {
+		return new ArrayIterator($this->segments);
 	}
 }
