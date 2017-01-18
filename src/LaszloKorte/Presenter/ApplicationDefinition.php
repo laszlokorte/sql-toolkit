@@ -41,4 +41,28 @@ final class ApplicationDefinition {
 	public function defineAuthentication($userColumn, $passwordColumn) {
 		
 	}
+
+	public function getEntityIds() {
+		$result = [];
+		foreach($this->entities AS $id) {
+			$result []= $id;
+		}
+		return $result;
+	}
+
+	public function getEntity(Identifier $id) {
+		return $this->entities[$id];
+	}
+
+	public function getGroupIds() {
+		$result = [];
+		foreach($this->groups AS $id) {
+			$result []= $id;
+		}
+		return $result;
+	}
+
+	public function getGroup(Identifier $id) {
+		return $this->groups[$id];
+	}
 }

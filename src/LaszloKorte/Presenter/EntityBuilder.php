@@ -16,6 +16,7 @@ final class EntityBuilder {
 
 	private $id = NULL;
 	private $displayTemplate = NULL;
+	private $previewUrl = NULL;
 	private $description = NULL;
 	private $groupName = NULL;
 	private $hasChildren = true;
@@ -51,6 +52,13 @@ final class EntityBuilder {
 			throw new \Exception(sprintf("Invalid display template for table '%s'", $this->table->getName()));
 		}
 		$this->displayTemplate = $template;
+	}
+
+	public function setPreviewUrl(Sequence $template) {
+		if(!$this->validTemplate($template)) {
+			throw new \Exception(sprintf("Invalid Preview URL template for table '%s'", $this->table->getName()));
+		}
+		$this->previewUrl = $template;
 	}
 
 	private function validTemplate(Sequence $seq) {

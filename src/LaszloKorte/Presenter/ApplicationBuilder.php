@@ -59,6 +59,8 @@ final class ApplicationBuilder {
 
 			$builder->buildEntity($this, $appDef);
 		}
+
+		return $appDef;
 	}
 
 	private function processColumn(FieldBuilder $fieldBuilder, CA\Annotation $colAnn) {
@@ -110,6 +112,11 @@ final class ApplicationBuilder {
 				$entityBuilder->requireUnique($tblAnn);
 				$template = $this->templateParser->parse($this->templateLexer->tokenize($tblAnn->templateString));
 				$entityBuilder->setDisplayTemplate($template);
+				break;
+			case TA\Display::class:
+				$entityBuilder->requireUnique($tblAnn);
+				$template = $this->templateParser->parse($this->templateLexer->tokenize($tblAnn->urlTemplte));
+				$entityBuilder->setPreviewUrl($template);
 				break;
 			case TA\Description::class:
 				$entityBuilder->requireUnique($tblAnn);
