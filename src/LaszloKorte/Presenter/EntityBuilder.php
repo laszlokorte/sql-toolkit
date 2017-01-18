@@ -176,7 +176,7 @@ final class EntityBuilder {
 		if(isset($this->collectionViews[$fkName])) {
 			throw new \InvalidArgumentException(__METHOD__);
 		}
-		$this->collectionViews[$fkName] = [
+		$this->foreignKeyNames[$fkName] = [
 			'singular' => $singular,
 			'plural' => $plural,
 		];

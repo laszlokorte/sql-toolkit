@@ -2,24 +2,6 @@
 	date_default_timezone_set("Europe/Berlin");
 
 	ob_start();
-	//
-	//
-	//
-	// !!!!!!!!!!!
-	// CAUTION: This file is just a playground 
-	// for testing the Inspector API
-	//
-	// It contains 
-	// CROSS-SITE-SCRIPTING VULNERABILITIES
-	//
-	// DO NOT USE IN PRODUCTION
-	// !!!!!!!!!!!
-	//
-	//
-	// TODO: Extract all the features prototyped in this
-	// file to their own api
-	//
-	//
 
 	use \Firebase\JWT\JWT;
 
@@ -78,5 +60,46 @@ $appDef = $appBuilder->buildApplication($schemaConf);
 $app = new Application($appDef);
 
 ?>
+
+<?php foreach ($app->groups() as $group): ?>
+	<h2><?php echo $group->title() ?></h2>
+
+	<?php foreach ($group->entities() as $entity): ?>
+		<h3><?php echo $entity->title() ?> [<?php echo $entit->id() ?>]</h3>
+
+		<p>
+			<?php echo $entity->description() ?>
+		</p>
+
+		<ul>
+			<?php if ($entity->isIdentifiable()): ?>
+				<li>Identifiable</li>
+			<?php endif ?>
+			<?php if ($entity->isSearchable()): ?>
+				<li>Searchable</li>
+			<?php endif ?>
+			<?php if ($entity->isSortable()): ?>
+				<li>Sortable</li>
+			<?php endif ?>
+		</ul>
+
+		<ul>
+			<?php foreach ($entity->fields() as $field): ?>
+				<li>
+					<h4>
+						<?php echo $field->title() ?> [<?php echo $field->id() ?>]
+						<?php if ($field->isRequired()): ?>
+							*
+						<?php endif ?>
+					</h4>
+					<p>
+						<?php echo $field->description() ?>
+					</p>
+				</li>
+			<?php endforeach ?>
+		</ul>
+	<?php endforeach ?>
+<?php endforeach ?>
+
 </body>
 </html>
