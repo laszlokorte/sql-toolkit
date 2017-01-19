@@ -3,23 +3,28 @@
 namespace LaszloKorte\Presenter;
 
 class Entity {
-	private $applicationDefinition;
+	private $appDef;
 	private $entityId;
 
 	public function __construct($appDef, $entityId) {
+		$this->appDef = $appDef;
+		$this->entityId = $entityId;
+	}
 
+	private function def() {
+		return $this->appDef->getEntity($this->entityId);
 	}
 
 	public function id() {
-		
+		return $this->entityId;
 	}
 
 	public function fields() {
-		return new FieldIterator();
+		return new FieldIterator($this->appDef, $this->entityId, $this->def()->getFieldIds());
 	}
 
-	public function name($plural = FALSE) {
-
+	public function title($plural = FALSE) {
+		return $this->def()->getName($plural);
 	}
 
 	public function icon() {

@@ -19,8 +19,14 @@ final class FieldBuilder {
 	private $title = null;
 	private $isVisible = true;
 
+	private $unknownAnnotations = [];
+
 	public function __construct(Column $column) {
 		$this->column = $column;
+	}
+
+	public function reportUnknownAnnotation($annotation) {
+		$this->unknownAnnotations[] = $annotation;
 	}
 
 	public function requireUnique(CA\Annotation $a) {

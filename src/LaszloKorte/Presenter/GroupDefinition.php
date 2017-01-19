@@ -19,8 +19,20 @@ class GroupDefinition {
 		$this->icon = $iconName;
 	}
 
+	public function getTitle() {
+		return $this->title;
+	}
+
+	public function getIcon() {
+		return $this->icon;
+	}
+
 	public function addEntity(Identifier $entityId, $prio = 0) {
 		$this->entityIds[] = $entityId;
 		$this->priority += $prio;
+	}
+
+	public function getEntityIds() {
+		return $this->entityIds;
 	}
 }

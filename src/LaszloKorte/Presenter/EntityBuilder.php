@@ -29,9 +29,15 @@ final class EntityBuilder {
 	private $collectionViews = [];
 	private $foreignKeyNames = [];
 	private $syntheticControls = [];
+	private $unknownAnnotations = [];
+
 
 	public function __construct(Table $table) {
 		$this->table = $table;
+	}
+
+	public function reportUnknownAnnotation($annotation) {
+		$this->unknownAnnotations[] = $annotation;
 	}
 
 	public function requireUnique(TA\Annotation $a) {
@@ -196,8 +202,8 @@ final class EntityBuilder {
 	public function buildEntity(ApplicationBuilder $ab, ApplicationDefinition $appDef) {
 
 		$id = new Identifier((string)$this->table->getName());
-		$singularTitle = $this->singularTitle;
-		$pluralTitle = $this->pluralTitle;
+		$singularTitle = $this->singularTitle ?? $ab->titelize((string)$id);
+		$pluralTitle = $this->pluralTitle ?? $ab->pluralize($singularTitle);
 		$idColumns = array_map(function($c) {
 			return new Identifier((string) $c->getName());
 		}, iterator_to_array($this->table->primaryKeys()));
@@ -208,6 +214,7 @@ final class EntityBuilder {
 
 		if($this->groupName !== NULL) {
 			$group = $appDef->putEntityIntoGroup($id, new Identifier($this->groupName), $this->priority);
+			$group->setTitle($ab->titelize($this->groupName));
 		}
 
 		if($this->displayTemplate !== NULL) {

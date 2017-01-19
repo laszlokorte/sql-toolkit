@@ -103,6 +103,8 @@ final class ApplicationBuilder {
 				$fieldBuilder->requireUnique($colAnn);
 				$fieldBuilder->setVisible($colAnn->isVisible);
 				break;
+			default:
+				$fieldBuilder->reportUnknownAnnotation($colAnn);
 		}
 	}
 
@@ -170,6 +172,8 @@ final class ApplicationBuilder {
 			case TA\SyntheticControl::class:
 				$entityBuilder->addSyntheticControl($tblAnn->interfaceName, $tblAnn->params);
 				break;
+			default:
+				$entityBuilder->reportUnknownAnnotation($colAnn);
 		}
 	}
 
@@ -188,6 +192,14 @@ final class ApplicationBuilder {
 		$parts = explode(' ', $string);
 		$last = array_pop($parts);
 		array_push($parts, $this->inflector->pluralize($last));
-		implode(' ', $parts);
+		return implode(' ', $parts);
+	}
+
+	public function titelize($string) {
+		return ucwords(str_replace([
+			'_'
+		], [
+			' '
+		], $string));
 	}
 }

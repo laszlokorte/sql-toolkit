@@ -10,10 +10,13 @@ class Application {
 	}
 
 	public function groups() {
-		return new GroupIterator();
+		$groupIds = $this->applicationDefinition->getGroupIds();
+		return new GroupIterator($this->applicationDefinition, $groupIds);
 	}
 
 	public function entities() {
-		return new EntityIterator();
+		$entityIds = $this->applicationDefinition->getEntityIds();
+
+		return new EntityIterator($this->applicationDefinition, $entityIds);
 	}
 }

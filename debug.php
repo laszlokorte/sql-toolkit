@@ -61,11 +61,14 @@ $app = new Application($appDef);
 
 ?>
 
+<h1>Groups</h1>
 <?php foreach ($app->groups() as $group): ?>
+	-
 	<h2><?php echo $group->title() ?></h2>
 
 	<?php foreach ($group->entities() as $entity): ?>
-		<h3><?php echo $entity->title() ?> [<?php echo $entit->id() ?>]</h3>
+		+
+		<h3><?php echo $entity->title(true) ?> [<?php echo $entity->id() ?>]</h3>
 
 		<p>
 			<?php echo $entity->description() ?>
@@ -86,7 +89,7 @@ $app = new Application($appDef);
 		<ul>
 			<?php foreach ($entity->fields() as $field): ?>
 				<li>
-					<h4>
+					<h4>#
 						<?php echo $field->title() ?> [<?php echo $field->id() ?>]
 						<?php if ($field->isRequired()): ?>
 							*

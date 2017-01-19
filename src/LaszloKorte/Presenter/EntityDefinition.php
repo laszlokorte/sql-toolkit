@@ -23,11 +23,13 @@ final class EntityDefinition {
 
 	private $iconName;
 
+	private $fields;
 
 	public function __construct($singularName, $pluralName, array $identifierColumns) {
 		$this->singularName = $singularName;
 		$this->pluralName = $pluralName;
 		$this->identifierColumns = $identifierColumns;
+		$this->fields = new IdentifierMap();
 	}
 
 	public function defineField(Identifier $id, $title, FieldType $type) {
@@ -64,5 +66,21 @@ final class EntityDefinition {
 
 	public function setIcon($name) {
 		$this->iconName = $name;
+	}
+
+	public function getFieldIds() {
+		$result = [];
+		foreach($this->fields AS $id) {
+			$result []= $id;
+		}
+		return $result;
+	}
+
+	public function getName($plural = false) {
+		if($plural) {
+			return $this->pluralName;
+		} else {
+			return $this->singularName;
+		}
 	}
 }
