@@ -222,7 +222,7 @@ final class EntityBuilder {
 		}
 
 		if($this->description !== NULL) {
-			$entityDef->setDiscription($this->description);
+			$entityDef->setDescription($this->description);
 		}
 
 		if($this->parentName !== NULL) {

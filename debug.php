@@ -38,7 +38,7 @@
 		]);
 
 $schemaCache = __DIR__ . '/cache/schema.txt';
-if(!file_exists($schemaCache)) {
+if(true || !file_exists($schemaCache)) {
 	$schemaDef = $builder->buildSchemaFor($connection, 'ishl')->getDef();
 	file_put_contents($schemaCache, serialize($schemaDef));
 }
@@ -63,46 +63,55 @@ $app = new Application($appDef);
 
 <h1>Groups</h1>
 <?php foreach ($app->groups() as $group): ?>
-	-
 	<h2><?php echo $group->title() ?></h2>
 
 	<?php foreach ($group->entities() as $entity): ?>
-		+
-		<h3><?php echo $entity->title(true) ?> [<?php echo $entity->id() ?>]</h3>
-
-		<p>
-			<?php echo $entity->description() ?>
-		</p>
-
-		<ul>
-			<?php if ($entity->isIdentifiable()): ?>
-				<li>Identifiable</li>
-			<?php endif ?>
-			<?php if ($entity->isSearchable()): ?>
-				<li>Searchable</li>
-			<?php endif ?>
-			<?php if ($entity->isSortable()): ?>
-				<li>Sortable</li>
-			<?php endif ?>
-		</ul>
-
-		<ul>
-			<?php foreach ($entity->fields() as $field): ?>
-				<li>
-					<h4>#
-						<?php echo $field->title() ?> [<?php echo $field->id() ?>]
-						<?php if ($field->isRequired()): ?>
-							*
-						<?php endif ?>
-					</h4>
-					<p>
-						<?php echo $field->description() ?>
-					</p>
-				</li>
-			<?php endforeach ?>
-		</ul>
+		<?php renderEntity($entity); ?>
 	<?php endforeach ?>
 <?php endforeach ?>
+
+<?php if ($app->hasUngroupedEntities()): ?>
+	<h2>Ungrouped</h2>
+	<?php foreach ($app->ungroupedEntities() as $entity): ?>
+		<?php renderEntity($entity) ?>
+	<?php endforeach ?>
+<?php endif ?>
+
+<?php function renderEntity($entity) { ?>
+<h3><?php echo $entity->title(true) ?> [<?php echo $entity->id() ?>]</h3>
+
+<p>
+	<?php echo $entity->description() ?>
+</p>
+
+<ul>
+	<?php if ($entity->isIdentifiable()): ?>
+		<li>Identifiable</li>
+	<?php endif ?>
+	<?php if ($entity->isSearchable()): ?>
+		<li>Searchable</li>
+	<?php endif ?>
+	<?php if ($entity->isSortable()): ?>
+		<li>Sortable</li>
+	<?php endif ?>
+</ul>
+
+<ul>
+	<?php foreach ($entity->fields() as $field): ?>
+		<li>
+			<h4>
+				<?php echo $field->title() ?> [<?php echo $field->id() ?>]
+				<?php if ($field->isRequired()): ?>
+					*
+				<?php endif ?>
+			</h4>
+			<p>
+				<?php echo $field->description() ?>
+			</p>
+		</li>
+	<?php endforeach ?>
+</ul>
+<?php } ?>
 
 </body>
 </html>

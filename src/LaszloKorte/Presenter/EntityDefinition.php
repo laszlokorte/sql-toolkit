@@ -83,4 +83,32 @@ final class EntityDefinition {
 			return $this->singularName;
 		}
 	}
+
+	public function getDescription() {
+		return $this->description;
+	}
+
+	public function getIdColumns() {
+		return $this->identifierColumns;
+	}
+
+	public function getOrderColumn() {
+		return $this->orderColumn;
+	}
+
+	public function getSearchColumns() {
+		return $this->searchColumns;
+	}
+
+	public function isVisible() {
+		return $this->isVisible;
+	}
+
+	public function getIcon() {
+		return $this->icon;
+	}
+
+	public function getParentId() {
+		return $this->parentEntityId;
+	}
 }

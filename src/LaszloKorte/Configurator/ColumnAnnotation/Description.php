@@ -9,6 +9,6 @@ class Description implements Annotation {
 	public $text;
 
 	public function __construct($params) {
-		$this->text = $params['value'];
+		$this->text = (string)$params['value'];
 	}
 }

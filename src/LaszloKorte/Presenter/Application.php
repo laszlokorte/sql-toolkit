@@ -19,4 +19,14 @@ class Application {
 
 		return new EntityIterator($this->applicationDefinition, $entityIds);
 	}
+
+	public function ungroupedEntities() {
+		$entityIds = $this->applicationDefinition->getUngroupedEntityIds();
+
+		return new EntityIterator($this->applicationDefinition, $entityIds);
+	}
+
+	public function hasUngroupedEntities() {
+		return !empty($this->applicationDefinition->getUngroupedEntityIds());
+	}
 }

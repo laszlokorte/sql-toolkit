@@ -6,16 +6,19 @@ final class ApplicationDefinition {
 
 	private $entities;
 	private $groups;
+	private $ungrouped;
 
 	public function __construct() {
 		$this->entities = new IdentifierMap();
 		$this->groups = new IdentifierMap();
+		$this->ungrouped = new IdentifierMap();
 	}
 
 	public function defineEntity(Identifier $id, $singular, $plural, $idColumns) {
 		$entity = new EntityDefinition($singular, $plural, $idColumns);
 
 		$this->entities[$id] = $entity;
+		$this->ungrouped->attach($id);
 
 		return $entity;
 	}
@@ -30,6 +33,7 @@ final class ApplicationDefinition {
 		}
 
 		$this->groups[$groupId]->addEntity($entityId, $prio);
+		$this->ungrouped->detach($entityId);
 
 		return $this->groups[$groupId];
 	}
@@ -45,6 +49,14 @@ final class ApplicationDefinition {
 	public function getEntityIds() {
 		$result = [];
 		foreach($this->entities AS $id) {
+			$result []= $id;
+		}
+		return $result;
+	}
+
+	public function getUngroupedEntityIds() {
+		$result = [];
+		foreach($this->ungrouped AS $id) {
 			$result []= $id;
 		}
 		return $result;

@@ -28,34 +28,34 @@ class Entity {
 	}
 
 	public function icon() {
-
+		return $this->def()->icon();
 	}
 
 	public function isVisible() {
-
+		return $this->def()->isVisible();
 	}
 
 	public function description() {
-
+		return $this->def()->getDescription();
 	}
 
 	public function isSearchable() {
-
+		return !empty($this->def()->getSearchColumns());
 	}
 
 	public function isSortable() {
-
+		return $this->def()->getOrderColumn() !== null;
 	}
 
 	public function isIdentifiable() {
-
+		return !empty($this->def()->getIdColumns());
 	}
 
 	public function idColumns() {
-
+		return $this->def()->getIdColumns();
 	}
 
 	public function parentEntity() {
-
+		return new self($this->appDef, $this->def()->getParentId());
 	}
 }
