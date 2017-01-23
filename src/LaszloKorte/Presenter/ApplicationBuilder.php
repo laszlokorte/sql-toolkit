@@ -32,17 +32,44 @@ final class ApplicationBuilder {
 		foreach($configuration->getTableIds() as $tableId) {
 			$tableConf = $configuration->getTableConf($tableId);
 
+			$table = $tableConf->getTable();
+			$entityBuilder = new EntityBuilder($table);
 
-			$entityBuilder = new EntityBuilder($tableConf->getTable());
+			foreach($table->foreignKeys() AS $fk) {
+				$fieldBuilder = new RelationFieldBuilder($fk, false);
+
+				foreach($fk->getOwnColumns() AS $fkCol) {
+					$columnConf = $tableConf->getColumnConf($fkCol->getName());
+
+					foreach($columnConf->getAnnotations() AS $colAnnotation) {
+						$this->processColumn($fieldBuilder, $colAnnotation);
+					}
+				}
+
+				$entityBuilder->attachFieldBuilder($fieldBuilder);
+			}
+
+			foreach($table->reverseForeignKeys() AS $revFk) {
+				$fieldBuilder = new RelationFieldBuilder($revFk, true);
+
+				$entityBuilder->attachFieldBuilder($fieldBuilder);
+			}
 
 			foreach($tableConf->getColumnIds() AS $columnId) {
 				$columnConf = $tableConf->getColumnConf($columnId);
+				$column = $columnConf->getColumn();
 
-				$fieldBuilder = new FieldBuilder($columnConf->getColumn());
+				if($column->belongsToForeignKey()) {
+					continue;
+				}
+
+				$fieldBuilder = new ColumnFieldBuilder((string) $column->getName(), $column);
 
 				foreach($columnConf->getAnnotations() AS $colAnnotation) {
 					$this->processColumn($fieldBuilder, $colAnnotation);
 				}
+
+				$entityBuilder->attachFieldBuilder($fieldBuilder);
 			}
 
 			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
@@ -50,7 +77,6 @@ final class ApplicationBuilder {
 				$this->processTable($entityBuilder, $tableAnnotation);
 			}
 
-			$entityBuilder->attachFieldBuilder($fieldBuilder);
 			$entityBuilders[$tableId] = $entityBuilder;
 		}
 

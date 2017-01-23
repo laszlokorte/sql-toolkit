@@ -1,41 +1,41 @@
 <?php 
-	date_default_timezone_set("Europe/Berlin");
+date_default_timezone_set("Europe/Berlin");
 
-	ob_start();
+ob_start();
 
-	use \Firebase\JWT\JWT;
+use \Firebase\JWT\JWT;
 
-	use LaszloKorte\Schema\Schema;
-	use LaszloKorte\Schema\Table;
-	use LaszloKorte\Schema\DatabaseId;
-	use LaszloKorte\Schema\SchemaBuilder;
-	use LaszloKorte\Schema\ColumnType;
-	use LaszloKorte\Schema\ForeignKey;
+use LaszloKorte\Schema\Schema;
+use LaszloKorte\Schema\Table;
+use LaszloKorte\Schema\DatabaseId;
+use LaszloKorte\Schema\SchemaBuilder;
+use LaszloKorte\Schema\ColumnType;
+use LaszloKorte\Schema\ForeignKey;
 
-	use LaszloKorte\Resource\IdConverter;
-	use LaszloKorte\Resource\TableConverter;
-	use LaszloKorte\Resource\ParameterBag;
+use LaszloKorte\Resource\IdConverter;
+use LaszloKorte\Resource\TableConverter;
+use LaszloKorte\Resource\ParameterBag;
 
-	use LaszloKorte\Configurator\ConfigurationBuilder;
-	use LaszloKorte\Presenter\ApplicationBuilder;
-	use LaszloKorte\Presenter\Application;
+use LaszloKorte\Configurator\ConfigurationBuilder;
+use LaszloKorte\Presenter\ApplicationBuilder;
+use LaszloKorte\Presenter\Application;
 
-	use Doctrine\Common\Annotations\AnnotationRegistry;
-	use Doctrine\Common\Inflector\Inflector;
+use Doctrine\Common\Annotations\AnnotationRegistry;
+use Doctrine\Common\Inflector\Inflector;
 
-	$loader = require __DIR__ . '/vendor/autoload.php';
-	AnnotationRegistry::registerLoader([$loader,'loadClass']);
+$loader = require __DIR__ . '/vendor/autoload.php';
+AnnotationRegistry::registerLoader([$loader,'loadClass']);
 
-	$jwtKey = "c303c6c7125d5e365ed7323f6143fb58";
-	$builder = new SchemaBuilder();
+$jwtKey = "c303c6c7125d5e365ed7323f6143fb58";
+$builder = new SchemaBuilder();
 
 
-	$connection = new PDO('mysql:host=directus.dev;port=3306;dbname=ishl;charset=utf8', 'ishl', 'ishl', [
-			PDO::ATTR_TIMEOUT => 2,
-			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-			PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-	   		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
-		]);
+$connection = new PDO('mysql:host=directus.dev;port=3306;dbname=ishl;charset=utf8', 'ishl', 'ishl', [
+		PDO::ATTR_TIMEOUT => 2,
+		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+		PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
+   		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
+	]);
 
 $schemaCache = __DIR__ . '/cache/schema.txt';
 if(true || !file_exists($schemaCache)) {
@@ -96,15 +96,16 @@ $app = new Application($appDef);
 	<?php endif ?>
 </ul>
 
+<h4>Fields</h4>
 <ul>
 	<?php foreach ($entity->fields() as $field): ?>
 		<li>
-			<h4>
+			<h5>
 				<?php echo $field->title() ?> [<?php echo $field->id() ?>]
 				<?php if ($field->isRequired()): ?>
 					*
 				<?php endif ?>
-			</h4>
+			</h5>
 			<p>
 				<?php echo $field->description() ?>
 			</p>

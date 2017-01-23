@@ -33,6 +33,9 @@ final class EntityDefinition {
 	}
 
 	public function defineField(Identifier $id, $title, FieldType $type) {
+		if(isset($this->fields[$id])) {
+			throw new \Exception(sprintf("Field with id '%s' is already defined for this entity(name: %s).", $id, $this->singularName));
+		}
 		$field = new FieldDefinition($title, $type);
 
 		$this->fields[$id] = $field;
@@ -74,6 +77,10 @@ final class EntityDefinition {
 			$result []= $id;
 		}
 		return $result;
+	}
+
+	public function getField(Identifier $id) {
+		return $this->fields[$id];
 	}
 
 	public function getName($plural = false) {

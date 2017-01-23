@@ -17,19 +17,19 @@ final class FieldDefinition {
 	}
 
 	public function setTitle($title) {
-
+		$this->title = $title;
 	}
 
 	public function setRequired($isRequired) {
-
+		$this->isRequired = $isRequired;
 	}
 
 	public function setVisibility($isVisible) {
-		
+		$this->isVisible = $isVisible;
 	}
 
 	public function setCollectionVisibility($isVisible) {
-		
+		$this->isVisibleInCollection = $isVisible;
 	}
 
 	public function setGroup($groupName) {
@@ -41,6 +41,18 @@ final class FieldDefinition {
 	}
 
 	public function setDescription($description) {
+		$this->description = $description;
+	}
 
+	public function getTitle() {
+		return $this->title;
+	}
+
+	public function isRequired() {
+		return $this->isRequired;
+	}
+
+	public function getDescription() {
+		return $this->description;
 	}
 }

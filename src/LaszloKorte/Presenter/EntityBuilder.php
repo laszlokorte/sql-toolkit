@@ -232,6 +232,10 @@ final class EntityBuilder {
 		if($this->sortColumn !== NULL) {
 			$entityDef->setOrderColumn(new Identifier($this->sortColumn));
 		}
+
+		foreach($this->fieldBuilders AS $fieldBuilder) {
+			$fieldBuilder->buildField($ab, $entityDef);
+		}
 	}
 
 
