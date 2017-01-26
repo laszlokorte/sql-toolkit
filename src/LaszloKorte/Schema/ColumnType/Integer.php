@@ -11,6 +11,14 @@ final class Integer implements ColumnType, Serialable {
 		$this->unsigned = $unsigned;
 	}
 
+	public function getBitCount() {
+		return $this->bits;
+	}
+
+	public function isSigned() {
+		return !$this->unsigned;
+	}
+
 	public function __toString() {
 		return sprintf('%s %d bit integer', ($this->unsigned ? 'unsigned' : 'signed'), $this->bits);
 	}

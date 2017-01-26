@@ -27,6 +27,8 @@ interface FieldBuilder {
 
 	public function setVisible($isVisible);
 
-	public function buildField($ab, $entityDef);
+	public function buildField($ab, $entityBuilder, $entityDef);
+
+	public function handlesColumn($columnId);
 
 }

@@ -28,7 +28,6 @@ final class EntityBuilder {
 	private $isVisible = true;
 	private $collectionViews = [];
 	private $foreignKeyNames = [];
-	private $syntheticControls = [];
 	private $unknownAnnotations = [];
 
 
@@ -182,20 +181,14 @@ final class EntityBuilder {
 		if(isset($this->collectionViews[$fkName])) {
 			throw new \InvalidArgumentException(__METHOD__);
 		}
-		$this->foreignKeyNames[$fkName] = [
-			'singular' => $singular,
-			'plural' => $plural,
-		];
-	}
 
-	public function addSyntheticControl($type, array $params) {
-		if(!is_string($type)) {
+		if(!$this->table->foreignKeys()->contains($fkName) && !$this->table->reverseForeignKeys()->contains($fkName)) {
 			throw new \InvalidArgumentException(__METHOD__);
 		}
 
-		$this->syntheticControls []= [
-			'type' => $type,
-			'params' => $params,
+		$this->foreignKeyNames[$fkName] = (object)[
+			'singular' => $singular,
+			'plural' => $plural,
 		];
 	}
 
@@ -234,7 +227,29 @@ final class EntityBuilder {
 		}
 
 		foreach($this->fieldBuilders AS $fieldBuilder) {
-			$fieldBuilder->buildField($ab, $entityDef);
+			$fieldBuilder->buildField($ab, $this, $entityDef);
+		}
+	}
+
+	public function isColumnAlreadyHandled($columnId) {
+		if($this->sortColumn == $columnId) {
+			return true;
+		}
+		
+		foreach($this->fieldBuilders AS $fb) {
+			if($fb->handlesColumn($columnId)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public function getForeignKeyName($fkId, $singular = TRUE) {
+		if($singular) {
+			return $this->foreignKeyNames[$fkId]->singular ?? NULL;
+		} else {
+			return $this->foreignKeyNames[$fkId]->plural ?? NULL;
 		}
 	}
 

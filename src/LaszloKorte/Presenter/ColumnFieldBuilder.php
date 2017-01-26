@@ -5,7 +5,8 @@ namespace LaszloKorte\Presenter;
 use LaszloKorte\Configurator\ColumnAnnotation as CA;
 use LaszloKorte\Schema\Column;
 
-use LaszloKorte\Presenter\FieldTypes\TextField;
+use LaszloKorte\Presenter\FieldTypes AS FT;
+use LaszloKorte\Schema\ColumnType AS CT;
 
 final class ColumnFieldBuilder implements FieldBuilder {
 	private $prevAnnotations = [];
@@ -67,7 +68,7 @@ final class ColumnFieldBuilder implements FieldBuilder {
 		if(!is_string($type)) {
 			throw new \InvalidArgumentException(__METHOD__);
 		}
-		$this->type = $type;
+		$this->typeName = $type;
 		$this->typeParams = $params;
 	}
 
@@ -99,12 +100,12 @@ final class ColumnFieldBuilder implements FieldBuilder {
 		$this->isVisible = $isVisible;
 	}
 
-	public function buildField($ab, $entityDef) {
+	public function buildField($ab, $entityBuilder, $entityDef) {
 		if($this->column->isSerialColumn()) {
 			return;
 		}
 		$title = $this->title ?? $ab->titelize($this->name);
-		$field = $entityDef->defineField(new Identifier($this->name), $title, new TextField());
+		$field = $entityDef->defineField(new Identifier($this->name), $title, $this->fieldType());
 
 		$field->setRequired(!$this->column->isNullable());
 
@@ -114,6 +115,73 @@ final class ColumnFieldBuilder implements FieldBuilder {
 
 		$field->setVisibility($this->isVisible);
 		$field->setCollectionVisibility($this->visibleInCollection);
+	}
+
+	public function handlesColumn($columnId) {
+		return $this->column->getName() == $columnId;
+	}
+
+	private function fieldType() {
+		if(isset($this->typeName)) {
+			return $this->buildFieldTypeForColumn($this->column, $typeName, $typeParams);
+		} else {
+			return $this->defaultTypeForColumn();
+		}
+	}
+
+	private function defaultTypeForColumn() {
+		$columnType = $this->column->getType();
+		$columnName = $this->column->getName();
+		switch(get_class($columnType)) {
+			case CT\Blob::class:
+				if($columnType->isBinary()) {
+					return new FT\TextField(FT\TextField::TYPE_MULTI_LINE, $columnName);
+				} else {
+					return new FT\TextField(FT\TextField::TYPE_MULTI_LINE, $columnName);
+				}
+			case CT\Chars::class:
+				return new FT\TextField(FT\TextField::TYPE_SINGLE_LINE, $columnName);
+			case CT\Date::class:
+				return new FT\DateField($columnName);
+			case CT\DateTime::class:
+				return new FT\DateTimeField($columnName);
+			case CT\Decimal::class:
+				return new FT\NumberField($columnName);
+			case CT\Enum::class:
+				return new FT\ChoiceField($columnType->allowsMultiple(), $columnType->getOptions(), $columnName);
+			case CT\Floating::class:
+				return new FT\NumberField($columnName);
+			case CT\Integer::class:
+				return new FT\NumberField($columnName);
+			case CT\Time::class:
+				return new FT\TimeField(false, $columnName);
+			case CT\TimeStamp::class:
+				return new FT\TextField(FT\TextField::TYPE_SINGLE_LINE, $columnName);
+			case CT\Year::class:
+				return new FT\TextField(FT\TextField::TYPE_SINGLE_LINE, $columnName);
+			default:
+				return new FT\TextField(FT\TextField::TYPE_SINGLE_LINE, $columnName);
+		}
+	}
+
+	public function buildFieldTypeForColumn($column, $typeName, $typeParams) {
+		switch($typeName) {
+			case 'choice':
+			case 'color':
+			case 'date':
+			case 'datetime':
+			case 'file':
+			case 'geo':
+			case 'number':
+			case 'password':
+			case 'sort':
+			case 'syntax':
+			case 'text':
+			case 'time':
+			case 'toggle':
+			default:
+				throw new \Exception(sprintf("Unknown control '%s' used for column '%s'", $typeName, $column));
+		}
 	}
 
 }

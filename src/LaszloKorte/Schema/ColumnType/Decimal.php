@@ -4,9 +4,24 @@ namespace LaszloKorte\Schema\ColumnType;
 
 final class Decimal implements ColumnType {
 
+	private $totalDigits;
+	private $decimalPlaces;
+
 	public function __construct($totalDigits, $decimalPlaces) {
 		$this->totalDigits = $totalDigits;
 		$this->decimalPlaces = $decimalPlaces;
+	}
+
+	public function getTotalDigits() {
+		return $this->totalDigits;
+	}
+
+	public function getDecimalPlaces() {
+		return $this->decimalPlaces;
+	}
+
+	public function getIntegerPlaces() {
+		return $this->totalDigits - $this->decimalPlaces;
 	}
 
 	public function __toString() {

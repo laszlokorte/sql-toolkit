@@ -4,8 +4,14 @@ namespace LaszloKorte\Schema\ColumnType;
 
 
 final class Year implements ColumnType {
+	private $length;
+
 	public function __construct($length = 2) {
 		$this->length = $length;
+	}
+
+	public function getLength() {
+		return $this->length;
 	}
 
 	public function __toString() {

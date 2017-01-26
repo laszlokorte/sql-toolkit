@@ -35,6 +35,12 @@ final class ApplicationBuilder {
 			$table = $tableConf->getTable();
 			$entityBuilder = new EntityBuilder($table);
 
+
+			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
+				//$entityBuilder->build($entityBuilder);
+				$this->processTable($entityBuilder, $tableAnnotation);
+			}
+
 			foreach($table->foreignKeys() AS $fk) {
 				$fieldBuilder = new RelationFieldBuilder($fk, false);
 
@@ -59,7 +65,7 @@ final class ApplicationBuilder {
 				$columnConf = $tableConf->getColumnConf($columnId);
 				$column = $columnConf->getColumn();
 
-				if($column->belongsToForeignKey()) {
+				if($entityBuilder->isColumnAlreadyHandled($columnId)) {
 					continue;
 				}
 
@@ -70,11 +76,6 @@ final class ApplicationBuilder {
 				}
 
 				$entityBuilder->attachFieldBuilder($fieldBuilder);
-			}
-
-			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
-				//$entityBuilder->build($entityBuilder);
-				$this->processTable($entityBuilder, $tableAnnotation);
 			}
 
 			$entityBuilders[$tableId] = $entityBuilder;
@@ -192,11 +193,17 @@ final class ApplicationBuilder {
 				break;
 			case TA\RelationName::class:
 				$singular = $tblAnn->singular;
-				$plural = $tblAnn->plural;
+				$plural = $tblAnn->plural ?? $this->pluralize($singular);
 				$entityBuilder->setForeignKeyName($tblAnn->fkName, $singular, $plural);
 				break;
 			case TA\SyntheticControl::class:
-				$entityBuilder->addSyntheticControl($tblAnn->interfaceName, $tblAnn->params);
+				$fieldBuilder = new SyntheticFieldBuilder($tblAnn->interfaceName);
+
+				// foreach($columnConf->getAnnotations() AS $colAnnotation) {
+				// 	$this->processColumn($fieldBuilder, $colAnnotation);
+				// }
+
+				$entityBuilder->attachFieldBuilder($fieldBuilder);
 				break;
 			default:
 				$entityBuilder->reportUnknownAnnotation($colAnn);

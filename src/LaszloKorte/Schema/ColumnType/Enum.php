@@ -3,8 +3,11 @@
 namespace LaszloKorte\Schema\ColumnType;
 
 final class Enum implements ColumnType, Enumerable {
-	public function __construct($name, $multi, $options) {
-		$this->name = $name;
+
+	private $multi;
+	private $options;
+
+	public function __construct($multi, $options) {
 		$this->multi = $multi;
 		$this->options = $options;
 	}
@@ -21,13 +24,12 @@ final class Enum implements ColumnType, Enumerable {
 		return $this->options;
 	}
 
-	public function allowMultiple() {
+	public function allowsMultiple() {
 		return $this->multi;
 	}
 
 	public function serialize() {
 		return serialize([
-			$this->name,
 			$this->multi,
 			$this->options,
 		]);
@@ -35,7 +37,6 @@ final class Enum implements ColumnType, Enumerable {
 
 	public function unserialize($data) {
 		list(
-			$this->name,
 			$this->multi,
 			$this->options,
 		) = unserialize($data);

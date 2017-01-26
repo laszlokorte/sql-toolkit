@@ -20,7 +20,6 @@ final class RelationFieldBuilder implements FieldBuilder {
 	private $typeParams = null;
 	private $isLinked = null;
 	private $isSecret = false;
-	private $title = null;
 	private $isVisible = true;
 
 	private $unknownAnnotations = [];
@@ -87,10 +86,7 @@ final class RelationFieldBuilder implements FieldBuilder {
 	}
 
 	public function setTitle($title) {
-		if(!is_string($title)) {
-			throw new \InvalidArgumentException(__METHOD__);
-		}
-		$this->title = $title;
+		
 	}
 
 	public function setVisible($isVisible) {
@@ -100,13 +96,14 @@ final class RelationFieldBuilder implements FieldBuilder {
 		$this->isVisible = $isVisible;
 	}
 
-	public function buildField($ab, $entityDef) {
+	public function buildField($ab, $entityBuilder, $entityDef) {
 		$id = 'rel_' . ($this->reversed ? $ab->pluralize((string) $this->foreignKey->getName()) : (string) $this->foreignKey->getName());
-		$title = $this->title ?? $ab->titelize($this->nameFromFk($ab));
+		$title = $entityBuilder->getForeignKeyName((string) $this->foreignKey->getName(), !$this->reversed) ?? $ab->titelize($this->nameFromFk($ab));
+
 		if($this->reversed) {
-			$type = new RefChildrenField();
+			$type = new RefChildrenField(new Identifier((string) $this->foreignKey->getOwnTable()->getName()), $this->foreignKey->getForeignColumns());
 		} else {
-			$type = new RefParentField();
+			$type = new RefParentField(new Identifier((string) $this->foreignKey->getTargetTable()->getName()), $this->foreignKey->getOwnColumns());
 		}
 		$field = $entityDef->defineField(new Identifier($id), $title, $type);
 
@@ -139,6 +136,24 @@ final class RelationFieldBuilder implements FieldBuilder {
 				return $fkName;
 			}
 		}
+	}
+
+
+
+	public function handlesColumn($columnId) {
+		if($this->reversed) {
+			$cols = $this->foreignKey->getForeignColumns();
+		} else {
+			$cols = $this->foreignKey->getOwnColumns();
+		}
+
+		foreach($cols AS $col) {
+			if($col->getName() == $columnId) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }

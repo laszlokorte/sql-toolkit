@@ -56,4 +56,8 @@ final class TablesIterator implements Iterator, Countable, ArrayAccess {
 	public function offsetUnset($offset) {
 
 	}
+
+	public function contains($name) {
+		return in_array(new Identifier($name), $this->tableNames);
+	}
 }

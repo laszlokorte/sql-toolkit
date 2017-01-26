@@ -41,11 +41,23 @@ class Field {
 		return $this->def()->getType();
 	}
 
+	public function typeTemlate() {
+		return $this->type()->getTemplateName();
+	}
+
 	public function isVisible() {
 		return $this->def()->isVisible();
 	}
 
 	public function isVisibleInCollection() {
 		return $this->def()->isVisibleInCollection();
+	}
+
+	public function isSecret() {
+		return $this->def()->isSecret();
+	}
+
+	public function relatedColumns() {
+		return $this->type()->getRelatedColumns();
 	}
 }

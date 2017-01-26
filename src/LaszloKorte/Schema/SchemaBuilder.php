@@ -282,12 +282,12 @@ final class SchemaBuilder {
 				$options = array_map(function($o) {
 					return trim($o, "'");
 				}, explode(',', $args));
-				return new ColumnType\Enum($name, false, $options);
+				return new ColumnType\Enum(false, $options);
 			case 'set':
 				$options = array_map(function($o) {
 					return trim($o, "'");
 				}, explode(',', $args));
-				return new ColumnType\Enum($name, true, $options);
+				return new ColumnType\Enum(true, $options);
 			default:
 				throw new \Exception("unknown type: ". $name);
 		}

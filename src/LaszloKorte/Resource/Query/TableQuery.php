@@ -16,6 +16,14 @@ final class TableQuery {
 		$this->table = $table;
 	}
 
+	public function includeColumn($col) {
+		if ($this->columns === NULL) {
+			$this->columns = [];
+		}
+
+		$this->columns[] = $col;
+	}
+
 	public function countChildren() {
 
 	}
@@ -34,6 +42,10 @@ final class TableQuery {
 
 	public function getPrepared() {
 
+	}
+
+	public function __toString() {
+		return sprintf('SELECT %s FROM %s', $this->columns === NULL ? '*' : implode(', ', $this->columns), $this->table->getName());
 	}
 
 }

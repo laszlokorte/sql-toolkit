@@ -13,6 +13,6 @@ class RelationName implements Annotation {
 	public function __construct($params) {
 		$this->fkName = $params['fk'] ?? $params['value'];
 		$this->singular = $params['singular'];
-		$this->plural = $params['plural'];
+		$this->plural = $params['plural'] ?? NULL;
 	}
 }

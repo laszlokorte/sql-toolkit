@@ -4,8 +4,14 @@ namespace LaszloKorte\Schema\ColumnType;
 
 final class Floating implements ColumnType, Serialable {
 
+	private $bits;
+
 	public function __construct($bits) {
 		$this->bits = $bits;
+	}
+
+	public function getBitCount() {
+		return $this->bits;
 	}
 
 	public function __toString() {

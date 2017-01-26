@@ -9,5 +9,18 @@ class ToggleField implements FieldType {
 	const TYPE_CHECKBOX = 2;
 
 	private $type;
-	private $columnName;
+	private $columnId;
+
+	public function __construct($type, $columnId) {
+		$this->type = $type;
+		$this->columnId = $columnId;
+	}
+
+	public function getTemplateName() {
+		return 'toggle';
+	}
+
+	public function getRelatedColumns() {
+		return [$this->columnId];
+	}
 }

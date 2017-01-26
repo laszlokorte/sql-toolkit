@@ -3,9 +3,20 @@
 namespace LaszloKorte\Schema\ColumnType;
 
 final class Blob implements ColumnType {
+	private $length;
+	private $binary;
+
 	public function __construct($length, $binary) {
 		$this->length = $length;
 		$this->binary = $binary;
+	}
+
+	public function getLength() {
+		return $this->length;
+	}
+
+	public function isBinary() {
+		return $this->binary;
 	}
 
 	public function __toString() {

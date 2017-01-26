@@ -3,9 +3,21 @@
 namespace LaszloKorte\Schema\ColumnType;
 
 final class Chars implements ColumnType {
+
+	private $length;
+	private $varLength;
+
 	public function __construct($length, $varLength) {
 		$this->length = $length;
 		$this->varLength = $varLength;
+	}
+
+	public function getLength() {
+		return $this->length;
+	}
+
+	public function isOfVariableLength() {
+		return $this->varLength;
 	}
 
 	public function __toString() {

@@ -10,6 +10,7 @@ final class FieldDefinition {
 	private $isRequired;
 	private $isVisible;
 	private $isVisibleInCollection;
+	private $isSecret;
 
 	public function __construct($title, $fieldType) {
 		$this->title = $title;
@@ -40,6 +41,10 @@ final class FieldDefinition {
 		
 	}
 
+	public function setSecret($isSecret) {
+		$this->isSecret = $isSecret;
+	}
+
 	public function setDescription($description) {
 		$this->description = $description;
 	}
@@ -54,5 +59,13 @@ final class FieldDefinition {
 
 	public function getDescription() {
 		return $this->description;
+	}
+
+	public function getType() {
+		return $this->type;
+	}
+
+	public function isSecret() {
+		return $this->isSecret;
 	}
 }

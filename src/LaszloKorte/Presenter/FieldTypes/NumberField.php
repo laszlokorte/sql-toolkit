@@ -4,19 +4,16 @@ namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
 
-class PasswordField implements FieldType {
-	private $requireRepeat = false;
+class NumberField implements FieldType {
 	private $columnId;
 
-	public function __construct($requireRepeat, $columnId) {
-		$this->requireRepeat = $requireRepeat;
+	public function __construct($columnId) {
 		$this->columnId = $columnId;
 	}
 
 	public function getTemplateName() {
-		return 'password';
+		return 'number';
 	}
-
 
 	public function getRelatedColumns() {
 		return [$this->columnId];

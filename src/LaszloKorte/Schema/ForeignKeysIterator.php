@@ -56,4 +56,8 @@ final class ForeignKeysIterator implements Iterator, Countable, ArrayAccess {
 
 	}
 
+	public function contains($name) {
+		return in_array(new Identifier($name), $this->fkNames);
+	}
+
 }
