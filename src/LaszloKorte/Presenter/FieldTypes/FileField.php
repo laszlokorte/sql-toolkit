@@ -29,4 +29,12 @@ class FileField implements FieldType {
 			$this->mimeColumnId, 
 		];
 	}
+
+	public function getChildAssociations() {
+		return [];
+	}
+
+	public function getParentAssociations() {
+		return [];
+	}
 }

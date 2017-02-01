@@ -2,6 +2,8 @@
 
 namespace LaszloKorte\Presenter;
 
+use LaszloKorte\Presenter\Association;
+
 class Field {
 	private $appDef;
 	private $entityId;
@@ -59,5 +61,17 @@ class Field {
 
 	public function relatedColumns() {
 		return $this->type()->getRelatedColumns();
+	}
+
+	public function getChildAssociations() {
+		return array_map(function($assoc) {
+			return new Association\ChildAssociation($this->appDef, $this->entityId, $this->fieldId, $assoc);
+		}, $this->type()->getChildAssociations());
+	}
+
+	public function getParentAssociations() {
+		return array_map(function($assoc) {
+			return new Association\ParentAssociation($this->appDef, $this->entityId, $this->fieldId, $assoc);
+		}, $this->type()->getParentAssociations());
 	}
 }

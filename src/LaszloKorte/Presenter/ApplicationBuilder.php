@@ -8,7 +8,10 @@ use LaszloKorte\Configurator\ColumnAnnotation as CA;
 
 use LaszloKorte\Resource\Template\Parser;
 use LaszloKorte\Resource\Template\Lexer;
+use LaszloKorte\Resource\Template\Nodes\Sequence;
+use LaszloKorte\Resource\Template\Nodes\OutputTag;
 
+use LaszloKorte\Schema\Table;
 use LaszloKorte\Schema\IdentifierMap;
 
 use Doctrine\Common\Inflector\Inflector;
@@ -140,11 +143,23 @@ final class ApplicationBuilder {
 			case TA\Display::class:
 				$entityBuilder->requireUnique($tblAnn);
 				$template = $this->templateParser->parse($this->templateLexer->tokenize($tblAnn->templateString));
+				
+				$table = $entityBuilder->getTable();
+				if(!$this->validTemplate($table, $template)) {
+					throw new \Exception(sprintf("Invalid display template for table '%s'", $table->getName()));
+				}
+
 				$entityBuilder->setDisplayTemplate($template);
 				break;
 			case TA\Display::class:
 				$entityBuilder->requireUnique($tblAnn);
 				$template = $this->templateParser->parse($this->templateLexer->tokenize($tblAnn->urlTemplte));
+
+				$table = $entityBuilder->getTable();
+				if(!$this->validTemplate($tabl, $template)) {
+					throw new \Exception(sprintf("Invalid Preview URL template for table '%s'", $table->getName()));
+				}
+
 				$entityBuilder->setPreviewUrl($template);
 				break;
 			case TA\Description::class:
@@ -208,6 +223,38 @@ final class ApplicationBuilder {
 			default:
 				$entityBuilder->reportUnknownAnnotation($colAnn);
 		}
+	}
+
+
+
+	private function validTemplate($table, Sequence $seq) {
+		foreach ($seq as $value) {
+			if(!$value instanceof OutputTag) {
+				continue;
+			}
+
+			$p = array_reduce(iterator_to_array($value->getPath()), function($acc, $segment) {
+
+				if(!$acc instanceof Table) {
+					return false;
+				}
+				if($acc->hasForeignKey($segment)) {
+					return $acc->foreignKey($segment)->getTargetTable();
+				} elseif($acc->hasColumn($segment)) {
+					return true;
+				} else {
+					return false;
+				}
+			}, $table);
+
+			if($p === false) {
+				return false;
+			} elseif($p instanceof Table && $value->hasFilters()) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private $prevAnnotations = [];

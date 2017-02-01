@@ -5,6 +5,8 @@ namespace LaszloKorte\Presenter;
 use LaszloKorte\Configurator\TableAnnotation as TA;
 use LaszloKorte\Schema\Table;
 use LaszloKorte\Resource\Template\Nodes\Sequence;
+use LaszloKorte\Resource\Template\Nodes\StaticText;
+use LaszloKorte\Resource\Template\Nodes\Path;
 use LaszloKorte\Resource\Template\Nodes\OutputTag;
 
 use LaszloKorte\Presenter\Identifier;
@@ -35,6 +37,10 @@ final class EntityBuilder {
 		$this->table = $table;
 	}
 
+	public function getTable() {
+		return $this->table;
+	}
+
 	public function reportUnknownAnnotation($annotation) {
 		$this->unknownAnnotations[] = $annotation;
 	}
@@ -53,45 +59,11 @@ final class EntityBuilder {
 	}
 
 	public function setDisplayTemplate(Sequence $template) {
-		if(!$this->validTemplate($template)) {
-			throw new \Exception(sprintf("Invalid display template for table '%s'", $this->table->getName()));
-		}
 		$this->displayTemplate = $template;
 	}
 
 	public function setPreviewUrl(Sequence $template) {
-		if(!$this->validTemplate($template)) {
-			throw new \Exception(sprintf("Invalid Preview URL template for table '%s'", $this->table->getName()));
-		}
 		$this->previewUrl = $template;
-	}
-
-	private function validTemplate(Sequence $seq) {
-		foreach ($seq as $value) {
-			if(!$value instanceof OutputTag) {
-				continue;
-			}
-
-			$p = array_reduce(iterator_to_array($value->getPath()), function($acc, $segment) {
-
-				if(!$acc instanceof Table) {
-					return false;
-				}
-				if($acc->hasForeignKey($segment)) {
-					return $acc->foreignKey($segment)->getTargetTable();
-				} elseif($acc->hasColumn($segment)) {
-					return true;
-				} else {
-					return false;
-				}
-			}, $this->table);
-
-			if($p === false) {
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 	public function setDescription($description) {
@@ -210,9 +182,9 @@ final class EntityBuilder {
 			$group->setTitle($ab->titelize($this->groupName));
 		}
 
-		if($this->displayTemplate !== NULL) {
-			$entityDef->setDisplayTemplate($this->displayTemplate);
-		}
+		$displayTemplate = $this->displayTemplate ?? $this->buildDefaultDisplayTemplate();
+
+		$entityDef->setDisplayTemplate($displayTemplate);
 
 		if($this->description !== NULL) {
 			$entityDef->setDescription($this->description);
@@ -251,6 +223,19 @@ final class EntityBuilder {
 		} else {
 			return $this->foreignKeyNames[$fkId]->plural ?? NULL;
 		}
+	}
+
+	private function buildDefaultDisplayTemplate() {
+		return new Sequence(array_merge([
+			new StaticText(sprintf('%s:', $this->table->getName())),
+		],
+		array_map(function($c) {
+			return new OutputTag(new Path([(string) $c->getName()]));
+		}, iterator_to_array($this->table->primaryKeys())),
+		array_map(function($fk) {
+			return new OutputTag(new Path([(string) $fk->getName()]));
+		}, iterator_to_array($this->table->foreignKeys()))
+		));
 	}
 
 

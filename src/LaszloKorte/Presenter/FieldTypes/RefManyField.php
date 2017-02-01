@@ -27,4 +27,12 @@ class RefManyField implements FieldType {
 	public function getRelatedColumns() {
 		return [];
 	}
+
+	public function getChildAssociations() {
+		return [];
+	}
+
+	public function getParentAssociations() {
+		return [];
+	}
 }

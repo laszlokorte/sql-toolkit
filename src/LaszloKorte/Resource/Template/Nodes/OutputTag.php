@@ -23,4 +23,15 @@ final class OutputTag {
 	public function getFilters() {
 		return $this->filters;
 	}
+
+	public function hasFilters() {
+		return !empty($this->filters);
+	}
+
+	public function __toString() {
+		return sprintf(
+			'{{ %s }}', 
+			implode(' | ', array_merge([$this->path], $this->filters))
+		);
+	}
 }

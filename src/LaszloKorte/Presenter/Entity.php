@@ -58,4 +58,8 @@ class Entity {
 	public function parentEntity() {
 		return new self($this->appDef, $this->def()->getParentId());
 	}
+
+	public function getDisplayTemplate() {
+		return $this->def()->getDisplayTemplate();
+	}
 }

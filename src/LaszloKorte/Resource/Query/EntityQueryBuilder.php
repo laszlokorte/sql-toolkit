@@ -28,6 +28,9 @@ final class EntityQueryBuilder {
 			}
 		}
 
+		$field->getChildAssociations();
+		$field->getParentAssociations();
+
 		return $query;
 	}
 }

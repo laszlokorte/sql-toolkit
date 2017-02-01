@@ -8,7 +8,6 @@ final class ManyToOneDefinition {
 
 	private $targetTypeName;
 
-	private $ownKeyColumns;
 	private $foreignKeyColumns;
 	
 	private $inverseId;

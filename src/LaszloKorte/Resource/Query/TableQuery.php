@@ -22,6 +22,8 @@ final class TableQuery {
 		}
 
 		$this->columns[] = $col;
+
+		$this->columns = array_unique($this->columns);
 	}
 
 	public function countChildren() {

@@ -20,4 +20,12 @@ class SyntaxField implements FieldType {
 	public function getRelatedColumns() {
 		return [$this->columnId];
 	}
+
+	public function getChildAssociations() {
+		return [];
+	}
+
+	public function getParentAssociations() {
+		return [];
+	}
 }

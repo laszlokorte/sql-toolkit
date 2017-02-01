@@ -118,4 +118,8 @@ final class EntityDefinition {
 	public function getParentId() {
 		return $this->parentEntityId;
 	}
+
+	public function getDisplayTemplate() {
+		return $this->templateSequence;
+	}
 }

@@ -20,4 +20,8 @@ final class Path implements IteratorAggregate {
 	public function getIterator() {
 		return new ArrayIterator($this->segments);
 	}
+
+	public function __toString() {
+		return implode('.', $this->segments);
+	}
 }

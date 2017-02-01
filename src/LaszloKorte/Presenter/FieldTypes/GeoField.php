@@ -20,4 +20,12 @@ class GeoField implements FieldType {
 	public function getRelatedColumns() {
 		return [$this->longitudeColumnId, $this->latitudeColumnId];
 	}
+
+	public function getChildAssociations() {
+		return [];
+	}
+
+	public function getParentAssociations() {
+		return [];
+	}
 }

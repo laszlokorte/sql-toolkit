@@ -109,6 +109,10 @@ $queryBuilder = new EntityQueryBuilder($schema);
 		<?php echo $queryBuilder->queryForEntity($entity); ?>
 	</div>
 
+	<div>
+		<?php echo $entity->getDisplayTemplate(); ?>
+	</div>
+
 	<h4>Fields</h4>
 	<ul>
 		<?php foreach ($entity->fields() as $field): ?>

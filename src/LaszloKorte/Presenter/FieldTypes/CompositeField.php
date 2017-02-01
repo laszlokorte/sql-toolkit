@@ -4,19 +4,21 @@ namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
 
-class ColorField implements FieldType {
-	private $columnId;
+class CompositeField implements FieldType {
+	private $childFields;
 
-	public function __construct($columnId) {
-		$this->columnId = $columnId;
+	public function __construct($childFields) {
+		$this->childFields = $childFields;
 	}
 
 	public function getTemplateName() {
-		return 'color';
+		return 'composite';
 	}
 
 	public function getRelatedColumns() {
-		return [$this->columnId];
+		return array_merge(...array_map(function($field) {
+			return $field->getRelatedColumns();
+		}, $this->childFields));
 	}
 
 	public function getChildAssociations() {

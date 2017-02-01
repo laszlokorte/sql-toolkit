@@ -3,6 +3,7 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Association\AssociationDefinition;
 
 class RefParentField implements FieldType {
 	private $entityId;
@@ -18,6 +19,16 @@ class RefParentField implements FieldType {
 	}
 
 	public function getRelatedColumns() {
+		return $this->fkOwnColumnNames;
+	}
+
+	public function getChildAssociations() {
 		return [];
+	}
+
+	public function getParentAssociations() {
+		return [
+			new AssociationDefinition($this->entityId, $this->fkOwnColumnNames),
+		];
 	}
 }

@@ -20,4 +20,8 @@ final class Sequence implements IteratorAggregate {
 	public function getIterator() {
 		return new ArrayIterator($this->children);
 	}
+
+	public function __toString() {
+		return implode('', $this->children);
+	}
 }

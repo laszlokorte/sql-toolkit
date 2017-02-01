@@ -19,4 +19,12 @@ class DateField implements FieldType {
 		return [$this->columnId];
 	}
 
+	public function getChildAssociations() {
+		return [];
+	}
+
+	public function getParentAssociations() {
+		return [];
+	}
+
 }
