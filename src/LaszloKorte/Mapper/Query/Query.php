@@ -13,7 +13,7 @@ final class Query {
 	private $offset = 0;
 	private $ordering = [];
 
-	public function __construct(Type $type, Predicate $condition = NULL, $limit = NULL, $offset = 0, Ordering ...$orderings) {
+	public function __construct(Type $type, Predicate $condition = NULL, $limit = NULL, $offset = 0, Ordering ...$ordering) {
 		$this->type = $type;
 		$this->condition = is_null($condition) ? new Top() : $condition;
 		$this->limit = $limit;

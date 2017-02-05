@@ -29,7 +29,7 @@ trait FieldDSLTrait {
 	}
 
 	public function eq($other) {
-		return new Condition\Equal(new RecordValue($this), $this->valueFor($otherValue));
+		return new Condition\Equal(new RecordValue($this), $this->valueFor($other));
 	}
 
 	public function neq($other) {
