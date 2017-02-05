@@ -22,7 +22,7 @@ final class Lexer {
 		 self::T_FILTER_SEPARATOR => '~\|~iA',
 		 self::T_IDENTIFIER_QUOTED => '~\`(?:[^\`]|\\|\`)+\`~iA',
 		 self::T_IDENTIFIER => '~[0-9a-zA-Z\$\_]+~iA',
-		 self::T_FOREIGN => '~(?:\{[^\{])*(?:[^{](?:\\\\)*(?:\\{)*)+~iA',
+		 self::T_FOREIGN => '~(?:\{[^\{])*(?:[^{](?:\\\\)*(?:\\\{)*)+~iA',
 	];
 
 	public function __construct() {
