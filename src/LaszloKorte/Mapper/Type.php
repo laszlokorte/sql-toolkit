@@ -52,9 +52,9 @@ final class Type {
 		if ($def->hasParentRelationship($fieldOrRelId)) {
 			$rel = $this->rel($fieldOrRelId);
 			return new RelationshipPath($rel->getTargetType(), [$rel]);
-		} else if ($def->hasChildRelationship($fieldOrRelId)) {
-			$rel = $this->rel($fieldOrRelId);
-			return new RelationshipPath($rel->getTargetType(), [$rel]); 
+		// } else if ($def->hasChildRelationship($fieldOrRelId)) {
+		// 	$rel = $this->rel($fieldOrRelId);
+		// 	return new RelationshipPath($rel->getTargetType(), [$rel]); 
 		} else if ($def->hasField($fieldOrRelId)) {
 			return new OwnFieldPath($this, $this->field($fieldOrRelId));
 		} else {
