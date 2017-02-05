@@ -3,12 +3,13 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class PasswordField implements FieldType {
 	private $requireRepeat = false;
 	private $columnId;
 
-	public function __construct($requireRepeat, $columnId) {
+	public function __construct($requireRepeat, Identifier $columnId) {
 		$this->requireRepeat = $requireRepeat;
 		$this->columnId = $columnId;
 	}

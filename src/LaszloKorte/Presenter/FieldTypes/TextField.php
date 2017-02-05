@@ -3,6 +3,7 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class TextField implements FieldType {
 	const TYPE_SINGLE_LINE = 1;
@@ -11,7 +12,7 @@ class TextField implements FieldType {
 	private $type;
 	private $columnId;
 
-	public function __construct($type, $columnId) {
+	public function __construct($type, Identifier $columnId) {
 		$this->type = $type;
 		$this->columnId = $columnId;
 	}

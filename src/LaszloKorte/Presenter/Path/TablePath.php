@@ -7,8 +7,12 @@ class TablePath implements Path {
 	private $target;
 
 	public function __construct($pathLink) {
-		$this->pathLinks = [$pathLinks];
-		$this->target = $pathLink
+		$this->pathLinks = [$pathLink];
+		$this->target = $pathLink;
+	}
+
+	public function getTarget() {
+		return $this->target->getTarget();
 	}
 
 	public function append(PathLink $link) {
@@ -16,6 +20,7 @@ class TablePath implements Path {
 			throw new \Exception("Invalid Path");
 		}
 		$this->pathLinks[] = $link;
+		$this->target = $link;
 	}
 
 	public function length() {
@@ -24,5 +29,14 @@ class TablePath implements Path {
 
 	public function __toString() {
 		return implode('.', $this->pathLinks);
+	}
+
+	public function relativeTo(TablePath $p) {
+		$newPath = clone $p;
+		foreach($this->pathLinks AS $l) {
+			$newPath->append($l);
+		}
+
+		return $newPath;
 	}
 }

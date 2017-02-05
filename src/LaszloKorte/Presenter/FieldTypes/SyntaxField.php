@@ -3,12 +3,13 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class SyntaxField implements FieldType {
 	private $grammar;
 	private $columnId;
 
-	public function __construct($grammar, $columnId) {
+	public function __construct($grammar, Identifier $columnId) {
 		$this->grammar = $grammar;
 		$this->columnId = $columnId;
 	}

@@ -49,7 +49,7 @@ final class TableDefinition implements Serializable {
 
 		foreach($columnNames AS $col) {
 			if (!$col instanceof Identifier) {
-				throw new \Exception(sprintf('$columnName is expected to be an %s'), Identifier::class);
+				throw new \Exception(sprintf('$columnName is expected to be an %s', Identifier::class));
 			}
 			if(!isset($this->columnDefinitions[$col])) {
 				throw new \Exception(sprintf('Column %s is not defined in this table.', $col));
@@ -76,7 +76,7 @@ final class TableDefinition implements Serializable {
 		}
 		foreach($columnNames AS $col) {
 			if (!$col instanceof Identifier) {
-				throw new \Exception(sprintf('$columnName is expected to be an %s'), Identifier::class);
+				throw new \Exception(sprintf('$columnName is expected to be an %s', Identifier::class));
 			}
 			if (!isset($this->columnDefinitions[$col])) {
 				throw new Exception(sprintf('Column %s is not defined in this table.', $col));

@@ -2,10 +2,12 @@
 
 namespace LaszloKorte\Presenter\Path;
 
-class ForeignColumnPath implements Path {
+use LaszloKorte\Presenter\Identifier;
+
+class ForeignColumnPath implements ColumnPath {
 	private $tablePath;
 
-	public function __construct(TablePath $tablePath, $columnName) {
+	public function __construct(TablePath $tablePath, Identifier $columnName) {
 		$this->tablePath = $tablePath;
 		$this->columnName = $columnName;
 	}
@@ -16,5 +18,9 @@ class ForeignColumnPath implements Path {
 
 	public function __toString() {
 		return "$this->tablePath.$this->columnName";
+	}
+
+	public function relativeTo(TablePath $p) {
+		return new ForeignColumnPath($this->tablePath->relativeTo($p), $this->columnName);
 	}
 }

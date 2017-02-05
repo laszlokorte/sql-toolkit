@@ -2,11 +2,18 @@
 
 namespace LaszloKorte\Presenter\Association;
 
+use LaszloKorte\Presenter\Identifier;
+
 final class AssociationDefinition {
 	private $targetId;
 	private $joinColumns;
 
-	public function __construct($targetId, $joinColumns) {
+	public function __construct(Identifier $targetId, array $joinColumns) {
+		foreach($joinColumns AS $c) {
+			if(!$c instanceof Identifier) {
+				throw new \Exception(sprintf('Join column is expected to be an %s but %s given', Identifier::class, get_class($c)));
+			}
+		}
 		$this->targetId = $targetId;
 		$this->joinColumns = $joinColumns;
 	}

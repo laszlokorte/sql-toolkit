@@ -13,7 +13,10 @@ use LaszloKorte\Resource\Template\Nodes\OutputTag;
 
 use LaszloKorte\Schema\Table;
 use LaszloKorte\Schema\IdentifierMap;
+
 use LaszloKorte\Presenter\Path;
+use LaszloKorte\Presenter\Identifier;
+
 
 use Doctrine\Common\Inflector\Inflector;
 
@@ -247,19 +250,27 @@ final class ApplicationBuilder {
 
 				if($currentTable->hasForeignKey($segment)) {
 					$fk = $currentTable->foreignKey($segment);
-					$sourceTable = $fk->getSourceTable();
+					$sourceTable = $fk->getOwnTable();
 					$targetTable = $fk->getTargetTable();
-					$currentTable = $fk->targetTable();
+					$currentTable = $targetTable;
+
+					$link = new Path\PathLink(new Identifier($segment), new Identifier((string)$sourceTable->getName()), new Identifier((string)$targetTable->getName()), array_map(function($c) {
+							return new Identifier((string)$c->getName());
+						}, iterator_to_array($fk->getOwnColumns())), array_map(function($c) {
+							return new Identifier((string)$c->getName());
+						}, iterator_to_array($fk->getForeignColumns()))
+					);
+
 					if($path === NULL) {
-						$path = new Path\TablePath([new Path\PathLink()]);
+						$path = new Path\TablePath($link);
 					} else {
-						$path->append(new Path\PathLink($segment, $sourceTable->getName(), $targetTable, $fk->getOwnColumns(), $fk->getForeignColumns()));
+						$path->append($link);
 					}
 				} elseif($currentTable->hasColumn($segment)) {
 					if($path === NULL) {
-						$path = new Path\OwnColumnPath($table->getName(), $segment);
+						$path = new Path\OwnColumnPath(new Identifier((string)$table->getName()), new Identifier($segment));
 					} else {
-						$path = new Path\ForeignColumnPath($path, $segment);
+						$path = new Path\ForeignColumnPath($path, new Identifier($segment));
 					}
 					$currentTable = NULL;
 				} else {

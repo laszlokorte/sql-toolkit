@@ -3,11 +3,12 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class NumberField implements FieldType {
 	private $columnId;
 
-	public function __construct($columnId) {
+	public function __construct(Identifier $columnId) {
 		$this->columnId = $columnId;
 	}
 

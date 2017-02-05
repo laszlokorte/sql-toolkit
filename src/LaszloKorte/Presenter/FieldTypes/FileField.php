@@ -3,6 +3,7 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class FileField implements FieldType {
 	private $targetDir;
@@ -11,7 +12,7 @@ class FileField implements FieldType {
 	private $sizeColumnId;
 	private $mimeColumnId;
 
-	public function __construct($targetDir, $pathColumnId, $siteColumnId, $mimeColumnId) {
+	public function __construct($targetDir, Identifier $pathColumnId, Identifier $siteColumnId, Identifier $mimeColumnId) {
 		$this->targetDir = $targetDir;
 		$this->pathColumnId = $pathColumnId;
 		$this->sizeColumnId = $sizeColumnId;

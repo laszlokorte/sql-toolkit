@@ -2,6 +2,8 @@
 
 namespace LaszloKorte\Presenter\Path;
 
+use LaszloKorte\Presenter\Identifier;
+
 class PathLink {
 	private $name;
 
@@ -11,9 +13,19 @@ class PathLink {
 	private $sourceColumns;
 	private $targetColumns;
 
-	public function __construct($name, $sourceTable, $targetTable, array $sourceColumns, array $targetColumns) {
+	public function __construct(Identifier $name, Identifier $sourceTable, Identifier $targetTable, array $sourceColumns, array $targetColumns) {
 		if(count($sourceColumns) !== count($targetColumns)) {
 			throw new \Exception("Column count does not match");
+		}
+		foreach($sourceColumns AS $c) {
+			if(!$c instanceof Identifier) {
+				throw new \Exception("Column name is expected to be an identifier");
+			}
+		}
+		foreach($targetColumns AS $c) {
+			if(!$c instanceof Identifier) {
+				throw new \Exception("Column name is expected to be an identifier");
+			}
 		}
 		$this->name = $name;
 		$this->sourceTable = $sourceTable;
@@ -31,6 +43,6 @@ class PathLink {
 	}
 
 	public function __toString() {
-		return $this->name;
+		return (string)$this->name;
 	}
 }

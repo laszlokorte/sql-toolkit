@@ -3,6 +3,7 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class ToggleField implements FieldType {
 	const TYPE_RADIO = 1;
@@ -11,7 +12,7 @@ class ToggleField implements FieldType {
 	private $type;
 	private $columnId;
 
-	public function __construct($type, $columnId) {
+	public function __construct($type, Identifier $columnId) {
 		$this->type = $type;
 		$this->columnId = $columnId;
 	}

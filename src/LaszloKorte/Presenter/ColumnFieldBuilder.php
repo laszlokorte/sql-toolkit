@@ -131,7 +131,7 @@ final class ColumnFieldBuilder implements FieldBuilder {
 
 	private function defaultTypeForColumn() {
 		$columnType = $this->column->getType();
-		$columnName = $this->column->getName();
+		$columnName = new Identifier((string) $this->column->getName());
 		switch(get_class($columnType)) {
 			case CT\Blob::class:
 				if($columnType->isBinary()) {

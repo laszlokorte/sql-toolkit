@@ -3,6 +3,7 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class RefManyField implements FieldType {
 	const STYLE_TAGS = 1;
@@ -13,7 +14,7 @@ class RefManyField implements FieldType {
 	private $fkOwnColumns;
 	private $fkOtherColumnNames;
 
-	public function __construct($style, $joinEntityId, $fkOwnColumnNames, $fkOtherColumnNames) {
+	public function __construct($style, Identifier $joinEntityId, array $fkOwnColumnNames, array $fkOtherColumnNames) {
 		$this->style = $style;
 		$this->joinEntityId = $joinEntityId;
 		$this->fkOwnColumnNames = $fkOwnColumnNames;

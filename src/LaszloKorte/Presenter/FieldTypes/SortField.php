@@ -3,12 +3,13 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class SortField implements FieldType {
 	
 	private $columnId;
 
-	public function __construct($columnId) {
+	public function __construct(Identifier $columnId) {
 		$this->columnId = $columnId;
 	}
 

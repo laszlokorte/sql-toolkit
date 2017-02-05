@@ -6,13 +6,17 @@ class Entity {
 	private $appDef;
 	private $entityId;
 
-	public function __construct($appDef, $entityId) {
+	public function __construct($appDef, Identifier $entityId) {
 		$this->appDef = $appDef;
 		$this->entityId = $entityId;
 	}
 
 	private function def() {
 		return $this->appDef->getEntity($this->entityId);
+	}
+
+	public function otherEntity(Identifier $id) {
+		return new self($this->appDef, $id);
 	}
 
 	public function id() {

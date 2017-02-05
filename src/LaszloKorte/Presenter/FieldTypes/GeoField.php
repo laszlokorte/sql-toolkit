@@ -3,12 +3,13 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class GeoField implements FieldType {
 	private $longitudeColumnId;
 	private $latitudeColumnId;
 
-	public function __construct($longitudeColumnId, $latitudeColumnId) {
+	public function __construct(Identifier $longitudeColumnId, Identifier $latitudeColumnId) {
 		$this->longitudeColumnId = $longitudeColumnId;
 		$this->latitudeColumnId = $latitudeColumnId;
 	}

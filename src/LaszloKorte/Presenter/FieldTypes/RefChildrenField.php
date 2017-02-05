@@ -4,12 +4,13 @@ namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
 use LaszloKorte\Presenter\Association\AssociationDefinition;
+use LaszloKorte\Presenter\Identifier;
 
 class RefChildrenField implements FieldType {
 	private $entityId;
 	private $fkOtherColumnNames;
 
-	public function __construct($entityId, $fkOtherColumnNames) {
+	public function __construct(Identifier $entityId, $fkOtherColumnNames) {
 		$this->entityId = $entityId;
 		$this->fkOtherColumnNames = $fkOtherColumnNames;
 	}

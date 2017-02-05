@@ -3,12 +3,13 @@
 namespace LaszloKorte\Presenter\FieldTypes;
 
 use LaszloKorte\Presenter\FieldTypes\FieldType;
+use LaszloKorte\Presenter\Identifier;
 
 class TimeField implements FieldType {
 	private $includeSeconds = false;
 	private $columnId;
 
-	public function __construct($includeSeconds, $columnId) {
+	public function __construct($includeSeconds, Identifier $columnId) {
 		$this->includeSeconds = $includeSeconds;
 		$this->columnId = $columnId;
 	}
