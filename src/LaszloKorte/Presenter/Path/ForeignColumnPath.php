@@ -6,6 +6,7 @@ use LaszloKorte\Presenter\Identifier;
 
 class ForeignColumnPath implements ColumnPath {
 	private $tablePath;
+	private $columnName;
 
 	public function __construct(TablePath $tablePath, Identifier $columnName) {
 		$this->tablePath = $tablePath;
@@ -18,6 +19,14 @@ class ForeignColumnPath implements ColumnPath {
 
 	public function __toString() {
 		return "$this->tablePath.$this->columnName";
+	}
+
+	public function getTablePath() {
+		return $this->tablePath;
+	}
+
+	public function getColumnName() {
+		return $this->columnName;
 	}
 
 	public function relativeTo(TablePath $p) {

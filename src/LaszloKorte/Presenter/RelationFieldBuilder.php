@@ -103,7 +103,7 @@ final class RelationFieldBuilder implements FieldBuilder {
 		if($this->reversed) {
 			$type = new RefChildrenField(new Identifier((string) $this->foreignKey->getOwnTable()->getName()), array_map(function($c) {
 				return new Identifier((string)$c->getName());
-			}, iterator_to_array($this->foreignKey->getForeignColumns())));
+			}, iterator_to_array($this->foreignKey->getOwnColumns())));
 		} else {
 			$type = new RefParentField(new Identifier((string) $this->foreignKey->getTargetTable()->getName()),  array_map(function($c) {
 				return new Identifier((string)$c->getName());

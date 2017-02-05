@@ -27,7 +27,7 @@ final class EntityQueryBuilder {
 			}
 
 			foreach($field->getChildAssociations() AS $child) {
-
+				$query->includeAggregation(new Aggregation(Aggregation::TYPE_COUNT, $field->id(), $child->toLink()));
 			}
 
 			foreach($field->getParentAssociations() AS $parent) {
@@ -36,15 +36,17 @@ final class EntityQueryBuilder {
 				} 
 			}
 
-			$paths = array_merge($field->getChildAssociations(), $field->getParentAssociations());
-			echo implode("<br>\n\n", $paths);
-			if($paths) {
-				echo "<br>";
-			}
+			// foreach($this->expandDisplayPaths($entity, $entity->getDisplayPaths()) AS $p) {
+			// 	$query->includeColumn($p);
+			// }
+
+			// $paths = array_merge($field->getChildAssociations(), $field->getParentAssociations());
+			// echo implode("<br>\n\n", $paths);
+			// if($paths) {
+			// 	echo "<br>";
+			// }
 
 		}
-
-		echo implode("<br/>", $entity->getDisplayPaths());
 
 		return $query;
 	}
@@ -62,15 +64,13 @@ final class EntityQueryBuilder {
 	}
 
 	private function expandDisplayPaths($entity, $paths) {
-		$paths = array_map(function($p) use ($entity) {
-			return $this->expandDisplayPath($entity, $p);
-		}, $paths);
-
 		if(empty($paths)) {
 			return [];
 		}
-		
-		return array_merge(...$paths);
+
+		return array_merge(...array_map(function($p) use ($entity) {
+			return $this->expandDisplayPath($entity, $p);
+		}, $paths));
 	}
 
 	private function expandDisplayPath($entity, Path $base) {

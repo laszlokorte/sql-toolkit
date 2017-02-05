@@ -15,6 +15,10 @@ class TablePath implements Path {
 		return $this->target->getTarget();
 	}
 
+	public function getLinks() {
+		return $this->pathLinks;
+	}
+
 	public function append(PathLink $link) {
 		if($link->getSource() != $this->target->getTarget()) {
 			throw new \Exception("Invalid Path");

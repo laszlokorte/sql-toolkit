@@ -42,7 +42,19 @@ class PathLink {
 		return $this->sourceTable;
 	}
 
+	public function getSourceColumns() {
+		return $this->sourceColumns;
+	}
+
+	public function getTargetColumns() {
+		return $this->targetColumns;
+	}
+
 	public function __toString() {
 		return (string)$this->name;
+	}
+
+	public function getName() {
+		return $this->name;
 	}
 }

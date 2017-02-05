@@ -86,7 +86,8 @@ final class DataSource {
 		$foreignPaths = array_unique(
 			array_filter($paths, function($p) {
 					return ($p instanceof ForeignPath) && $p->isParentPath();
-			})
+			}),
+			SORT_REGULAR
 		);
 		usort($foreignPaths, 
 			function($a, $b) {

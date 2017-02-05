@@ -24,4 +24,8 @@ class OwnColumnPath implements ColumnPath {
 	public function relativeTo(TablePath $p) {
 		return new ForeignColumnPath($p, $this->columnName);
 	}
+
+	public function getColumnName() {
+		return $this->columnName;
+	}
 }
