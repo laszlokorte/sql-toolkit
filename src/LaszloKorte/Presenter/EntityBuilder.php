@@ -18,6 +18,7 @@ final class EntityBuilder {
 
 	private $id = NULL;
 	private $displayTemplate = NULL;
+	private $displayPaths = [];
 	private $previewUrl = NULL;
 	private $description = NULL;
 	private $groupName = NULL;
@@ -60,6 +61,10 @@ final class EntityBuilder {
 
 	public function setDisplayTemplate(Sequence $template) {
 		$this->displayTemplate = $template;
+	}
+
+	public function setDisplayPaths($paths) {
+		$this->displayPaths = $paths;
 	}
 
 	public function setPreviewUrl(Sequence $template) {
@@ -185,6 +190,7 @@ final class EntityBuilder {
 		$displayTemplate = $this->displayTemplate ?? $this->buildDefaultDisplayTemplate();
 
 		$entityDef->setDisplayTemplate($displayTemplate);
+		$entityDef->setDisplayPaths($this->displayPaths);
 
 		if($this->description !== NULL) {
 			$entityDef->setDescription($this->description);

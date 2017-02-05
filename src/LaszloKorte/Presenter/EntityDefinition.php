@@ -17,6 +17,9 @@ final class EntityDefinition {
 	private $isVisible;
 	private $description;
 
+	private $displayPaths;
+
+
 	private $orderColumn;
 	private $fieldDefinitions;
 	private $searchColumns;
@@ -57,6 +60,10 @@ final class EntityDefinition {
 
 	public function setDisplayTemplate(Sequence $templateSequence) {
 		$this->templateSequence = $templateSequence;
+	}
+
+	public function setDisplayPaths(array $paths) {
+		$this->displayPaths = $paths;
 	}
 
 	public function setOrderColumn(Identifier $col) {
@@ -121,5 +128,9 @@ final class EntityDefinition {
 
 	public function getDisplayTemplate() {
 		return $this->templateSequence;
+	}
+
+	public function getDisplayPaths() {
+		return $this->displayPaths;
 	}
 }

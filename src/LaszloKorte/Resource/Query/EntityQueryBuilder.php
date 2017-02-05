@@ -26,10 +26,15 @@ final class EntityQueryBuilder {
 			foreach($field->relatedColumns() AS $col) {
 				$query->includeColumn($col);
 			}
+
+			echo implode("<br/> -", $field->getChildAssociations());
+			echo "<br>";
+			echo implode("<br/> -", $field->getParentAssociations());
+			echo "<br>";
+
 		}
 
-		$field->getChildAssociations();
-		$field->getParentAssociations();
+		echo implode("<br/>", $entity->getDisplayPaths());
 
 		return $query;
 	}

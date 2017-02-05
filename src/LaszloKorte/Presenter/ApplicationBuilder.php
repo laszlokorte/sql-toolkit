@@ -13,6 +13,7 @@ use LaszloKorte\Resource\Template\Nodes\OutputTag;
 
 use LaszloKorte\Schema\Table;
 use LaszloKorte\Schema\IdentifierMap;
+use LaszloKorte\Presenter\Path;
 
 use Doctrine\Common\Inflector\Inflector;
 
@@ -145,18 +146,21 @@ final class ApplicationBuilder {
 				$template = $this->templateParser->parse($this->templateLexer->tokenize($tblAnn->templateString));
 				
 				$table = $entityBuilder->getTable();
-				if(!$this->validTemplate($table, $template)) {
+				$processedTemplate = $this->processTemplate($table, $template);
+				if(FALSE === $processedTemplate) {
 					throw new \Exception(sprintf("Invalid display template for table '%s'", $table->getName()));
 				}
 
 				$entityBuilder->setDisplayTemplate($template);
+				$entityBuilder->setDisplayPaths($processedTemplate);
 				break;
 			case TA\Display::class:
 				$entityBuilder->requireUnique($tblAnn);
 				$template = $this->templateParser->parse($this->templateLexer->tokenize($tblAnn->urlTemplte));
 
 				$table = $entityBuilder->getTable();
-				if(!$this->validTemplate($tabl, $template)) {
+				$processedTemplate = $this->processTemplate($tabl, $template);
+				if(FALSE === $processedTemplate) {
 					throw new \Exception(sprintf("Invalid Preview URL template for table '%s'", $table->getName()));
 				}
 
@@ -227,34 +231,46 @@ final class ApplicationBuilder {
 
 
 
-	private function validTemplate($table, Sequence $seq) {
+	private function processTemplate($table, Sequence $seq) {
+		$paths = [];
 		foreach ($seq as $value) {
 			if(!$value instanceof OutputTag) {
 				continue;
 			}
 
-			$p = array_reduce(iterator_to_array($value->getPath()), function($acc, $segment) {
-
-				if(!$acc instanceof Table) {
+			$path = NULL;
+			$currentTable = $table;
+			foreach($value->getPath() AS $segment) {
+				if($currentTable === NULL) {
 					return false;
 				}
-				if($acc->hasForeignKey($segment)) {
-					return $acc->foreignKey($segment)->getTargetTable();
-				} elseif($acc->hasColumn($segment)) {
-					return true;
+
+				if($currentTable->hasForeignKey($segment)) {
+					$fk = $currentTable->foreignKey($segment);
+					$sourceTable = $fk->getSourceTable();
+					$targetTable = $fk->getTargetTable();
+					$currentTable = $fk->targetTable();
+					if($path === NULL) {
+						$path = new Path\TablePath([new Path\PathLink()]);
+					} else {
+						$path->append(new Path\PathLink($segment, $sourceTable->getName(), $targetTable, $fk->getOwnColumns(), $fk->getForeignColumns()));
+					}
+				} elseif($currentTable->hasColumn($segment)) {
+					if($path === NULL) {
+						$path = new Path\OwnColumnPath($table->getName(), $segment);
+					} else {
+						$path = new Path\ForeignColumnPath($path, $segment);
+					}
+					$currentTable = NULL;
 				} else {
 					return false;
 				}
-			}, $table);
-
-			if($p === false) {
-				return false;
-			} elseif($p instanceof Table && $value->hasFilters()) {
-				return false;
 			}
+
+			$paths[] = $path;
 		}
 
-		return true;
+		return $paths;
 	}
 
 	private $prevAnnotations = [];

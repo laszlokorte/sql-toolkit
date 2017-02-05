@@ -18,4 +18,8 @@ final class ParentAssociation {
 	public function getTargetEntity() {
 		return new Entity($this->appDef, $this->linkDef->getTargetId());
 	}
+
+	public function __toString() {
+		return "parent:".$this->name;
+	}
 }

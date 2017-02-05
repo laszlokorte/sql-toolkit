@@ -62,4 +62,8 @@ class Entity {
 	public function getDisplayTemplate() {
 		return $this->def()->getDisplayTemplate();
 	}
+
+	public function getDisplayPaths() {
+		return $this->def()->getDisplayPaths();
+	}
 }
