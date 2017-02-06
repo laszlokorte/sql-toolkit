@@ -2,7 +2,9 @@
 
 namespace LaszloKorte\Resource\Query;
 
+use LaszloKorte\Presenter\Identifier;
 use LaszloKorte\Presenter\Entity;
+use LaszloKorte\Presenter\Field;
 use LaszloKorte\Presenter\Path\OwnColumnPath;
 use LaszloKorte\Presenter\Path\Path;
 use LaszloKorte\Presenter\Path\TablePath;
@@ -10,43 +12,72 @@ use LaszloKorte\Presenter\Association\ParentAssociation;
 
 final class EntityQueryBuilder {
 
-	public function __construct() {
+	private $entity;
+	private $includeDisplayColumns = FALSE;
+	private $includeFieldColumns = FALSE;
+	private $sortByField = NULL;
+	private $sortOrderAscending;
+
+	public function __construct(Entity $entity) {
+		$this->entity = $entity;
 	}
 
-	public function queryForEntity(Entity $entity) {
-		$table = $entity->id();
+	public function includeDisplayColumns() {
+		$this->includeDisplayColumns = true;
+	}
+
+	public function includeFieldColumns() {
+		$this->includeFieldColumns = true;
+	}
+
+	public function sortByField($fieldName, $asc = TRUE) {
+		$this->sortByField = $this->entity->field($fieldName);
+		$this->sortOrderAscending = $asc;
+	}
+
+	public function getQuery() {
+		$table = $this->entity->id();
 		$query = new EntityQuery($table);
 
-		foreach($entity->idColumns() AS $idCol) {
+		foreach($this->entity->idColumns() AS $idCol) {
 			$query->includeColumn(new OwnColumnPath($table, $idCol));
 		}
 
-		foreach($entity->fields() AS $field) {
-			foreach($field->relatedColumns() AS $col) {
-				$query->includeColumn(new OwnColumnPath($table, $col));
-			}
-
-			foreach($field->getChildAssociations() AS $child) {
-				$query->includeAggregation(new Aggregation(Aggregation::TYPE_COUNT, $field->id(), $child->toLink()));
-			}
-
-			foreach($field->getParentAssociations() AS $parent) {
-				foreach($this->pathFromAssociation($entity, $parent) AS $c) {
-					$query->includeColumn($c);
-				} 
-			}
-
-			// foreach($this->expandDisplayPaths($entity, $entity->getDisplayPaths()) AS $p) {
-			// 	$query->includeColumn($p);
-			// }
-
-			// $paths = array_merge($field->getChildAssociations(), $field->getParentAssociations());
-			// echo implode("<br>\n\n", $paths);
-			// if($paths) {
-			// 	echo "<br>";
-			// }
-
+		if($this->includeDisplayColumns) {
+			// TODO
 		}
+
+		if($this->sortByField !== NULL) {
+			// TODO
+			$query->orderBy(...array_map(function($path) use($table) {
+				$dir = $this->sortOrderAscending ? 'ASC' : 'DESC';
+				return new Order($path, $dir);
+			}, $this->sortPathsForField($table, $this->sortByField)));
+		} else {
+			$query->orderBy(...array_map(function($idCol) use($table) {
+				$dir = $this->sortOrderAscending ? 'ASC' : 'DESC';
+				return new Order(new OwnColumnPath($table, $idCol), $dir);
+			}, $this->entity->idColumns()));
+		}
+
+		if($this->includeFieldColumns) {
+			foreach($this->entity->fields() AS $field) {
+				foreach($field->relatedColumns() AS $col) {
+					$query->includeColumn(new OwnColumnPath($table, $col));
+				}
+
+				foreach($field->getChildAssociations() AS $child) {
+					$query->includeAggregation(new Aggregation(Aggregation::TYPE_COUNT, $field->id(), $child->toLink()));
+				}
+
+				foreach($field->getParentAssociations() AS $parent) {
+					foreach($this->pathFromAssociation($this->entity, $parent) AS $c) {
+						$query->includeColumn($c);
+					} 
+				}
+			}
+		}
+		
 
 		return $query;
 	}
@@ -82,5 +113,26 @@ final class EntityQueryBuilder {
 		} else {
 			return [$base];
 		}
+	}
+
+	private function sortPathsForField(Identifier $table, Field $field) {
+		return array_merge(
+			// array_map(function($col) use ($table) {
+			// 	return new OwnColumnPath($table, $col);
+			// }, $field->getChildAssociations()),
+
+			// foreach( AS $child) {
+			// 	$query->includeAggregation(new Aggregation(Aggregation::TYPE_COUNT, $field->id(), $child->toLink()));
+			// }
+
+			array_merge(...array_map(function($parent) use ($table) {
+				return $this->pathFromAssociation($this->entity, $parent);
+			}, $field->getParentAssociations())),
+
+
+			array_map(function($col) use ($table) {
+				return new OwnColumnPath($table, $col);
+			}, $field->relatedColumns())
+		);
 	}
 }

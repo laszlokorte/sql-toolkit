@@ -56,7 +56,7 @@ final class EntityQuery {
 	}
 
 	public function orderBy(...$orders) {
-		foreach($order AS $o) {
+		foreach($orders AS $o) {
 			if(!$o instanceof Order) {
 				throw new \Exception(sprintf("Expect order to be instanceof %s but was %s", Order::class, get_class($o)));
 			}
@@ -94,11 +94,11 @@ final class EntityQuery {
 		if($this->columns === NULL) {
 			$columns = sprintf('%s.*', $this->tableName);
 		} else {
-			$columns = implode(', ', array_map(function($c) {
+			$columns = implode(",\n\t", array_map(function($c) {
 				if($c instanceof OwnColumnPath) {
 					return sprintf('%s.%s AS own_%s_%s', $this->tableName, $c->getColumnName(), $this->tableName, $c->getColumnName());
 				} else {
-					return sprintf('%s_%s.%s AS rel_%s_%s', $this->tableName, implode('_', array_map(function($l) {
+					return sprintf('%s_%s.%s AS foreign_%s_%s', $this->tableName, implode('_', array_map(function($l) {
 						return $l->getName();
 					}, $c->getTablePath()->getLinks())), $c->getColumnName(), implode('_', array_map(function($l) {
 						return $l->getName();
@@ -110,13 +110,27 @@ final class EntityQuery {
 		if(!empty($this->aggregations)) {
 			foreach($this->aggregations AS $aggr) {
 				$conditions = $this->joinCondition($this->tableName, sprintf('aggr_%s', $aggr->getName()), $aggr->getLink());
-				$subQuery = sprintf('SELECT COUNT(*) FROM %s AS aggr_%s WHERE %s', $aggr->getLink()->getTarget(), $aggr->getName(), implode(' AND ', $conditions));
+				$subQuery = sprintf("SELECT\n\t\tCOUNT(*)\n\tFROM \n\t\t%s AS aggr_%s\n\tWHERE\n\t\t%s", $aggr->getLink()->getTarget(), $aggr->getName(), implode(' AND ', $conditions));
 
-				$columns .= sprintf(', (%s) AS aggr_%s_%s', $subQuery, $aggr->getName(), $aggr->getType());
+				$columns .= sprintf(",\n\t(\n\t%s\n\t) AS aggr_%s_%s", $subQuery, $aggr->getName(), $aggr->getType());
 			}
 		}
 
-		return sprintf('SELECT %s FROM %s', $columns, $tables);
+		$ordering = isset($this->orders) ? implode(",\n\t", 
+			array_map(function($o) {
+				$c = $o->getColumn();
+				if($c instanceof OwnColumnPath) {
+					$colName = sprintf('own_%s_%s', $this->tableName, $c->getColumnName());
+				} else {
+					$colName = sprintf('foreign_%s_%s', implode('_', array_map(function($l) {
+						return $l->getName();
+					}, $c->getTablePath()->getLinks())), $c->getColumnName());
+				}
+				return sprintf('%s %s', $colName, $o->getDirection());
+			}, $this->orders)
+		) : '1';
+
+		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nORDER BY\n\t%s", $columns, $tables, $ordering);
 	}
 
 	private function joinsForPaths(array $foreignPaths) {
@@ -125,7 +139,7 @@ final class EntityQuery {
 		}, $foreignPaths));
 
 		return array_map(function($alias, $join) {
-			return sprintf('LEFT JOIN %s %s ON %s', $join->table, $alias, implode(' AND ', $join->conditions));
+			return sprintf("\nLEFT JOIN %s %s\n\tON %s", $join->table, $alias, implode("\n\tAND\n\t", $join->conditions));
 		}, array_keys($joins), array_values($joins));
 	}
 

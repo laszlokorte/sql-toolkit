@@ -60,8 +60,6 @@ $appDef = $appBuilder->buildApplication($schemaConf);
 
 $app = new Application($appDef);
 
-$queryBuilder = new EntityQueryBuilder($schema);
-
 ?>
 <style>
 	* {
@@ -85,7 +83,13 @@ $queryBuilder = new EntityQueryBuilder($schema);
 <?php endif ?>
 
 <?php function renderEntity($entity) { ?>
-<?php global $queryBuilder; ?>
+<?php 
+	$queryBuilder = new EntityQueryBuilder($entity); 
+	$queryBuilder->includeFieldColumns();
+	if($entity->id() == 'session') {
+		$queryBuilder->sortByField('rel_fk_session__timeslot');
+	}
+?>
 <div style="background-color: #f7f7f7;">
 	<h3><?php echo $entity->title(true) ?> [<?php echo $entity->id() ?>]</h3>
 
@@ -105,9 +109,7 @@ $queryBuilder = new EntityQueryBuilder($schema);
 		<?php endif ?>
 	</ul>
 
-	<div>
-		<?php echo $queryBuilder->queryForEntity($entity); ?>
-	</div>
+	<div style="background-color: #333; color: #fff; white-space: pre; font-family: monospace;overflow: scroll;"><?php echo $queryBuilder->getQuery(); ?></div>
 
 	<div>
 		<?php echo $entity->getDisplayTemplate(); ?>

@@ -27,6 +27,10 @@ class Entity {
 		return new FieldIterator($this->appDef, $this->entityId, $this->def()->getFieldIds());
 	}
 
+	public function field($name) {
+		return new Field($this->appDef, $this->entityId, new Identifier($name));
+	}
+
 	public function title($plural = FALSE) {
 		return $this->def()->getName($plural);
 	}
