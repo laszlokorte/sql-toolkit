@@ -2,13 +2,13 @@
 
 namespace LaszloKorte\Resource\Query;
 
-use LaszloKorte\Presenter\Identifier;
-use LaszloKorte\Presenter\Entity;
-use LaszloKorte\Presenter\Field;
-use LaszloKorte\Presenter\Path\OwnColumnPath;
-use LaszloKorte\Presenter\Path\Path;
-use LaszloKorte\Presenter\Path\TablePath;
-use LaszloKorte\Presenter\Association\ParentAssociation;
+use LaszloKorte\Graph\Identifier;
+use LaszloKorte\Graph\Entity;
+use LaszloKorte\Graph\Field;
+use LaszloKorte\Graph\Path\OwnColumnPath;
+use LaszloKorte\Graph\Path\Path;
+use LaszloKorte\Graph\Path\TablePath;
+use LaszloKorte\Graph\Association\ParentAssociation;
 
 final class EntityQueryBuilder {
 

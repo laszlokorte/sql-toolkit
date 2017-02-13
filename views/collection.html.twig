@@ -1,0 +1,36 @@
+{% extends 'layout.html.twig' %}
+
+{% block body %}
+    <div class='menu'>
+    	<h1>DB Manager</h1>
+	
+		<a href=?logout rel=nofollow>Logout</a> | 
+		<label><input type=checkbox onChange=\"document.body.classList.toggle('debug', this.checked)\"/> Debug</label>
+		<hr>
+
+		{% include 'navigation.html.twig' with {'groups': graph.groups, 'entity': entity, 'ungrouped':graph.ungroupedEntities} only %}
+    </div>
+
+    <div class="content">
+    	<h1>{{ entity.title }}</h1>
+
+    	{% if entity.description %}
+			<p>
+				{{ entity.description }}
+			</p>
+    	{% endif %}
+
+    	<table>
+    		<thead>
+    			<tr>
+    				{% for field in entity.fields %}
+    					{% if field.isVisibleInCollection and (not field.isSecret) %}
+						<th>{{ field.title }}
+						</th>
+    					{% endif %}
+    				{% endfor %}
+    			</tr>
+    		</thead>
+    	</table>
+    </div>
+{% endblock %}

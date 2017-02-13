@@ -2,12 +2,12 @@
 
 namespace LaszloKorte\Resource\Query;
 
-use LaszloKorte\Presenter\Identifier;
+use LaszloKorte\Graph\Identifier;
 
-use LaszloKorte\Presenter\Path\ColumnPath;
-use LaszloKorte\Presenter\Path\ForeignColumnPath;
-use LaszloKorte\Presenter\Path\OwnColumnPath;
-use LaszloKorte\Presenter\Path\TablePath;
+use LaszloKorte\Graph\Path\ColumnPath;
+use LaszloKorte\Graph\Path\ForeignColumnPath;
+use LaszloKorte\Graph\Path\OwnColumnPath;
+use LaszloKorte\Graph\Path\TablePath;
 
 final class EntityQuery {
 

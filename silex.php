@@ -13,13 +13,15 @@ use LaszloKorte\Schema\ColumnType;
 use LaszloKorte\Schema\ForeignKey;
 
 use LaszloKorte\Resource\IdConverter;
+use LaszloKorte\Resource\EntityConverter;
 use LaszloKorte\Resource\TableConverter;
 use LaszloKorte\Resource\ParameterBag;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
 
 use LaszloKorte\Configurator\ConfigurationBuilder;
-use LaszloKorte\Presenter\ApplicationBuilder;
-use LaszloKorte\Presenter\Application;
+use LaszloKorte\Graph\GraphBuilder;
+use LaszloKorte\Graph\Graph;
+use LaszloKorte\Graph\Entity;
 
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Inflector\Inflector;
@@ -32,40 +34,28 @@ $loader = require __DIR__ . '/vendor/autoload.php';
 AnnotationRegistry::registerLoader([$loader,'loadClass']);
 
 $jwtKey = "c303c6c7125d5e365ed7323f6143fb58";
-$builder = new SchemaBuilder();
-
-
-$connection = new PDO('mysql:host=directus.dev;port=3306;dbname=ishl;charset=utf8', 'ishl', 'ishl', [
-		PDO::ATTR_TIMEOUT => 2,
-		PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-		PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
-   		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
-	]);
-
-$schemaCache = __DIR__ . '/cache/schema.txt';
-if(true || !file_exists($schemaCache)) {
-	$schemaDef = $builder->buildSchemaFor($connection, 'ishl')->getDef();
-	file_put_contents($schemaCache, serialize($schemaDef));
-}
-
-$schemaDef = unserialize(file_get_contents($schemaCache));
-
-$schema = new Schema($schemaDef);
-
-$inflector = new Inflector();
-
-$confBuilder = new ConfigurationBuilder();
-
-$schemaConf = $confBuilder->buildConfigurationFor($schema);
-
-$appBuilder = new ApplicationBuilder();
-
-$appDef = $appBuilder->buildApplication($schemaConf);
-
-$app = new Application($appDef);
 
 $silex = new SilexApp();
 $silex['debug'] = true;
+
+$silex['confBuilder'] = function() {
+	return new ConfigurationBuilder();
+};
+$silex['graphBuilder'] = function() {
+	return new GraphBuilder();
+};
+
+$silex['schemaConf'] = function($silex) {
+	return $silex['confBuilder']->buildConfigurationFor($silex['schema']);
+};
+
+$silex['graphDefinition'] = function($silex) {
+	return $silex['graphBuilder']->buildGraph($silex['schemaConf']);
+};
+
+$silex['graph'] = function($silex) {
+	return new Graph($silex['graphDefinition']);
+};
 
 $silex['helper.inflector'] = function() {
 	return new Inflector();
@@ -75,6 +65,9 @@ $silex['converter.id'] = function() {
 };
 $silex['converter.table'] = function($silex) {
 	return new TableConverter($silex['schema']);
+};
+$silex['converter.entity'] = function($silex) {
+	return new EntityConverter($silex['graph']);
 };
 $silex['builder.schema'] = function() {
 	return new SchemaBuilder();
@@ -88,8 +81,24 @@ $silex['db.connection'] = function() {
 	   		PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ,
 		]);
 };
+
+$silex['schemaDef.cached.file'] = __DIR__ . '/cache/schema.txt';
+$silex['schemaDef.cached'] = function($silex) {
+	if(file_exists($silex['schemaDef.cached.file'])) {
+		$schemaDef = unserialize(file_get_contents($silex['schemaDef.cached.file']));
+	} else {
+		$schemaDef = $silex['schemaDef.fresh'];
+		file_put_contents($silex['schemaDef.cached.file'], serialize($schemaDef));
+	}
+	return $schemaDef;
+};
+
+$silex['schemaDef.fresh'] = function($silex) {
+	return $silex['builder.schema']->buildSchemaFor($silex['db.connection'], $silex['db.name'])->getDef();
+};
+
 $silex['schema'] = function($silex) {
-	return $silex['builder.schema']->buildSchemaFor($silex['db.connection'], $silex['db.name']);
+	return new Schema($silex['schemaDef.cached'] ?? $silex['schemaDef.fresh']);
 };
 
 $silex->register(new Silex\Provider\TwigServiceProvider(), array(
@@ -109,15 +118,15 @@ $silex->extend('twig', function($twig, $silex) {
     return $twig;
 });
 
-$silex->get('/table/{table}.{format}', function (SilexApp $silex, Request $request, Table $table, $format) {
-	var_dump($format);
-	$q = (new ParameterBag($_GET))
-		->replace('table', 'users');
-    return new Response('Hello' . $q);
+$silex->get('/table/{entity}.{format}', function (SilexApp $silex, Request $request, Entity $entity, $format) {
+	return $silex['twig']->render('collection.html.twig', [
+        'graph' => $silex['graph'],
+        'entity' => $entity,
+    ]);
 })
 ->value('format', 'html')
 ->assert('format', '[a-z]+')
-->convert('table', 'converter.table:convert')
+->convert('entity', 'converter.entity:convert')
 ->bind('table_list');
 
 $silex->get('/table/{table}/{id}', function (SilexApp $silex, Request $request, $table, $id) {
@@ -188,13 +197,13 @@ $silex->get('/logout', function (SilexApp $silex, Request $request) {
 });
 
 $silex->get('/', function (SilexApp $silex, Request $request) {
-    return $silex['twig']->render('index.html.twig', array(
-        'tables' => $silex['schema']->tables(),
-    ));
+    return $silex['twig']->render('index.html.twig', [
+        'graph' => $silex['graph'],
+    ]);
 });
 
-$silex->error(function (\Exception $e, Request $request, $code) {
-    return new Response('We are sorry, but something went terribly wrong.');
-});
+// $silex->error(function (\Exception $e, Request $request, $code) {
+//     return new Response('We are sorry, but something went terribly wrong.');
+// });
 
 $silex->run();

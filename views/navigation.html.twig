@@ -1,0 +1,17 @@
+{% for group in groups %}
+<h3>{{ group.title }}</h3>
+<ul class="nav-list">
+	{% for e in group.entities %}
+	<li><a href="{{ path('table_list', {'entity':e.id}) }}" class="{% if e == entity %}state-active{% endif %}">{{ e.title(true) }}</a></li>
+	{% endfor %}
+</ul>
+{% endfor %}
+
+{% if ungrouped %}
+<h3>Other</h3>
+<ul class="nav-list">
+	{% for e in ungrouped %}
+	<li><a href="{{ path('table_list', {'entity':e.id}) }}" class="{% if e == entity %}state-active{% endif %}">{{ e.title(true) }}</a></li>
+	{% endfor %}
+</ul>
+{% endif %}

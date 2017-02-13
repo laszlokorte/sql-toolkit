@@ -8,11 +8,7 @@
 		<label><input type=checkbox onChange=\"document.body.classList.toggle('debug', this.checked)\"/> Debug</label>
 		<hr>
 
-		<ul class="nav-list">
-			{% for table in tables %}
-			    <li><a href="{{ path('table_list', {'table':table}) }}">{{ table.name|titlelize|pluralize }}</a></li>
-			{% endfor %}
-		</ul>
+		{% include 'navigation.html.twig' with {'groups': graph.groups, 'ungrouped':graph.ungroupedEntities} only %}
     </div>
 
     <div class="content">

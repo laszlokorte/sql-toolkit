@@ -2,9 +2,9 @@
 
 namespace LaszloKorte\Resource\Query;
 
-use LaszloKorte\Presenter\Identifier;
+use LaszloKorte\Graph\Identifier;
 
-use LaszloKorte\Presenter\Path\ColumnPath;
+use LaszloKorte\Graph\Path\ColumnPath;
 
 final class Order {
 	private $column;

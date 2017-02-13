@@ -233,7 +233,7 @@ if(!$isLoggedIn || array_key_exists('login', $_GET)) {
 	echo "<ul class=nav-list>";
 	foreach ($uncategorized as $t) {
 		$tableTitle = ucwords(str_replace('_', ' ', $t->getName()));
-		$currentTable = $t->getName() == $_GET['table'] ? 'state-active' : '';
+		$currentTable = $t->getName() == ($_GET['table']??null) ? 'state-active' : '';
 		echo "<li><a class='nav-table $currentTable' href='?table={$t->getName()}'>{$inflector->pluralize($tableTitle)}</a></li>";
 	}
 	echo "</ul>";
@@ -1428,6 +1428,7 @@ function parseColumnAttributes($string) {
 	if($string && preg_match_all('~@(?<key>[^\(\s@]+)(\(\"?(?<val>[^\)]+?)\"?\))?~i', $string, $matches, PREG_SET_ORDER)) {
 		foreach($matches as $conf) {
 			if(array_key_exists($conf['key'], $attributes)) {
+				continue;
 				throw new \Exception("Duplicate attribute {$conf['key']}");
 			}
 			$attributes[$conf['key']] = isset($conf['val']) ? $conf['val'] : null;

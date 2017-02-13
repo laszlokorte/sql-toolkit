@@ -2,8 +2,8 @@
 
 namespace LaszloKorte\Resource\Query;
 
-use LaszloKorte\Presenter\Identifier;
-use LaszloKorte\Presenter\Path\PathLink;
+use LaszloKorte\Graph\Identifier;
+use LaszloKorte\Graph\Path\PathLink;
 
 final class Aggregation {
 	const TYPE_COUNT = 'COUNT';
