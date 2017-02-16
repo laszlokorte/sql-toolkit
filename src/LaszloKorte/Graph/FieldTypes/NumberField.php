@@ -17,7 +17,7 @@ class NumberField implements FieldType {
 	}
 
 	public function getRelatedColumns() {
-		return [$this->columnId];
+		return ['value' => $this->columnId];
 	}
 
 	public function getChildAssociations() {

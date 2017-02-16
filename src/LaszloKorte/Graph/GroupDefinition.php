@@ -41,7 +41,7 @@ class GroupDefinition {
 			$pA = $this->entityPrios[$a];
 			$pB = $this->entityPrios[$b];
 
-			if($pA === $pB) {
+			if($pA == $pB) {
 				return strcmp($this->entityIds[$pA], $this->entityIds[$pB]);
 			} else {
 				return $pA < $pB ? 1 : -1;

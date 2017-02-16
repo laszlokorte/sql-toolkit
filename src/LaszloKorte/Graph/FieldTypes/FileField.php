@@ -25,9 +25,9 @@ class FileField implements FieldType {
 
 	public function getRelatedColumns() {
 		return [
-			$this->pathColumnId, 
-			$this->sizeColumnId, 
-			$this->mimeColumnId, 
+			'path' => $this->pathColumnId, 
+			'size' => $this->sizeColumnId, 
+			'mime' => $this->mimeColumnId, 
 		];
 	}
 

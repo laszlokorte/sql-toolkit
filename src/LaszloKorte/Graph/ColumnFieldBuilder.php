@@ -122,6 +122,7 @@ final class ColumnFieldBuilder implements FieldBuilder {
 
 		$field->setPriority($this->priority ?? $this->columnIndex);
 		$field->setSecret($this->isSecret);
+		$field->setLinked($this->isLinked);
 		$field->setVisibility($this->isVisible);
 		$field->setCollectionVisibility($this->visibleInCollection);
 	}

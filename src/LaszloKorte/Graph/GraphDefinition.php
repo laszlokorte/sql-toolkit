@@ -14,8 +14,8 @@ final class GraphDefinition {
 		$this->ungrouped = new IdentifierMap();
 	}
 
-	public function defineEntity(Identifier $id, $singular, $plural, $idColumns) {
-		$entity = new EntityDefinition($singular, $plural, $idColumns);
+	public function defineEntity(Identifier $id, $singular, $plural, $idColumns, Identifier $serialColumn = null) {
+		$entity = new EntityDefinition($singular, $plural, $idColumns, $serialColumn);
 
 		$this->entities[$id] = $entity;
 		$this->ungrouped->attach($id);

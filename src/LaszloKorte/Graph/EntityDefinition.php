@@ -8,6 +8,7 @@ use LaszloKorte\Resource\Template\Nodes\Sequence;
 final class EntityDefinition {
 
 	private $identifierColumns;
+	private $serialColumn;
 
 	private $parentEntityId;
 
@@ -28,10 +29,11 @@ final class EntityDefinition {
 
 	private $fields;
 
-	public function __construct($singularName, $pluralName, array $identifierColumns) {
+	public function __construct($singularName, $pluralName, array $identifierColumns, Identifier $serialColumn = null) {
 		$this->singularName = $singularName;
 		$this->pluralName = $pluralName;
 		$this->identifierColumns = $identifierColumns;
+		$this->serialColumn = $serialColumn;
 		$this->fields = new IdentifierMap();
 	}
 
@@ -116,6 +118,10 @@ final class EntityDefinition {
 
 	public function getIdColumns() {
 		return $this->identifierColumns;
+	}
+
+	public function getSerialColumn() {
+		return $this->serialColumn;
 	}
 
 	public function getOrderColumn() {

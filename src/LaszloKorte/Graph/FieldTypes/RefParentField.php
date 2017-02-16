@@ -17,7 +17,7 @@ class RefParentField implements FieldType {
 	}
 
 	public function getTemplateName() {
-		return 'ref-parent';
+		return 'ref_parent';
 	}
 
 	public function getRelatedColumns() {
@@ -30,6 +30,7 @@ class RefParentField implements FieldType {
 
 	public function getParentAssociations() {
 		return [
+			'ref' => 
 			new AssociationDefinition($this->entityId, $this->fkOwnColumnNames),
 		];
 	}

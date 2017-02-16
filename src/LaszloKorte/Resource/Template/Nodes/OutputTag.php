@@ -2,6 +2,9 @@
 
 namespace LaszloKorte\Resource\Template\Nodes;
 
+use LaszloKorte\Graph\Entity;
+use LaszloKorte\Resource\Query\Record;
+
 final class OutputTag {
 
 	private $path;
@@ -33,5 +36,11 @@ final class OutputTag {
 			'{{ %s }}', 
 			implode(' | ', array_merge([$this->path], $this->filters))
 		);
+	}
+
+	public function render(Record $record, Entity $entity) {
+		return array_reduce($this->filters, function($acc, $filter) {
+			return $acc;
+		}, $this->path->render($record, $entity));
 	}
 }

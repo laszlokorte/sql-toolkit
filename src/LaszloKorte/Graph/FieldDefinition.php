@@ -12,6 +12,7 @@ final class FieldDefinition {
 	private $isVisibleInCollection;
 	private $isSecret;
 	private $priority;
+	private $isLinked;
 
 	public function __construct($title, $fieldType) {
 		$this->title = $title;
@@ -20,6 +21,10 @@ final class FieldDefinition {
 
 	public function setTitle($title) {
 		$this->title = $title;
+	}
+
+	public function setLinked($isLinked) {
+		$this->isLinked = $isLinked;
 	}
 
 	public function setRequired($isRequired) {
@@ -76,6 +81,10 @@ final class FieldDefinition {
 
 	public function isVisible() {
 		return $this->isVisible;
+	}
+
+	public function isLinked() {
+		return $this->isLinked;
 	}
 
 	public function getPriority() {

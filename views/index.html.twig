@@ -2,11 +2,7 @@
 
 {% block body %}
     <div class='menu'>
-    	<h1>DB Manager</h1>
-	
-		<a href=?logout rel=nofollow>Logout</a> | 
-		<label><input type=checkbox onChange=\"document.body.classList.toggle('debug', this.checked)\"/> Debug</label>
-		<hr>
+    	<h1 class="app-title">DB Manager</h1>
 
 		{% include 'navigation.html.twig' with {'groups': graph.groups, 'ungrouped':graph.ungroupedEntities} only %}
     </div>

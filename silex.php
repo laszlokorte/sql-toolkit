@@ -17,6 +17,7 @@ use LaszloKorte\Resource\EntityConverter;
 use LaszloKorte\Resource\TableConverter;
 use LaszloKorte\Resource\ParameterBag;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
+use LaszloKorte\Resource\Controllers\CollectionController;
 
 use LaszloKorte\Configurator\ConfigurationBuilder;
 use LaszloKorte\Graph\GraphBuilder;
@@ -122,6 +123,7 @@ $silex->get('/table/{entity}.{format}', function (SilexApp $silex, Request $requ
 	return $silex['twig']->render('collection.html.twig', [
         'graph' => $silex['graph'],
         'entity' => $entity,
+        'controller' => new CollectionController($silex['db.connection'], $entity, new ParameterBag($_GET)),
     ]);
 })
 ->value('format', 'html')

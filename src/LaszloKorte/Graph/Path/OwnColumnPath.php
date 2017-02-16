@@ -25,6 +25,10 @@ class OwnColumnPath implements ColumnPath {
 		return new ForeignColumnPath($p, $this->columnName);
 	}
 
+	public function getTableName() {
+		return $this->tableName;
+	}
+
 	public function getColumnName() {
 		return $this->columnName;
 	}

@@ -1,18 +1,15 @@
+{% import "fields.html.twig" as fields %}
 {% extends 'layout.html.twig' %}
 
 {% block body %}
     <div class='menu'>
-    	<h1>DB Manager</h1>
-	
-		<a href=?logout rel=nofollow>Logout</a> | 
-		<label><input type=checkbox onChange=\"document.body.classList.toggle('debug', this.checked)\"/> Debug</label>
-		<hr>
+    	<h1 class="app-title">DB Manager</h1>
 
 		{% include 'navigation.html.twig' with {'groups': graph.groups, 'entity': entity, 'ungrouped':graph.ungroupedEntities} only %}
     </div>
 
     <div class="content">
-    	<h1>{{ entity.title }}</h1>
+    	<h1>{{ entity.title(true) }}</h1>
 
     	{% if entity.description %}
 			<p>
@@ -20,17 +17,111 @@
 			</p>
     	{% endif %}
 
+        <div class="sql debug">{{ controller.sqlString }}</div>
+
+        {% if controller.hasPrevPage or controller.hasNextPage %}
+            {% if controller.hasPrevPage %}
+                <a href="?{{ controller.params.replace('page', controller.page - 1) }}">« Back</a>
+            {% else %}
+                « Back
+            {% endif %}
+
+             | 
+
+            {% if controller.hasNextPage %}
+                <a href="?{{ controller.params.replace('page', controller.page + 1) }}">Next »</a>
+            {% else %}
+                Next »
+            {% endif %}
+        {% endif %}
+
+        {% if entity.isSearchable %}
+            <input type="search"><button>Search</button>
+        {% endif %}
+
     	<table>
     		<thead>
     			<tr>
+                    {% if entity.serialColumn %}
+                        <th>
+                            <a href="?{{ controller.params.replace(['order','dir'], 'desc').remove(['order','field']) }}">Serial</a>
+                            <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove('page').remove(['order','field']) }}">△</a>
+                            <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove('page').remove(['order','field']) }}">▽</a>
+                        </th>
+                    {% endif %}
     				{% for field in entity.fields %}
     					{% if field.isVisibleInCollection and (not field.isSecret) %}
-						<th>{{ field.title }}
+						<th>
+                        <a href="?{{ controller.params.replace(['order','dir'], 'desc').replace(['order','field'], field.id) }}">{{ field.title }}</a>
+                        <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove('page').replace(['order','field'], field.id) }}">△</a>
+                        <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove('page').replace(['order','field'], field.id) }}">▽</a>
 						</th>
     					{% endif %}
     				{% endfor %}
+                    <th>Actions</th>
+                    <th class="fill-label"><label><input type="checkbox" data-select='all'></label></th>
     			</tr>
     		</thead>
+            <tfoot>
+                <tr>
+                    {% if entity.serialColumn %}
+                        <th></th>
+                    {% endif %}
+                    {% for field in entity.fields %}
+                        {% if field.isVisibleInCollection and (not field.isSecret) %}
+                        <td>
+                        </td>
+                        {% endif %}
+                    {% endfor %}
+                    <td></td>
+                    <td>
+                        <select><option /><option>Delete</option></select>
+                    </td>
+                </tr>
+            </tfoot>
+            <tbody>
+                {% for record in controller.records %}
+                    <tr>
+                    {% if entity.serialColumn %}
+                        <td>
+                            <a href="">
+                                {{ record[entity.column(entity.serialColumn)] }}
+                            </a>
+                        </td>
+                    {% endif %}
+                    {% for field in entity.fields %}
+                        {% if field.isVisibleInCollection and (not field.isSecret) %}
+                        <td>
+                            {% if field.isLinked %}
+                                <a href="?">
+                            {% endif %}
+                            
+                            {{  attribute(fields, field.typeTemplate, [field, record])|trim|default('-')|raw }}
+                            
+                            {% if field.isLinked %}
+                                </a>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    {% endfor %}
+                        <td>
+                            <a title="edit" href='?'>&#x270E;</a>
+                            <a title="delete" href='?'>&#x2715;</a>
+                            <a title="copy" href='?'>&#x2398;</a>
+                        </td>
+
+                        <td class="fill-label">
+                            <label><input type="checkbox" data-select /></label>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="{{ entity.fields|length + 2 + (entity.serialColumn ? 1 : 0) }}">
+                            <center class='no-data'>No Data</center>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
     	</table>
     </div>
 {% endblock %}

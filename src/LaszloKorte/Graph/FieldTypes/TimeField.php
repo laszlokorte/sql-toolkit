@@ -6,11 +6,11 @@ use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
 class TimeField implements FieldType {
-	private $includeSeconds = false;
+	private $includesSeconds = false;
 	private $columnId;
 
-	public function __construct($includeSeconds, Identifier $columnId) {
-		$this->includeSeconds = $includeSeconds;
+	public function __construct($includesSeconds, Identifier $columnId) {
+		$this->includesSeconds = $includesSeconds;
 		$this->columnId = $columnId;
 	}
 
@@ -19,7 +19,7 @@ class TimeField implements FieldType {
 	}
 
 	public function getRelatedColumns() {
-		return [$this->columnId];
+		return ['value' => $this->columnId];
 	}
 
 	public function getChildAssociations() {
@@ -28,5 +28,9 @@ class TimeField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function includesSeconds() {
+		return $this->includesSeconds;
 	}
 }

@@ -64,12 +64,20 @@ final class EntityQuery {
 		$this->orders = $orders;
 	}
 
-	public function getPrepared() {
+	public function getPrepared($connection) {
+		$stmt = $connection->prepare($this->build());
 
+		return $stmt;
 	}
 
 	public function __toString() {
-		usort($this->columns, 
+		return $this->build();
+	}
+
+	private function build() {
+		$columns = $this->columns ?? [];
+		
+		usort($columns, 
 			function($a, $b) {
 				$diff = $a->length() - $b->length();
 				return ($diff > 0) - ($diff < 0);
@@ -79,7 +87,7 @@ final class EntityQuery {
 		$joins = array_unique(
 			array_map(function($colPath) {
 				return $colPath->getTablePath();
-			}, array_filter($this->columns, function($colPath) {
+			}, array_filter($columns, function($colPath) {
 				return $colPath instanceof ForeignColumnPath;
 			})),
 			SORT_REGULAR
@@ -91,20 +99,10 @@ final class EntityQuery {
 			$tables = $this->tableName;
 		}
 
-		if($this->columns === NULL) {
+		if(empty($columns)) {
 			$columns = sprintf('%s.*', $this->tableName);
 		} else {
-			$columns = implode(",\n\t", array_map(function($c) {
-				if($c instanceof OwnColumnPath) {
-					return sprintf('%s.%s AS own_%s_%s', $this->tableName, $c->getColumnName(), $this->tableName, $c->getColumnName());
-				} else {
-					return sprintf('%s_%s.%s AS foreign_%s_%s', $this->tableName, implode('_', array_map(function($l) {
-						return $l->getName();
-					}, $c->getTablePath()->getLinks())), $c->getColumnName(), implode('_', array_map(function($l) {
-						return $l->getName();
-					}, $c->getTablePath()->getLinks())), $c->getColumnName());
-				}
-			}, $this->columns));
+			$columns = implode(",\n\t", array_map([$this, 'columnProjection'], $columns));
 		}
 
 		if(!empty($this->aggregations)) {
@@ -116,7 +114,7 @@ final class EntityQuery {
 			}
 		}
 
-		$ordering = isset($this->orders) ? implode(",\n\t", 
+		$ordering = !empty($this->orders) ? implode(",\n\t", 
 			array_map(function($o) {
 				$c = $o->getColumn();
 				if($c instanceof OwnColumnPath) {
@@ -130,7 +128,38 @@ final class EntityQuery {
 			}, $this->orders)
 		) : '1';
 
-		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nORDER BY\n\t%s", $columns, $tables, $ordering);
+		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nORDER BY\n\t%s%s", $columns, $tables, $ordering, is_null($this->limit) ? '' : sprintf("\nLIMIT %d\nOFFSET %d", $this->limit, $this->offset));
+	}
+
+	private function ownColumnAlias($column) {
+		return sprintf('own_%s_%s', $this->tableName, $column->getColumnName());
+	}
+
+	private function foreignColumnAlias($column) {
+		return sprintf('foreign_%s_%s', 
+			implode('_', 
+				array_map(function($l) {
+					return $l->getName();
+				}, $column->getTablePath()->getLinks())
+			), 
+			$column->getColumnName()
+		);
+	}
+
+	private function columnProjection($column) {
+		if($column instanceof OwnColumnPath) {
+			return sprintf('%s.%s AS %s', $this->tableName, $column->getColumnName(), $this->ownColumnAlias($column));
+		} else {
+			return sprintf('%s_%s.%s AS %s', 
+				$this->tableName, 
+				implode('_', 
+					array_map(function($l) {
+						return $l->getName();
+					}, $column->getTablePath()->getLinks())
+				), $column->getColumnName(),
+				$this->foreignColumnAlias($column)
+			);
+		}
 	}
 
 	private function joinsForPaths(array $foreignPaths) {

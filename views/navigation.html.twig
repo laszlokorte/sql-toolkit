@@ -1,17 +1,25 @@
+{% macro item(entity, current) %}
+    <li><a href="{{ path('table_list', {'entity':entity.id}) }}" class="nav-table{% if current is defined and current == entity %} state-active{% endif %}">{{ entity.title(true) }}</a></li>
+{% endmacro %}
+
+<a href="?logout" rel="nofollow">Logout</a> | 
+<label><input type="checkbox" onChange="document.body.classList.toggle('debug', this.checked)"/> Debug</label>
+<hr>
+
 {% for group in groups %}
-<h3>{{ group.title }}</h3>
+<h3 class="nav-group-title">{{ group.title }}</h3>
 <ul class="nav-list">
 	{% for e in group.entities %}
-	<li><a href="{{ path('table_list', {'entity':e.id}) }}" class="{% if e == entity %}state-active{% endif %}">{{ e.title(true) }}</a></li>
+		{{ _self.item(e, entity) }}
 	{% endfor %}
 </ul>
 {% endfor %}
 
 {% if ungrouped %}
-<h3>Other</h3>
+<h3 class="nav-group-title">Other</h3>
 <ul class="nav-list">
 	{% for e in ungrouped %}
-	<li><a href="{{ path('table_list', {'entity':e.id}) }}" class="{% if e == entity %}state-active{% endif %}">{{ e.title(true) }}</a></li>
+		{{ _self.item(e, entity) }}
 	{% endfor %}
 </ul>
 {% endif %}

@@ -178,7 +178,7 @@ final class EntityBuilder {
 			return new Identifier((string) $c->getName());
 		}, iterator_to_array($this->table->primaryKeys()));
 
-		$entityDef = $appDef->defineEntity($id, $singularTitle, $pluralTitle, $idColumns);
+		$entityDef = $appDef->defineEntity($id, $singularTitle, $pluralTitle, $idColumns, $this->table->getSerialColumn() ? new Identifier((string) $this->table->getSerialColumn()) : null);
 
 		$entityDef->setVisibility($this->isVisible);
 

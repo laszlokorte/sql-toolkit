@@ -22,7 +22,7 @@ class RefManyField implements FieldType {
 	}
 
 	public function getTemplateName() {
-		return 'ref-many';
+		return 'ref_many';
 	}
 
 	public function getRelatedColumns() {

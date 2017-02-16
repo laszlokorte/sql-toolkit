@@ -2,6 +2,8 @@
 
 namespace LaszloKorte\Graph;
 
+use LaszloKorte\Graph\Path\OwnColumnPath;
+
 class Entity {
 	private $appDef;
 	private $entityId;
@@ -63,6 +65,10 @@ class Entity {
 		return $this->def()->getIdColumns();
 	}
 
+	public function serialColumn() {
+		return $this->def()->getSerialColumn();
+	}
+
 	public function parentEntity() {
 		return new self($this->appDef, $this->def()->getParentId());
 	}
@@ -73,5 +79,9 @@ class Entity {
 
 	public function getDisplayPaths() {
 		return $this->def()->getDisplayPaths();
+	}
+
+	public function column(Identifier $columnId) {
+		return new OwnColumnPath($this->entityId, $columnId);
 	}
 }

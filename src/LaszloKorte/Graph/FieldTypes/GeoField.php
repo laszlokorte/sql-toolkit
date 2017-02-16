@@ -19,7 +19,7 @@ class GeoField implements FieldType {
 	}
 
 	public function getRelatedColumns() {
-		return [$this->longitudeColumnId, $this->latitudeColumnId];
+		return ['longitude' => $this->longitudeColumnId, 'latitude' => $this->latitudeColumnId];
 	}
 
 	public function getChildAssociations() {

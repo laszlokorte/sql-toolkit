@@ -1,0 +1,43 @@
+{% macro template(link, template, record) %}
+	{% for seg in template %}
+	    {{ seg }}
+	{% endfor %}
+{% endmacro %}
+
+{% macro text(field, record) %}
+    {{ record[field.column('value')] }}
+{% endmacro %}
+
+{% macro ref_parent(field, record) %}
+    <a href="" style="white-space: nowrap;">{{ _self.template(field.parent('ref').toLink, field.parent('ref').targetEntity.displayTemplate, record) }}</a>
+{% endmacro %}
+
+{% macro ref_children(field, record) %}
+	<a class="badge" href="">
+		{{ record.count(field.child('ref')) }}
+	</a>
+{% endmacro %}
+
+{% macro datetime(field, record) %}
+    {{ record[field.column('value')] }}
+{% endmacro %}
+
+{% macro date(field, record) %}
+    {{ record[field.column('value')]|date('d.m.Y') }}
+{% endmacro %}
+
+{% macro time(field, record) %}
+    {% if field.type.includesSeconds %}
+    	{{ record[field.column('value')]|date('H:i:s') }}
+	{% else %}
+	    {{ record[field.column('value')]|date('H:i') }}
+    {% endif %}
+{% endmacro %}
+
+{% macro number(field, record) %}
+    {{ record[field.column('value')] }}
+{% endmacro %}
+
+{% macro choice(field, record) %}
+    {{ record[field.column('value')] }}
+{% endmacro %}

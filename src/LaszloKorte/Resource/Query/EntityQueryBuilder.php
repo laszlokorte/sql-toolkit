@@ -16,7 +16,7 @@ final class EntityQueryBuilder {
 	private $includeDisplayColumns = FALSE;
 	private $includeFieldColumns = FALSE;
 	private $sortByField = NULL;
-	private $sortOrderAscending;
+	private $sortOrderAscending = TRUE;
 
 	public function __construct(Entity $entity) {
 		$this->entity = $entity;
@@ -35,12 +35,20 @@ final class EntityQueryBuilder {
 		$this->sortOrderAscending = $asc;
 	}
 
+	public function sortDefault($asc = TRUE) {
+		$this->sortOrderAscending = $asc;
+	}
+
 	public function getQuery() {
 		$table = $this->entity->id();
 		$query = new EntityQuery($table);
 
 		foreach($this->entity->idColumns() AS $idCol) {
 			$query->includeColumn(new OwnColumnPath($table, $idCol));
+		}
+
+		if($this->entity->serialColumn()) {
+			$query->includeColumn(new OwnColumnPath($table, $this->entity->serialColumn()));
 		}
 
 		if($this->includeDisplayColumns) {
@@ -67,7 +75,7 @@ final class EntityQueryBuilder {
 				}
 
 				foreach($field->getChildAssociations() AS $child) {
-					$query->includeAggregation(new Aggregation(Aggregation::TYPE_COUNT, $field->id(), $child->toLink()));
+					$query->includeAggregation(new Aggregation(Aggregation::TYPE_COUNT, $child->getName(), $child->toLink()));
 				}
 
 				foreach($field->getParentAssociations() AS $parent) {
@@ -125,14 +133,14 @@ final class EntityQueryBuilder {
 			// 	$query->includeAggregation(new Aggregation(Aggregation::TYPE_COUNT, $field->id(), $child->toLink()));
 			// }
 
-			array_merge(...array_map(function($parent) use ($table) {
+			array_merge([], ...array_map(function($parent) use ($table) {
 				return $this->pathFromAssociation($this->entity, $parent);
-			}, $field->getParentAssociations())),
+			}, array_values($field->getParentAssociations()))),
 
 
 			array_map(function($col) use ($table) {
 				return new OwnColumnPath($table, $col);
-			}, $field->relatedColumns())
+			}, array_values($field->relatedColumns()))
 		);
 	}
 }

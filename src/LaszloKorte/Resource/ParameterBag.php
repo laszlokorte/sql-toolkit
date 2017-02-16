@@ -57,7 +57,7 @@ final class ParameterBag implements ArrayAccess {
 		if($this->parent !== NULL) {
 			return $this->parent[$offset];
 		} else {
-			return $this->values[$offset] ?? Null;
+			return $this->values[$offset] ?? NULL;
 		}
 	}
 

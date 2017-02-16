@@ -3,6 +3,7 @@
 namespace LaszloKorte\Graph;
 
 use LaszloKorte\Graph\Association;
+use LaszloKorte\Graph\Path\OwnColumnPath;
 
 class Field {
 	private $graphDef;
@@ -43,7 +44,7 @@ class Field {
 		return $this->def()->getType();
 	}
 
-	public function typeTemlate() {
+	public function typeTemplate() {
 		return $this->type()->getTemplateName();
 	}
 
@@ -57,6 +58,10 @@ class Field {
 
 	public function isSecret() {
 		return $this->def()->isSecret();
+	}
+
+	public function isLinked() {
+		return $this->def()->isLinked();
 	}
 
 	public function relatedColumns() {
@@ -77,5 +82,21 @@ class Field {
 		return array_map(function($assoc) {
 			return new Association\ParentAssociation($this->graphDef, $this->entityId, $this->fieldId, $assoc);
 		}, $this->type()->getParentAssociations());
+	}
+
+	public function column($label) {
+		return new OwnColumnPath($this->entityId, $this->type()->getRelatedColumns()[$label]);
+	}
+
+	public function child($label) {
+		$assoc = $this->type()->getChildAssociations()[$label];
+
+		return new Association\ChildAssociation($this->graphDef, $this->entityId, $this->fieldId, $assoc);
+	}
+
+	public function parent($label) {
+		$assoc = $this->type()->getParentAssociations()[$label];
+
+		return new Association\ParentAssociation($this->graphDef, $this->entityId, $this->fieldId, $assoc);
 	}
 }

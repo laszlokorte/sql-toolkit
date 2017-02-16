@@ -1,0 +1,77 @@
+<?php
+
+namespace LaszloKorte\Resource\Controllers;
+
+use LaszloKorte\Graph\Entity;
+use LaszloKorte\Resource\Query\EntityQueryBuilder;
+use LaszloKorte\Resource\Query\Record;
+
+use PDO;
+
+final class CollectionController {
+
+	private $database;
+	private $queryBuilder;
+	private $entity;
+	private $scope;
+	private $parameters;
+	private $result = null;
+	private $page = 0;
+
+	public function __construct(PDO $db, Entity $entity, $parameters, $scope = NULL) {
+		$this->database = $db;
+		$this->entity = $entity;
+		$this->queryBuilder = new EntityQueryBuilder($entity);
+		$this->scope = $scope;
+		$this->parameters = $parameters;
+
+		$this->page = $parameters['page'] ?? 1;
+
+		$this->queryBuilder->includeFieldColumns();
+	}
+
+	public function getParams() {
+		return $this->parameters;
+	}
+
+	private function getQuery() {
+		if(isset($this->parameters['order']['field'])) {
+			$this->queryBuilder->sortByField($this->parameters['order']['field'], $this->parameters['order']['dir'] === 'asc');
+		} else {
+			$this->queryBuilder->sortDefault($this->parameters['order']['dir'] === 'asc');
+		}
+		$query = $this->queryBuilder->getQuery();
+		$query->limit(21);
+		$query->offset(($this->page - 1) * 20);
+
+		return $query;
+	}
+
+	public function records() {
+		if($this->result === null) {
+			$stmt = $this->getQuery()->getPrepared($this->database);
+
+			$stmt->execute();
+
+			$this->result = $stmt->fetchAll(PDO::FETCH_CLASS, Record::class);
+		}
+		
+		return $this->result;
+	}
+
+	public function hasPrevPage() {
+		return $this->page > 1;
+	}
+
+	public function hasNextPage() {
+		return count($this->records()) > 20;
+	}
+
+	public function getPage() {
+		return $this->page;
+	}
+
+	public function sqlString() {
+		return $this->getQuery();
+	}
+}
