@@ -108,7 +108,7 @@
                     <tr>
                     {% if entity.serialColumn %}
                         <td>
-                            <a href="">
+                            <a href="{{ path('table_detail', {'entity':entity.id, 'id':record.id(entity)}) }}">
                                 {{ record[entity.column(entity.serialColumn)] }}
                             </a>
                         </td>
@@ -117,7 +117,7 @@
                         {% if field.isVisibleInCollection and (not field.isSecret) %}
                         <td>
                             {% if field.isLinked %}
-                                <a href="?">
+                                <a href="{{ path('table_detail', {'entity':entity.id, 'id':record.id(entity)}) }}">
                             {% endif %}
                             
                             {{  attribute(fields, field.typeTemplate, [field, record])|trim|default('-')|raw }}

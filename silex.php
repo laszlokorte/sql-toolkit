@@ -131,11 +131,13 @@ $silex->get('/table/{entity}.{format}', function (SilexApp $silex, Request $requ
 ->convert('entity', 'converter.entity:convert')
 ->bind('table_list');
 
-$silex->get('/table/{table}/{id}', function (SilexApp $silex, Request $request, $table, $id) {
-	var_dump($id);
-    return 'Hello ';
+$silex->get('/table/{entity}/{id}', function (SilexApp $silex, Request $request, $entity, $id) {
+	return $silex['twig']->render('detail.html.twig', [
+        'graph' => $silex['graph'],
+        'entity' => $entity,
+    ]);
 })
-->convert('table', 'converter.table:convert')
+->convert('entity', 'converter.entity:convert')
 ->convert('id', 'converter.id:convert')
 ->bind('table_detail');
 
