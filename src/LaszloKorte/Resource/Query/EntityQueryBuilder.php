@@ -6,6 +6,7 @@ use LaszloKorte\Graph\Identifier;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Graph\Field;
 use LaszloKorte\Graph\Path\OwnColumnPath;
+use LaszloKorte\Graph\Path\ForeignColumnPath;
 use LaszloKorte\Graph\Path\Path;
 use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Graph\Association\ParentAssociation;
@@ -79,9 +80,13 @@ final class EntityQueryBuilder {
 				}
 
 				foreach($field->getParentAssociations() AS $parent) {
-					foreach($this->pathFromAssociation($this->entity, $parent) AS $c) {
+					foreach($this->pathsFromAssociation($this->entity, $parent) AS $c) {
 						$query->includeColumn($c);
-					} 
+					}
+
+					foreach($parent->getTargetEntity()->idColumns() AS $idCol) {
+						$query->includeColumn(new ForeignColumnPath(new TablePath($parent->toLink()), $idCol));
+					}
 				}
 			}
 		}
@@ -90,7 +95,7 @@ final class EntityQueryBuilder {
 		return $query;
 	}
 
-	private function pathFromAssociation($entity, ParentAssociation $assoc) {
+	private function pathsFromAssociation($entity, ParentAssociation $assoc) {
 		$target = $assoc->getTargetEntity();
 
 		$base = new TablePath($assoc->toLink());
@@ -125,16 +130,12 @@ final class EntityQueryBuilder {
 
 	private function sortPathsForField(Identifier $table, Field $field) {
 		return array_merge(
-			// array_map(function($col) use ($table) {
-			// 	return new OwnColumnPath($table, $col);
-			// }, $field->getChildAssociations()),
-
-			// foreach( AS $child) {
-			// 	$query->includeAggregation(new Aggregation(Aggregation::TYPE_COUNT, $field->id(), $child->toLink()));
-			// }
+			array_values(array_map(function($assoc) use($field) {
+				return new Aggregation(Aggregation::TYPE_COUNT, $field->id(), $assoc->toLink());
+			}, $field->getChildAssociations())),
 
 			array_merge([], ...array_map(function($parent) use ($table) {
-				return $this->pathFromAssociation($this->entity, $parent);
+				return $this->pathsFromAssociation($this->entity, $parent);
 			}, array_values($field->getParentAssociations()))),
 
 

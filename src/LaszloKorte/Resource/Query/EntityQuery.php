@@ -116,13 +116,15 @@ final class EntityQuery {
 
 		$ordering = !empty($this->orders) ? implode(",\n\t", 
 			array_map(function($o) {
-				$c = $o->getColumn();
+				$c = $o->getColumnOrAggregation();
 				if($c instanceof OwnColumnPath) {
 					$colName = sprintf('own_%s_%s', $this->tableName, $c->getColumnName());
-				} else {
+				} elseif($c instanceof ForeignColumnPath) {
 					$colName = sprintf('foreign_%s_%s', implode('_', array_map(function($l) {
 						return $l->getName();
 					}, $c->getTablePath()->getLinks())), $c->getColumnName());
+				} elseif($c instanceof Aggregation) {
+					$colName = sprintf("aggr_%s_%s", $c->getName(), $c->getType());
 				}
 				return sprintf('%s %s', $colName, $o->getDirection());
 			}, $this->orders)

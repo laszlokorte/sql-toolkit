@@ -44,17 +44,41 @@
     			<tr>
                     {% if entity.serialColumn %}
                         <th>
-                            <a href="?{{ controller.params.replace(['order','dir'], 'desc').remove(['order','field']) }}">Serial</a>
-                            <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove('page').remove(['order','field']) }}">△</a>
-                            <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove('page').remove(['order','field']) }}">▽</a>
+                            <a href="?{{ controller.params.replace(['order','dir'], controller.isOrderedBy(null, 'desc') ? 'asc' : 'desc').remove(['page']).remove(['order','field']) }}">{{ entity.serialColumn }}</a>
+                            <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove(['page']).remove(['order','field']) }}">
+                                {%- if controller.isOrderedBy(null, 'asc') -%}
+                                    ▲
+                                {%- else -%}
+                                    △
+                                {%- endif -%}
+                            </a><a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove(['page']).remove(['order','field']) }}">
+                                {%- if controller.isOrderedBy(null, 'desc') -%}
+                                    ▼
+                                {%- else -%}
+                                    ▽
+                                {%- endif -%}
+                            </a>
                         </th>
                     {% endif %}
     				{% for field in entity.fields %}
     					{% if field.isVisibleInCollection and (not field.isSecret) %}
 						<th>
-                        <a href="?{{ controller.params.replace(['order','dir'], 'desc').replace(['order','field'], field.id) }}">{{ field.title }}</a>
-                        <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove('page').replace(['order','field'], field.id) }}">△</a>
-                        <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove('page').replace(['order','field'], field.id) }}">▽</a>
+                        <a href="?{{ controller.params.replace(['order','dir'], 
+                            controller.isOrderedBy(field, 'desc') ? 'asc' : 'desc'
+                        ).replace(['order','field'], field.id).remove(['page']) }}">{{ field.title }}</a>
+                        <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove(['page']).replace(['order','field'], field.id) }}">
+                            {%- if controller.isOrderedBy(field, 'asc') %}
+                                ▲
+                            {%- else -%}
+                                △
+                            {%- endif -%}
+                        </a><a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove(['page']).replace(['order','field'], field.id) }}">
+                            {%- if controller.isOrderedBy(field, 'desc') -%}
+                                ▼
+                            {%- else -%}
+                                ▽
+                            {%- endif -%}
+                        </a>
 						</th>
     					{% endif %}
     				{% endfor %}

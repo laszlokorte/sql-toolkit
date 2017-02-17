@@ -32,9 +32,23 @@ final class GraphBuilder {
 		$this->inflector = new Inflector();
 	}
 
+	private function preprocessTable(Table $table, TA\Annotation $annotation) {
+
+	}
+
 	public function buildGraph(SchemaConfiguration $configuration) {
 		$graphDef = new GraphDefinition();
 		$entityBuilders = new IdentifierMap();
+
+		foreach($configuration->getTableIds() as $tableId) {
+			$tableConf = $configuration->getTableConf($tableId);
+
+			$table = $tableConf->getTable();
+
+			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
+				$this->preprocessTable($table, $tableAnnotation);
+			}
+		}
 
 		foreach($configuration->getTableIds() as $tableId) {
 			$tableConf = $configuration->getTableConf($tableId);

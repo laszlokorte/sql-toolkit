@@ -1,7 +1,5 @@
 {% macro template(link, template, record) %}
-	{% for seg in template %}
-	    {{ seg }}
-	{% endfor %}
+	{{ template.render(link, record) }}
 {% endmacro %}
 
 {% macro text(field, record) %}

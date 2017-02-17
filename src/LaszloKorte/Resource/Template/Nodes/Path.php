@@ -30,7 +30,13 @@ final class Path implements IteratorAggregate {
 		return implode('.', $this->segments);
 	}
 
-	public function render(Record $record, Entity $entity) {
-		return (string)$this;
+	public function render($link, $record) {
+		// HACK
+		if(count($this->segments) === 1) {
+			$prop = sprintf('foreign_%s_%s', $link->getName(), $this->segments[0]);
+			return property_exists($record, $prop) ? $record->$prop : implode('.', $this->segments);
+		} else {
+			return implode('.', $this->segments);
+		}
 	}
 }

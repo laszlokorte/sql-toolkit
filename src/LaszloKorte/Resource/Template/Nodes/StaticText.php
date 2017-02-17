@@ -17,7 +17,7 @@ final class StaticText {
 		return $this->text;
 	}
 
-	public function render(Record $record, Entity $entity) {
+	public function render($link, $record) {
 		return $this->text;
 	}
 }

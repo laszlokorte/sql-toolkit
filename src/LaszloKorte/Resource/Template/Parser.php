@@ -27,9 +27,6 @@ final class Parser {
 		$this->state = self::STATE_STATIC;
 		$this->stack = [new Sequence()];
 		foreach($tokens AS $token) {
-			if($token['token_type'] == Lexer::T_WHITESPACE) {
-				continue;
-			}
 			$this->state = $this->consume($token);
 		}
 
@@ -60,6 +57,8 @@ final class Parser {
 						$this->stack[0]->extend($this->unquoteIdentifier($token['text']));
 						return self::STATE_PATH_COMPLETE;
 						break;
+					case Lexer::T_WHITESPACE:
+						return $this->state;
 					default:
 						throw $this->expectationFailed($token, [
 							Lexer::T_IDENTIFIER,
@@ -83,6 +82,8 @@ final class Parser {
 						$this->stack[0]->append($output);
 						return self::STATE_STATIC;
 						break;
+					case Lexer::T_WHITESPACE:
+						return $this->state;
 					default:
 						throw $this->expectationFailed($token, [
 							Lexer::T_PATH_SEPARATOR,
@@ -96,6 +97,8 @@ final class Parser {
 						$this->stack[0]->addFilter(new Filter($token['text']));
 						return self::STATE_FILTER_COMPLETE;
 						break;
+					case Lexer::T_WHITESPACE:
+						return $this->state;
 					default:
 						throw $this->expectationFailed($token, [
 							Lexer::T_IDENTIFIER,
@@ -112,6 +115,8 @@ final class Parser {
 						$this->stack[0]->append($output);
 						return self::STATE_STATIC;
 						break;
+					case Lexer::T_WHITESPACE:
+						return $this->state;
 					default:
 						throw $this->expectationFailed($token, [
 							Lexer::T_FILTER_SEPARATOR,

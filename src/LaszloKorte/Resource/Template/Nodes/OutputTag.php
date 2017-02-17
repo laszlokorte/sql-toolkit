@@ -38,9 +38,9 @@ final class OutputTag {
 		);
 	}
 
-	public function render(Record $record, Entity $entity) {
+	public function render($link, $record) {
 		return array_reduce($this->filters, function($acc, $filter) {
 			return $acc;
-		}, $this->path->render($record, $entity));
+		}, $this->path->render($link, $record));
 	}
 }

@@ -47,6 +47,12 @@ final class CollectionController {
 		return $query;
 	}
 
+	public function isOrderedBy($field, $dir = 'asc') {
+		return $this->parameters['order']['dir'] === $dir && 
+		($field === null && !isset($this->parameters['order']['field']) ||
+		($field !== null && ($this->parameters['order']['field'] ?? null) == $field->id()));
+	}
+
 	public function records() {
 		if($this->result === null) {
 			$stmt = $this->getQuery()->getPrepared($this->database);

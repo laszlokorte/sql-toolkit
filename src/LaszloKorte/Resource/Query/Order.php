@@ -4,19 +4,19 @@ namespace LaszloKorte\Resource\Query;
 
 use LaszloKorte\Graph\Identifier;
 
-use LaszloKorte\Graph\Path\ColumnPath;
+use LaszloKorte\Graph\Path\Path;
 
 final class Order {
-	private $column;
+	private $columnOrAggregation;
 	private $direction;
 
-	public function __construct(ColumnPath $column, $direction = 'ASC') {
-		$this->column = $column;
+	public function __construct($columnOrAggregation, $direction = 'ASC') {
+		$this->columnOrAggregation = $columnOrAggregation;
 		$this->direction = $direction;
 	}
 
-	public function getColumn() {
-		return $this->column;
+	public function getColumnOrAggregation() {
+		return $this->columnOrAggregation;
 	}
 
 	public function getDirection() {

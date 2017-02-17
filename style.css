@@ -92,7 +92,7 @@ svg {
 .sql {
 	background-color: #303030;
 	color: #fafafa;
-	white-space: pre-wrap;
+	white-space: pre;
 	font-family: monospace;
 	max-height: 10em;
 	overflow: auto;
