@@ -9,7 +9,27 @@
     </div>
 
     <div class="content">
-    	<h1>{{ entity.title }}: {{ id|join(':') }}</h1>
+		<a href="{{ path('table_list', {'entity':entity.id}) }}">« Back to all {{ entity.title(true) }}</a>
+
+		<div class="sql debug">{{ controller.sqlString }}</div>
+
+    	<h1>{{ entity.title }}
+    	{% if entity.serialColumn %}
+	    	#{{ controller.record.id(entity) -}}
+    	{%- endif -%}
+    	: {{ entity.displayTemplateCompiled.render(controller.record) }}</h1>
+    	
+
+    	<dl class="prop-list">
+    		{% for field in entity.fields %}
+    		<dt>
+    			{{ field.title }}
+    		</dt>
+		    <dd>
+		        {{  attribute(fields, field.typeTemplate, [field, controller.record])|trim|default('-')|raw }}
+		    </dd>
+    		{% endfor %}
+    	</dl>
 
     	
     </div>

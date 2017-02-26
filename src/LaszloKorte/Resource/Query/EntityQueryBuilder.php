@@ -18,9 +18,14 @@ final class EntityQueryBuilder {
 	private $includeFieldColumns = FALSE;
 	private $sortByField = NULL;
 	private $sortOrderAscending = TRUE;
+	private $oneById = FALSE;
 
 	public function __construct(Entity $entity) {
 		$this->entity = $entity;
+	}
+
+	public function oneById() {
+		$this->oneById = TRUE;
 	}
 
 	public function includeDisplayColumns() {
@@ -53,7 +58,9 @@ final class EntityQueryBuilder {
 		}
 
 		if($this->includeDisplayColumns) {
-			// TODO
+			foreach($this->entity->getDisplayPaths() AS $dp) {
+				$query->includeColumn($dp);
+			}
 		}
 
 		if($this->sortByField !== NULL) {
@@ -90,9 +97,27 @@ final class EntityQueryBuilder {
 				}
 			}
 		}
+
+		if($this->oneById) {
+			$query->setKeyColumns(array_combine(
+				array_map(function($colId) {
+					return sprintf('key_%s', $colId);
+				}, $this->entity->idColumns())
+			, 
+				array_map(function($colId) use ($table) {
+					return new OwnColumnPath($table, $colId);
+				}, $this->entity->idColumns())
+			));
+		}
 		
 
 		return $query;
+	}
+
+	public function bindId($stmt, $id) {
+		foreach($this->entity->idColumns() AS $idx => $colId) {
+			$stmt->bindValue(sprintf('key_%s', $colId), $id[$idx]);
+		}
 	}
 
 	private function pathsFromAssociation($entity, ParentAssociation $assoc) {

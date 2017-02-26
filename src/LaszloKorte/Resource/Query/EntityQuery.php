@@ -18,9 +18,14 @@ final class EntityQuery {
 	private $offset = 0;
 	private $limit = null;
 	private $orders = null;
+	private $keyColumns = null;
 
 	public function __construct(Identifier $tableName) {
 		$this->tableName = $tableName;
+	}
+
+	public function setKeyColumns($cols) {
+		$this->keyColumns = $cols;
 	}
 
 	public function includeColumn(ColumnPath $col) {
@@ -130,7 +135,11 @@ final class EntityQuery {
 			}, $this->orders)
 		) : '1';
 
-		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nORDER BY\n\t%s%s", $columns, $tables, $ordering, is_null($this->limit) ? '' : sprintf("\nLIMIT %d\nOFFSET %d", $this->limit, $this->offset));
+		$where = $this->keyColumns ? implode(' AND ', array_map(function($col, $i) {
+			return sprintf('%s.%s = :%s', $this->tableName, $col->getColumnName(), $i);
+		}, $this->keyColumns, array_keys($this->keyColumns))) : '1';
+
+		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nWHERE\n\t%s\nORDER BY\n\t%s%s", $columns, $tables, $where, $ordering, is_null($this->limit) ? '' : sprintf("\nLIMIT %d\nOFFSET %d", $this->limit, $this->offset));
 	}
 
 	private function ownColumnAlias($column) {

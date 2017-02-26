@@ -18,6 +18,7 @@ use LaszloKorte\Resource\TableConverter;
 use LaszloKorte\Resource\ParameterBag;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
 use LaszloKorte\Resource\Controllers\CollectionController;
+use LaszloKorte\Resource\Controllers\DetailController;
 
 use LaszloKorte\Configurator\ConfigurationBuilder;
 use LaszloKorte\Graph\GraphBuilder;
@@ -136,6 +137,7 @@ $silex->get('/table/{entity}/{id}', function (SilexApp $silex, Request $request,
         'graph' => $silex['graph'],
         'id' => $id,
         'entity' => $entity,
+        'controller' => new DetailController($silex['db.connection'], $entity, $id, new ParameterBag($_GET)),
     ]);
 })
 ->convert('entity', 'converter.entity:convert')

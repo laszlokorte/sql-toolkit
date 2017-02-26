@@ -29,9 +29,9 @@ final class ColumnValue {
 		return new self($this->columnPath->relativeTo($base), $this->filters);
 	}
 
-	public function render($link, $record) {
+	public function render($record, $link = NULL) {
 		return array_reduce($this->filters, function($val, $f) {
 			return $f->apply($val);
-		}, $record[$this->columnPath->relativeTo(new TablePath($link))]);
+		}, $record[$link ? $this->columnPath->relativeTo(new TablePath($link)) : $this->columnPath]);
 	}
 }
