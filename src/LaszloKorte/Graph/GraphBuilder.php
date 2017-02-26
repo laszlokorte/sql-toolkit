@@ -186,16 +186,16 @@ final class GraphBuilder {
 	private function processTable(EntityBuilder $entityBuilder, TA\Annotation $tblAnn) {
 		switch(get_class($tblAnn)) {
 			case TA\Display::class:
-				$entityBuilder->requireUnique($tblAnn);
-				$template = $this->templateParser->parse($this->templateLexer->tokenize($tblAnn->templateString));
+				// $entityBuilder->requireUnique($tblAnn);
+				// $template = $this->templateParser->parse($this->templateLexer->tokenize($tblAnn->templateString));
 				
-				$table = $entityBuilder->getTable();
-				$processedTemplate = $this->processTemplate($table, $template);
-				if(FALSE === $processedTemplate) {
-					throw new \Exception(sprintf("Invalid display template for table '%s'", $table->getName()));
-				}
+				// $table = $entityBuilder->getTable();
+				// $processedTemplate = $this->processTemplate($table, $template);
+				// if(FALSE === $processedTemplate) {
+				// 	throw new \Exception(sprintf("Invalid display template for table '%s'", $table->getName()));
+				// }
 
-				$entityBuilder->setDisplayTemplate($template);
+				// $entityBuilder->setDisplayTemplate($template);
 				break;
 			case TA\Display::class:
 				$entityBuilder->requireUnique($tblAnn);

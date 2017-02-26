@@ -37,7 +37,6 @@ final class EntityBuilder {
 
 	public function __construct(Table $table) {
 		$this->table = $table;
-		$this->displayTemplateCompiled = new Processed\Sequence([]);
 	}
 
 	public function getTable() {
@@ -59,10 +58,6 @@ final class EntityBuilder {
 
 	public function attachFieldBuilder(FieldBuilder $fieldBuilder) {
 		$this->fieldBuilders []= $fieldBuilder;
-	}
-
-	public function setDisplayTemplate(Sequence $template) {
-		$this->displayTemplate = $template;
 	}
 
 	public function setDisplayTemplateCompiled(Processed\Sequence $template) {
@@ -189,10 +184,9 @@ final class EntityBuilder {
 			$group->setTitle($ab->titelize($this->groupName));
 		}
 
-		$displayTemplate = $this->displayTemplate ?? $this->buildDefaultDisplayTemplate();
+		$displayTemplate = $this->displayTemplateCompiled ?? new Processed\Sequence();
 
-		$entityDef->setDisplayTemplate($displayTemplate);
-		$entityDef->setDisplayTemplateCompiled($this->displayTemplateCompiled);
+		$entityDef->setDisplayTemplateCompiled($displayTemplate);
 
 		if($this->description !== NULL) {
 			$entityDef->setDescription($this->description);
@@ -231,19 +225,6 @@ final class EntityBuilder {
 		} else {
 			return $this->foreignKeyNames[$fkId]->plural ?? NULL;
 		}
-	}
-
-	private function buildDefaultDisplayTemplate() {
-		return new Sequence(array_merge([
-			new StaticText(sprintf('%s:', $this->table->getName())),
-		],
-		array_map(function($c) {
-			return new OutputTag(new Path([(string) $c->getName()]));
-		}, iterator_to_array($this->table->primaryKeys())),
-		array_map(function($fk) {
-			return new OutputTag(new Path([(string) $fk->getName()]));
-		}, iterator_to_array($this->table->foreignKeys()))
-		));
 	}
 
 

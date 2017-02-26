@@ -27,4 +27,10 @@ final class Sequence implements IteratorAggregate {
 
 		return $result;
 	}
+
+	public function render($link, $record) {
+		return implode('', array_map(function($c) use ($link, $record) {
+			return $c->render($link, $record);
+		}, $this->children));
+	}
 }

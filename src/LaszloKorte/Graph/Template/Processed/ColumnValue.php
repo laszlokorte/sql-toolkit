@@ -28,4 +28,10 @@ final class ColumnValue {
 	public function relativeTo(TablePath $base) {
 		return new self($this->columnPath->relativeTo($base), $this->filters);
 	}
+
+	public function render($link, $record) {
+		return array_reduce($this->filters, function($val, $f) {
+			return $f->apply($val);
+		}, $record[$this->columnPath->relativeTo(new TablePath($link))]);
+	}
 }

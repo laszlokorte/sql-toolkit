@@ -16,4 +16,8 @@ final class StaticText {
 	public function __toString() {
 		return $this->text;
 	}
+
+	public function render($link, $record) {
+		return $this->text;
+	}
 }

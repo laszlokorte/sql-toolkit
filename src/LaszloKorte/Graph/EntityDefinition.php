@@ -13,7 +13,7 @@ final class EntityDefinition {
 
 	private $parentEntityId;
 
-	private $templateSequence;
+	private $templateSequenceCompiled;
 	private $singularName;
 	private $pluralName;
 	private $isVisible;
@@ -59,10 +59,6 @@ final class EntityDefinition {
 
 	public function setDescription($description) {
 		$this->description = $description;
-	}
-
-	public function setDisplayTemplate(Sequence $templateSequence) {
-		$this->templateSequence = $templateSequence;
 	}
 
 	public function setDisplayTemplateCompiled(Processed\Sequence $templateSequenceCompiled) {
@@ -145,8 +141,8 @@ final class EntityDefinition {
 		return $this->parentEntityId;
 	}
 
-	public function getDisplayTemplate() {
-		return $this->templateSequence;
+	public function getDisplayTemplateCompiled() {
+		return $this->templateSequenceCompiled;
 	}
 
 	public function getDisplayPaths() {

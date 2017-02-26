@@ -20,8 +20,4 @@ final class StaticText {
 	public function getText() {
 		return $this->text;
 	}
-
-	public function render($link, $record) {
-		return $this->text;
-	}
 }

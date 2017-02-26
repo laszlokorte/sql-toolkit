@@ -37,10 +37,4 @@ final class OutputTag {
 			implode(' | ', array_merge([$this->path], $this->filters))
 		);
 	}
-
-	public function render($link, $record) {
-		return array_reduce($this->filters, function($acc, $filter) {
-			return $acc;
-		}, $this->path->render($link, $record));
-	}
 }
