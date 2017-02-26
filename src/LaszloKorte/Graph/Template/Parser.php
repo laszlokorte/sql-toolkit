@@ -1,12 +1,12 @@
 <?php
 
-namespace LaszloKorte\Resource\Template;
+namespace LaszloKorte\Graph\Template;
 
-use LaszloKorte\Resource\Template\Nodes\Filter;
-use LaszloKorte\Resource\Template\Nodes\OutputTag;
-use LaszloKorte\Resource\Template\Nodes\Path;
-use LaszloKorte\Resource\Template\Nodes\Sequence;
-use LaszloKorte\Resource\Template\Nodes\StaticText;
+use LaszloKorte\Graph\Template\Nodes\Filter;
+use LaszloKorte\Graph\Template\Nodes\OutputTag;
+use LaszloKorte\Graph\Template\Nodes\Path;
+use LaszloKorte\Graph\Template\Nodes\Sequence;
+use LaszloKorte\Graph\Template\Nodes\StaticText;
 
 final class Parser {
 

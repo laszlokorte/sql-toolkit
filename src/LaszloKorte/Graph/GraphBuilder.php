@@ -2,14 +2,16 @@
 
 namespace LaszloKorte\Graph;
 
+use LaszloKorte\Configurator\Aspect\Template;
 use LaszloKorte\Configurator\SchemaConfiguration;
 use LaszloKorte\Configurator\TableAnnotation as TA;
 use LaszloKorte\Configurator\ColumnAnnotation as CA;
 
-use LaszloKorte\Resource\Template\Parser;
-use LaszloKorte\Resource\Template\Lexer;
-use LaszloKorte\Resource\Template\Nodes\Sequence;
-use LaszloKorte\Resource\Template\Nodes\OutputTag;
+use LaszloKorte\Graph\Template\Parser;
+use LaszloKorte\Graph\Template\Lexer;
+use LaszloKorte\Graph\Template\Compiler;
+use LaszloKorte\Graph\Template\Nodes\Sequence;
+use LaszloKorte\Graph\Template\Nodes\OutputTag;
 
 use LaszloKorte\Schema\Table;
 use LaszloKorte\Schema\IdentifierMap;
@@ -29,16 +31,12 @@ final class GraphBuilder {
 	public function __construct() {
 		$this->templateParser = new Parser();
 		$this->templateLexer = new Lexer();
+		$this->templateCompiler = new Compiler();
 		$this->inflector = new Inflector();
 	}
 
-	private function preprocessTable(Table $table, TA\Annotation $annotation) {
-
-	}
-
-	public function buildGraph(SchemaConfiguration $configuration) {
-		$graphDef = new GraphDefinition();
-		$entityBuilders = new IdentifierMap();
+	private function processTemplates(SchemaConfiguration $configuration) {
+		$templates = [];
 
 		foreach($configuration->getTableIds() as $tableId) {
 			$tableConf = $configuration->getTableConf($tableId);
@@ -46,16 +44,41 @@ final class GraphBuilder {
 			$table = $tableConf->getTable();
 
 			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
-				$this->preprocessTable($table, $tableAnnotation);
+				if($tableAnnotation instanceof Template) {
+					$tplType = get_class($tableAnnotation);
+					if(!isset($templates[$tplType])) {
+						$templates[$tplType] = new IdentifierMap();
+					}
+					$templates[$tplType][new Identifier((string) $tableId)] = (object) [
+						'template' => $this->templateParser->parse($this->templateLexer->tokenize($tableAnnotation->getString())),
+						'table' => $table,
+					];
+				}
 			}
 		}
+
+		$result = [];
+		foreach($templates AS $type => $tplCollection) {
+			$result[$type] = $this->templateCompiler->compile($tplCollection);
+		}
+		
+		return $result;
+	}
+
+	public function buildGraph(SchemaConfiguration $configuration) {
+		$graphDef = new GraphDefinition();
+		$entityBuilders = new IdentifierMap();
+
+		$templates = $this->processTemplates($configuration);
 
 		foreach($configuration->getTableIds() as $tableId) {
 			$tableConf = $configuration->getTableConf($tableId);
 
 			$table = $tableConf->getTable();
 			$entityBuilder = new EntityBuilder($table);
-
+			if(isset($templates[TA\Display::class][$tableId])) {
+				$entityBuilder->setDisplayTemplateCompiled($templates[TA\Display::class][$tableId]);
+			}
 
 			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
 				//$entityBuilder->build($entityBuilder);
@@ -173,7 +196,6 @@ final class GraphBuilder {
 				}
 
 				$entityBuilder->setDisplayTemplate($template);
-				$entityBuilder->setDisplayPaths($processedTemplate);
 				break;
 			case TA\Display::class:
 				$entityBuilder->requireUnique($tblAnn);

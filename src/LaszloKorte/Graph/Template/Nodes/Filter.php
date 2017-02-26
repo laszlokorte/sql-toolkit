@@ -1,6 +1,6 @@
 <?php
 
-namespace LaszloKorte\Resource\Template\Processed;
+namespace LaszloKorte\Graph\Template\Nodes;
 
 final class Filter {
 
@@ -11,6 +11,10 @@ final class Filter {
 	}
 
 	public function __toString() {
+		return $this->name;
+	}
+
+	public function getName() {
 		return $this->name;
 	}
 }

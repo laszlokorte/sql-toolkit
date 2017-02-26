@@ -1,6 +1,6 @@
 <?php
 
-namespace LaszloKorte\Resource\Template\Processed;
+namespace LaszloKorte\Graph\Template\Processed;
 
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\Record;

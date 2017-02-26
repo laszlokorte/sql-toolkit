@@ -1,6 +1,6 @@
 <?php
 
-namespace LaszloKorte\Resource\Template;
+namespace LaszloKorte\Graph\Template;
 
 final class Lexer {
 

@@ -4,10 +4,11 @@ namespace LaszloKorte\Graph;
 
 use LaszloKorte\Configurator\TableAnnotation as TA;
 use LaszloKorte\Schema\Table;
-use LaszloKorte\Resource\Template\Nodes\Sequence;
-use LaszloKorte\Resource\Template\Nodes\StaticText;
-use LaszloKorte\Resource\Template\Nodes\Path;
-use LaszloKorte\Resource\Template\Nodes\OutputTag;
+use LaszloKorte\Graph\Template\Nodes\Sequence;
+use LaszloKorte\Graph\Template\Nodes\StaticText;
+use LaszloKorte\Graph\Template\Nodes\Path;
+use LaszloKorte\Graph\Template\Nodes\OutputTag;
+use LaszloKorte\Graph\Template\Processed;
 
 use LaszloKorte\Graph\Identifier;
 
@@ -18,7 +19,7 @@ final class EntityBuilder {
 
 	private $id = NULL;
 	private $displayTemplate = NULL;
-	private $displayPaths = [];
+	private $displayTemplateCompiled;
 	private $previewUrl = NULL;
 	private $description = NULL;
 	private $groupName = NULL;
@@ -36,6 +37,7 @@ final class EntityBuilder {
 
 	public function __construct(Table $table) {
 		$this->table = $table;
+		$this->displayTemplateCompiled = new Processed\Sequence([]);
 	}
 
 	public function getTable() {
@@ -63,8 +65,8 @@ final class EntityBuilder {
 		$this->displayTemplate = $template;
 	}
 
-	public function setDisplayPaths($paths) {
-		$this->displayPaths = $paths;
+	public function setDisplayTemplateCompiled(Processed\Sequence $template) {
+		$this->displayTemplateCompiled = $template;
 	}
 
 	public function setPreviewUrl(Sequence $template) {
@@ -190,7 +192,7 @@ final class EntityBuilder {
 		$displayTemplate = $this->displayTemplate ?? $this->buildDefaultDisplayTemplate();
 
 		$entityDef->setDisplayTemplate($displayTemplate);
-		$entityDef->setDisplayPaths($this->displayPaths);
+		$entityDef->setDisplayTemplateCompiled($this->displayTemplateCompiled);
 
 		if($this->description !== NULL) {
 			$entityDef->setDescription($this->description);

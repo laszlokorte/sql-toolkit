@@ -1,8 +1,9 @@
 <?php
 
-namespace LaszloKorte\Resource\Template\Processed;
+namespace LaszloKorte\Graph\Template\Processed;
 
 use LaszloKorte\Graph\Path\ColumnPath;
+use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\Record;
 
@@ -13,10 +14,18 @@ final class ColumnValue {
 
 	public function __construct(ColumnPath $columnPath, $filters) {
 		$this->columnPath = $columnPath;
-		$this->filters = $filter;
+		$this->filters = $filters;
 	}
 
 	public function __toString() {
 		return (string) $this->columnPath;
+	}
+
+	public function getPath() {
+		return $this->columnPath;
+	}
+
+	public function relativeTo(TablePath $base) {
+		return new self($this->columnPath->relativeTo($base), $this->filters);
 	}
 }

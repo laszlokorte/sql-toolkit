@@ -1,6 +1,6 @@
 <?php
 
-namespace LaszloKorte\Resource\Template\Nodes;
+namespace LaszloKorte\Graph\Template\Processed;
 
 final class Filter {
 

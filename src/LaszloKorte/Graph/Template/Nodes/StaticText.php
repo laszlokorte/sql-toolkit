@@ -1,6 +1,6 @@
 <?php
 
-namespace LaszloKorte\Resource\Template\Nodes;
+namespace LaszloKorte\Graph\Template\Nodes;
 
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\Record;
@@ -14,6 +14,10 @@ final class StaticText {
 	}
 
 	public function __toString() {
+		return $this->text;
+	}
+
+	public function getText() {
 		return $this->text;
 	}
 

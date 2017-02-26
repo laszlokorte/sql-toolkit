@@ -3,7 +3,8 @@
 namespace LaszloKorte\Graph;
 
 use LaszloKorte\Graph\FieldTypes\FieldType;
-use LaszloKorte\Resource\Template\Nodes\Sequence;
+use LaszloKorte\Graph\Template\Nodes\Sequence;
+use LaszloKorte\Graph\Template\Processed;
 
 final class EntityDefinition {
 
@@ -64,8 +65,8 @@ final class EntityDefinition {
 		$this->templateSequence = $templateSequence;
 	}
 
-	public function setDisplayPaths(array $paths) {
-		$this->displayPaths = $paths;
+	public function setDisplayTemplateCompiled(Processed\Sequence $templateSequenceCompiled) {
+		$this->templateSequenceCompiled = $templateSequenceCompiled;
 	}
 
 	public function setOrderColumn(Identifier $col) {
@@ -149,6 +150,6 @@ final class EntityDefinition {
 	}
 
 	public function getDisplayPaths() {
-		return $this->displayPaths;
+		return $this->templateSequenceCompiled->getPaths();
 	}
 }
