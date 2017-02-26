@@ -2,11 +2,16 @@
 
 {% block body %}
     <div class='menu'>
-    	<h1 class="app-title">DB Manager</h1>
+    	<h1 class="app-title"><a href="{{ path('root') }}">DB Manager</a></h1>
 
-		{% include 'navigation.html.twig' with {'groups': graph.groups, 'ungrouped':graph.ungroupedEntities} only %}
+		{% include 'navigation.html.twig' with {'groups': graph.groups, 'ungrouped':graph.ungroupedEntities, 'entity': null} only %}
     </div>
 
     <div class="content">
+    	<h2>Welcome</h2>
+
+    	<p>
+    		Select a Data Set on the left.
+    	</p>
     </div>
 {% endblock %}

@@ -3,7 +3,7 @@
 
 {% block body %}
     <div class='menu'>
-    	<h1 class="app-title">DB Manager</h1>
+    	<h1 class="app-title"><a href="{{ path('root') }}">DB Manager</a></h1>
 
 		{% include 'navigation.html.twig' with {'groups': graph.groups, 'entity': entity, 'ungrouped':graph.ungroupedEntities} only %}
     </div>

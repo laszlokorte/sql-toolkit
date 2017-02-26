@@ -134,6 +134,7 @@ $silex->get('/table/{entity}.{format}', function (SilexApp $silex, Request $requ
 $silex->get('/table/{entity}/{id}', function (SilexApp $silex, Request $request, $entity, $id) {
 	return $silex['twig']->render('detail.html.twig', [
         'graph' => $silex['graph'],
+        'id' => $id,
         'entity' => $entity,
     ]);
 })
@@ -204,7 +205,9 @@ $silex->get('/', function (SilexApp $silex, Request $request) {
     return $silex['twig']->render('index.html.twig', [
         'graph' => $silex['graph'],
     ]);
-});
+})
+->bind('root')
+;
 
 // $silex->error(function (\Exception $e, Request $request, $code) {
 //     return new Response('We are sorry, but something went terribly wrong.');
