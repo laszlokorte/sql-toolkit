@@ -1,5 +1,5 @@
 {% macro template(template, record, link) %}
-	{{ template.render(record, link) }}
+	{{ template.render(record, link)|raw }}
 {% endmacro %}
 
 {% macro text(field, record) %}

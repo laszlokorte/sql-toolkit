@@ -18,6 +18,6 @@ final class StaticText {
 	}
 
 	public function render($record, $link = NULL) {
-		return $this->text;
+		return htmlentities($this->text, ENT_QUOTES, "UTF-8");
 	}
 }

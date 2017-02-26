@@ -33,4 +33,8 @@ final class Sequence implements IteratorAggregate {
 			return $c->render($record, $link);
 		}, $this->children));
 	}
+
+	public function isEmpty() {
+		return empty($this->children);
+	}
 }

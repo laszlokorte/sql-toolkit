@@ -323,3 +323,13 @@ li a.state-active::after {
 	display: inline-block;
 	text-decoration: none;
 }
+
+.swatch {
+	display: inline-block;
+	width: 1.2em;
+	height: 1.2em;
+	overflow: hidden;
+	border-radius: 3px;
+	vertical-align: bottom;
+	background-color: currentColor;
+}

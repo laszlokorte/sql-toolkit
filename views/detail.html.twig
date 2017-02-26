@@ -17,7 +17,10 @@
     	{% if entity.serialColumn %}
 	    	#{{ controller.record.id(entity) -}}
     	{%- endif -%}
-    	: {{ entity.displayTemplateCompiled.render(controller.record) }}</h1>
+    	{%- if not entity.displayTemplateCompiled.empty -%}
+		: {{ entity.displayTemplateCompiled.render(controller.record) | raw}}
+    	{% endif %}
+    	</h1>
     	
 
     	<dl class="prop-list">

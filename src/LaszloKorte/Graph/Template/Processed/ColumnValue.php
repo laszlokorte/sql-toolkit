@@ -32,6 +32,6 @@ final class ColumnValue {
 	public function render($record, $link = NULL) {
 		return array_reduce($this->filters, function($val, $f) {
 			return $f->apply($val);
-		}, $record[$link ? $this->columnPath->relativeTo(new TablePath($link)) : $this->columnPath]);
+		}, htmlentities($record[$link ? $this->columnPath->relativeTo(new TablePath($link)) : $this->columnPath], ENT_QUOTES, "UTF-8"));
 	}
 }

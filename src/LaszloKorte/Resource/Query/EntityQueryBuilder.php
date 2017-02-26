@@ -154,14 +154,21 @@ final class EntityQueryBuilder {
 	}
 
 	private function sortPathsForField(Identifier $table, Field $field) {
+
+		$parentPaths = array_merge([], ...array_map(function($parent) use ($table) {
+				return $this->pathsFromAssociation($this->entity, $parent);
+			}, array_values($field->getParentAssociations())));
+
+		usort($parentPaths, function($a,$b) {
+			return cmp($a->length(), $b->length());
+		});
+
 		return array_merge(
 			array_values(array_map(function($assoc) use($field) {
 				return new Aggregation(Aggregation::TYPE_COUNT, $field->id(), $assoc->toLink());
 			}, $field->getChildAssociations())),
 
-			array_merge([], ...array_map(function($parent) use ($table) {
-				return $this->pathsFromAssociation($this->entity, $parent);
-			}, array_values($field->getParentAssociations()))),
+			$parentPaths,
 
 
 			array_map(function($col) use ($table) {
@@ -169,4 +176,12 @@ final class EntityQueryBuilder {
 			}, array_values($field->relatedColumns()))
 		);
 	}
+}
+
+function cmp($a, $b)
+{
+    if ($a == $b) {
+        return 0;
+    }
+    return ($a > $b) ? -1 : 1;
 }

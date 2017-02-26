@@ -20,12 +20,17 @@ final class Filter {
 				if(is_null($val)) {
 					return null;
 				}
-				return date('G:i', strtotime($val));
+				return date('H:i', strtotime($val));
 			case 'date':
 				if(is_null($val)) {
 					return null;
 				}
 				return (new \DateTime($val))->format("d.m.Y");
+			case 'color':
+				if(is_null($val)) {
+					return null;
+				}
+				return sprintf('<span class="swatch" style="color: %s"></span>', $val);
 			default:
 				return $val;
 		}

@@ -32,6 +32,8 @@ use Silex\Application as SilexApp;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+require('pdf/fpdf.php');
+
 $loader = require __DIR__ . '/vendor/autoload.php';
 AnnotationRegistry::registerLoader([$loader,'loadClass']);
 
@@ -150,6 +152,59 @@ $silex->get('/table/{table}/{id}/{child}.{format}', function (SilexApp $silex, R
 ->convert('table', 'converter.table:convert')
 ->convert('id', 'converter.id:convert')
 ->bind('table_detail_export');
+
+$silex->get('export/badge/{id}', function(SilexApp $silex, Request $request, $id) {
+    $stmt = $silex['db.connection']->prepare('SELECT * FROM person WHERE ID = :id');
+    $stmt->bindValue(':id', $id);
+    $stmt->execute();
+
+    $result = $stmt->fetch();
+
+    $pdf = new FPDF('P','mm','A4');
+    $pdf->AddPage();
+    $pdf->SetFont('Arial','',20);
+    $pdf->setY(150);
+    $pdf->Cell(95,120, sprintf('%s %s', $result->first_name, $result->last_name), 0, 0, 'C');
+    $pdf->Cell(95,120, sprintf('%s %s', $result->first_name, $result->last_name), 0, 0, 'C');
+
+    $pdf->Image(sprintf('http://chart.apis.google.com/chart?cht=qr&chs=450x450&chl=%s.png', md5($result->id)),38,230,40);
+
+    $pdf->Image(sprintf('http://chart.apis.google.com/chart?cht=qr&chs=450x450&chl=%s.png', md5($result->id)),95 + 38,230,40);
+
+    return new Response(
+        $pdf->Output('S', 'Badge', true),
+        200,
+        ['Content-Type' => 'application/pdf']
+    );
+});
+
+$silex->get('export/badges', function(SilexApp $silex, Request $request) {
+    $stmt = $silex['db.connection']->prepare('SELECT * FROM person');
+    $stmt->execute();
+
+    $pdf = new FPDF('P','mm','A4');
+
+    $pdf->AddPage();
+    $pdf->SetFont('Arial','',20);
+    $pdf->setY(100);
+    $pdf->Cell(0,20, sprintf('ISHL 10 Badges Ü'), 0, 2, 'C');
+    $pdf->SetFont('Arial','',16);
+    $pdf->Cell(0,0, sprintf('%s', (new DateTime())->format('d.m.Y G:i')), 0, 2, 'C');
+    
+    while($result = $stmt->fetch()) {
+        $pdf->AddPage();
+        $pdf->SetFont('Arial','',20);
+        $pdf->setY(150);
+        $pdf->Cell(95,120, sprintf('%s %s', $result->first_name, $result->last_name), 0, 0, 'C');
+        $pdf->Cell(95,120, sprintf('%s %s', $result->first_name, $result->last_name), 0, 0, 'C');
+    }
+
+    return new Response(
+        $pdf->Output('S', 'Badge', true),
+        200,
+        ['Content-Type' => 'application/pdf']
+    );
+});
 
 $silex->get('/table/{table}/new', function (SilexApp $silex, Request $request, $table) {
     return 'Hello '.$silex->escape($table);
