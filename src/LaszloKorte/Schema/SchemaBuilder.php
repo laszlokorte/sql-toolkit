@@ -42,7 +42,7 @@ final class SchemaBuilder {
 			$tableDefs[$table->name] = $tableDef;
 		}
 
-		$this->definePrimaryKeys($tableDefs, $connection, $table->name, $databaseName);
+		$this->definePrimaryKeys($tableDefs, $connection,  $databaseName);
 	}
 
 	private function defineColumns($tableDef, $connection, $tableName, $databaseName) {
@@ -76,7 +76,7 @@ final class SchemaBuilder {
 		}
 	}
 
-	private function definePrimaryKeys($tableDefs, $connection, $tableName, $databaseName) {
+	private function definePrimaryKeys($tableDefs, $connection, $databaseName) {
 
 		$stmt = $connection->prepare('
 		SELECT 
