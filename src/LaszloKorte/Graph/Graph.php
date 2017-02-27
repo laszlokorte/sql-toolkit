@@ -34,4 +34,8 @@ class Graph {
 	public function hasUngroupedEntities() {
 		return !empty($this->graphDefinition->getUngroupedEntityIds());
 	}
+
+	public function getAuthenticators() {
+		return $this->graphDefinition->getAuthenticators();
+	}
 }

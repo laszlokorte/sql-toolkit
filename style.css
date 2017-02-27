@@ -333,3 +333,12 @@ li a.state-active::after {
 	vertical-align: bottom;
 	background-color: currentColor;
 }
+
+.not-implemented {
+	font-size: 1.7em;
+	color: darkred;
+	font-weight: bold;
+	display: block;
+	background-color: #ffaaaa;
+	padding: 1em;
+}

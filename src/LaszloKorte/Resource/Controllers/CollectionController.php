@@ -17,8 +17,9 @@ final class CollectionController {
 	private $parameters;
 	private $result = null;
 	private $page = 0;
+	private $export = false;
 
-	public function __construct(PDO $db, Entity $entity, $parameters, $scope = NULL) {
+	public function __construct(PDO $db, Entity $entity, $parameters, $scope = NULL, $export = false) {
 		$this->database = $db;
 		$this->entity = $entity;
 		$this->queryBuilder = new EntityQueryBuilder($entity);
@@ -26,6 +27,7 @@ final class CollectionController {
 		$this->parameters = $parameters;
 
 		$this->page = $parameters['page'] ?? 1;
+		$this->export = $export;
 
 		$this->queryBuilder->includeFieldColumns();
 	}
@@ -35,20 +37,24 @@ final class CollectionController {
 	}
 
 	private function getQuery() {
+		
 		if(isset($this->parameters['order']['field'])) {
 			$this->queryBuilder->sortByField($this->parameters['order']['field'], $this->parameters['order']['dir'] === 'asc');
 		} else {
-			$this->queryBuilder->sortDefault($this->parameters['order']['dir'] === 'asc');
+			$this->queryBuilder->sortDefault(($this->parameters['order']['dir']??null) === 'asc');
 		}
 		$query = $this->queryBuilder->getQuery();
-		$query->limit(21);
-		$query->offset(($this->page - 1) * 20);
+
+		if(!$this->export) {
+			$query->limit(21);
+			$query->offset(($this->page - 1) * 20);
+		}
 
 		return $query;
 	}
 
 	public function isOrderedBy($field, $dir = 'asc') {
-		return $this->parameters['order']['dir'] === $dir && 
+		return ($this->parameters['order']['dir']??null) === $dir && 
 		($field === null && !isset($this->parameters['order']['field']) ||
 		($field !== null && ($this->parameters['order']['field'] ?? null) == $field->id()));
 	}
@@ -60,6 +66,10 @@ final class CollectionController {
 			$stmt->execute();
 
 			$this->result = $stmt->fetchAll(PDO::FETCH_CLASS, Record::class);
+
+			if(empty($this->result) && $this->page > 1) {
+				throw new NotFoundException();
+			}
 		}
 		
 		return $this->result;

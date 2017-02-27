@@ -17,6 +17,20 @@
 			</p>
     	{% endif %}
 
+        <p>
+            <a href="{{ path('table_new', {'entity':entity.id}) }}">+ Create new {{ entity.title }}</a>
+        </p>
+
+        <p>
+        {% if entity.id == 'registration' %}
+                <a href="{{ path('export_all_badges', {'conference': 1}) }}">🖨 Print Badges</a> | 
+        {% endif %}
+        Export:
+        <a href="{{ path('table_list', {'entity':entity.id,'format':'xml'}) }}">XML</a> |
+        <a href="{{ path('table_list', {'entity':entity.id,'format':'csv'}) }}">CSV</a> |
+        <a href="{{ path('table_list', {'entity':entity.id,'format':'json'}) }}">JSON</a>
+        </p>
+
         <div class="sql debug">{{ controller.sqlString }}</div>
 
         {% if controller.hasPrevPage or controller.hasNextPage %}
@@ -26,7 +40,7 @@
                 « Back
             {% endif %}
 
-             | 
+             | Page {{ controller.page }} | 
 
             {% if controller.hasNextPage %}
                 <a href="?{{ controller.params.replace('page', controller.page + 1) }}">Next »</a>
@@ -129,9 +143,9 @@
                         {% endif %}
                     {% endfor %}
                         <td>
-                            <a title="edit" href='?'>&#x270E;</a>
-                            <a title="delete" href='?'>&#x2715;</a>
-                            <a title="copy" href='?'>&#x2398;</a>
+                            <a title="edit" href='{{ path('table_edit', {"entity": entity.id, "id": record.id(entity)}) }}'>&#x270E;</a>
+                            <a title="delete" href='{{ path('table_delete', {"entity": entity.id, "id": record.id(entity)}) }}'>&#x2715;</a>
+                            <a title="copy" href='{{ path('table_new', {"entity": entity.id, "copy": record.id(entity)}) }}'>&#x2398;</a>
                         </td>
 
                         <td class="fill-label">

@@ -31,6 +31,8 @@ final class Filter {
 					return null;
 				}
 				return sprintf('<span class="swatch" style="color: %s"></span>', $val);
+			case 'raw':
+				return html_entity_decode($val, ENT_QUOTES | ENT_XML1, 'UTF-8');
 			default:
 				return $val;
 		}

@@ -42,6 +42,8 @@ final class Compiler {
 				return array_map(function($seg) use ($basePath) {
 					if($seg instanceof Processed\ColumnValue) {
 						return $seg->relativeTo($basePath);
+					} else {
+						return $seg;
 					}
 				}, $this->process($foreignTemplate, $others));
 			} else {

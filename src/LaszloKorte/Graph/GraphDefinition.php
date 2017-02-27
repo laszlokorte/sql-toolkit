@@ -2,11 +2,15 @@
 
 namespace LaszloKorte\Graph;
 
+use LaszloKorte\Graph\Auth\Authenticator;
+
 final class GraphDefinition {
 
 	private $entities;
 	private $groups;
 	private $ungrouped;
+
+	private $authenticators = [];
 
 	public function __construct() {
 		$this->entities = new IdentifierMap();
@@ -36,6 +40,10 @@ final class GraphDefinition {
 		$this->ungrouped->detach($entityId);
 
 		return $this->groups[$groupId];
+	}
+
+	public function addAuthenticator(Authenticator $auth) {
+		$this->authenticators[] = $auth;
 	}
 
 	public function defineExporter($name) {
@@ -88,5 +96,9 @@ final class GraphDefinition {
 
 	public function getGroup(Identifier $id) {
 		return $this->groups[$id];
+	}
+
+	public function getAuthenticators() {
+		return $this->authenticators;
 	}
 }

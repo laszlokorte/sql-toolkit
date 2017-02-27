@@ -1,0 +1,46 @@
+{% import "fields.html.twig" as fields %}
+{% extends 'layout.html.twig' %}
+
+{% block body %}
+    <div class='menu'>
+    	{% include 'header.html.twig' %}
+
+		{% include 'navigation.html.twig' with {'groups': graph.groups, 'entity': entity, 'ungrouped':graph.ungroupedEntities} only %}
+    </div>
+
+    <div class="content">
+		<a href="{{ path('table_list', {'entity':entity.id}) }}">« Back to all {{ entity.title(true) }}</a>
+
+    	<h1>New {{ entity.title }}</h1>
+
+        <span class="not-implemented">
+            Das hier funktioniert noch nicht.
+        </span> 
+    	
+    
+    	<form action="">
+            <dl class="prop-list">
+                {% for field in entity.fields %}
+                <dt>
+                    {{ field.title }}
+                    {% if field.description %}
+                    <br>{{ field.description }}
+                    {% endif %}
+                </dt>
+                <dd>
+                    <input />
+                </dd>
+                {% endfor %}
+            </dl> 
+
+            <p>
+                <button>Save</button>
+            </p> 
+            <p>
+                <a href="">Cancel</a>
+            </p> 
+        </form>
+
+    	
+    </div>
+{% endblock %}

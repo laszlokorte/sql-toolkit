@@ -8,14 +8,12 @@
 
 {% macro ref_parent(field, record) %}
 	{% if record.foreignId(field.parent('ref')) %}
-	<a href="{{ path('table_detail', {'entity':field.parent('ref').targetEntity.id, 'id':record.foreignId(field.parent('ref'))}) }}" style="white-space: nowrap;">{{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, field.parent('ref').toLink) }}</a>
+	{{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, field.parent('ref').toLink) }}
 	{% endif %}
 {% endmacro %}
 
 {% macro ref_children(field, record) %}
-	<a class="badge" href="">
-		{{ record.count(field.child('ref')) }}
-	</a>
+	{{ record.count(field.child('ref')) }}
 {% endmacro %}
 
 {% macro datetime(field, record) %}

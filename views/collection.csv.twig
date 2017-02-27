@@ -1,0 +1,23 @@
+{%- import "fields.csv.twig" as fields -%}
+
+{%- if entity.serialColumn -%}
+    {{- entity.serialColumn -}},
+{%- endif -%}
+{%- for field in entity.fields -%}
+	{%- if field.isVisibleInCollection and (not field.isSecret) -%}
+	{{- field.title -}}
+    {%- if not loop.last -%}, {%- endif -%}
+	{%- endif -%}
+{%- endfor -%}
+{%- for record in controller.records -%}
+    {{ "\n" }}
+    {%- if entity.serialColumn -%}
+        "{{- record[entity.column(entity.serialColumn)] -}}",
+    {%- endif -%}
+    {%- for field in entity.fields -%}
+        {%- if field.isVisibleInCollection and (not field.isSecret) -%}
+        "{{- attribute(fields, field.typeTemplate, [field, record])|trim|default('-')|raw -}}"
+        {%- if not loop.last -%}, {%- endif -%}
+        {%- endif -%}
+    {%- endfor -%}
+{%- endfor -%}

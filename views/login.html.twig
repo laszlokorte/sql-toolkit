@@ -1,0 +1,33 @@
+{% extends 'layout.html.twig' %}
+
+{% block body %}
+
+<div class="login-panel-outer">
+	<div class=login-panel>
+		<h1 class=login-title>Login</h1>
+		<form action="{{ path('login_check') }}" method="post">
+
+		{% if error %}
+		<p>
+			{{ error }}
+		</p>
+		{% endif %}
+
+		<dl class="prop-list">
+			<dt>E-Mail</dt>
+			<dd>
+				<input name="_username" type="text" value="{{ last_username }}" />
+			</dd>
+
+			<dt>Password</dt>
+			<dd>
+				<input name="_password" type="password" />
+			</dd>
+		</dl>
+
+		<button>Sign in</button>
+		</form>
+	</div>
+</div>
+
+{% endblock body %}

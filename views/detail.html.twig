@@ -22,6 +22,20 @@
     	{% endif %}
     	</h1>
     	
+    	<p>
+    	{% if entity.id == 'registration' %}
+    	        <a href="{{ path('export_single_badge', {'id': controller.record.id(entity)}) }}">🖨 Print Badge</a>
+    	{% endif %}
+    	Export:
+    	<a href="">XML</a> |
+    	<a href="">CSV</a> |
+    	<a href="">JSON</a>
+		</p>
+
+
+		<span class="not-implemented">
+		    Das hier ist noch nicht fertig.
+		</span> 
 
     	<dl class="prop-list">
     		{% for field in entity.fields %}
@@ -29,7 +43,11 @@
     			{{ field.title }}
     		</dt>
 		    <dd>
-		        {{  attribute(fields, field.typeTemplate, [field, controller.record])|trim|default('-')|raw }}
+		        {% if field.secret %}
+					*******
+				{% else %}
+				    {{ attribute(fields, field.typeTemplate, [field, controller.record])|trim|default('-')|raw }}
+		        {% endif %}
 		    </dd>
     		{% endfor %}
     	</dl>

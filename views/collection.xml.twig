@@ -1,0 +1,16 @@
+{% import "fields.csv.twig" as fields -%}
+
+<{{ entity.id }}s>
+{% for record in controller.records -%}
+    <{{ entity.id }}>
+    {%- if entity.serialColumn -%}
+        <serial>{{- record[entity.column(entity.serialColumn)] -}}</serial>
+    {%- endif -%}
+        {% for field in entity.fields %}
+            {%- if field.isVisibleInCollection and (not field.isSecret) -%}
+            <{{ field.id }}>{{ attribute(fields, field.typeTemplate, [field, record])|trim|default('-')|raw }}</{{ field.id }}>
+            {%- endif -%}
+        {% endfor %}
+    </{{ entity.id }}>
+{%- endfor -%}
+</{{ entity.id }}s>

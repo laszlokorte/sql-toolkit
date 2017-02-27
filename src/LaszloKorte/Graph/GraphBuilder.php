@@ -13,6 +13,8 @@ use LaszloKorte\Graph\Template\Compiler;
 use LaszloKorte\Graph\Template\Nodes\Sequence;
 use LaszloKorte\Graph\Template\Nodes\OutputTag;
 
+use LaszloKorte\Graph\Auth\Authenticator;
+
 use LaszloKorte\Schema\Table;
 use LaszloKorte\Schema\IdentifierMap;
 
@@ -27,42 +29,16 @@ final class GraphBuilder {
 	private $templateParser;
 	private $templateLexer;
 	private $inflector;
+	private $config;
 
-	public function __construct() {
+	private $authenticators = [];
+
+	public function __construct(array $config) {
+		$this->config = $config;
 		$this->templateParser = new Parser();
 		$this->templateLexer = new Lexer();
 		$this->templateCompiler = new Compiler();
 		$this->inflector = new Inflector();
-	}
-
-	private function processTemplates(SchemaConfiguration $configuration) {
-		$templates = [];
-
-		foreach($configuration->getTableIds() as $tableId) {
-			$tableConf = $configuration->getTableConf($tableId);
-
-			$table = $tableConf->getTable();
-
-			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
-				if($tableAnnotation instanceof Template) {
-					$tplType = get_class($tableAnnotation);
-					if(!isset($templates[$tplType])) {
-						$templates[$tplType] = new IdentifierMap();
-					}
-					$templates[$tplType][new Identifier((string) $tableId)] = (object) [
-						'template' => $this->templateParser->parse($this->templateLexer->tokenize($tableAnnotation->getString())),
-						'table' => $table,
-					];
-				}
-			}
-		}
-
-		$result = [];
-		foreach($templates AS $type => $tplCollection) {
-			$result[$type] = $this->templateCompiler->compile($tplCollection);
-		}
-		
-		return $result;
 	}
 
 	public function buildGraph(SchemaConfiguration $configuration) {
@@ -132,7 +108,53 @@ final class GraphBuilder {
 			$builder->buildEntity($this, $graphDef);
 		}
 
+		foreach($this->authenticators AS $auth) {
+			$graphDef->addAuthenticator($auth);
+		}
+
+
 		return $graphDef;
+	}
+
+	private function addAuthentication($table, $loginCol, $passwordCol) {
+		if(!$table->hasColumn($loginCol)) {
+			throw new \Exception("Login Column does not exist");
+		}
+		if(!$table->hasColumn($passwordCol)) {
+			throw new \Exception("Login Column does not exist");
+		}
+
+		$this->authenticators[] = new Authenticator(new Identifier((string) $table->getName()), new Identifier($loginCol), new Identifier($passwordCol));
+	}
+
+	private function processTemplates(SchemaConfiguration $configuration) {
+		$templates = [];
+
+		foreach($configuration->getTableIds() as $tableId) {
+			$tableConf = $configuration->getTableConf($tableId);
+
+			$table = $tableConf->getTable();
+
+			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
+				if($tableAnnotation instanceof Template) {
+					$tplType = get_class($tableAnnotation);
+					if(!isset($templates[$tplType])) {
+						$templates[$tplType] = new IdentifierMap();
+					}
+					$templates[$tplType][new Identifier((string) $tableId)] = (object) [
+						'template' => $this->templateParser->parse($this->templateLexer->tokenize($tableAnnotation->getString())),
+						'table' => $table,
+					];
+				}
+			}
+		}
+
+		$result = [];
+		foreach($templates AS $type => $tplCollection) {
+			$result[$type] = $this->templateCompiler->compile($tplCollection);
+		}
+		
+		return $result;
 	}
 
 	private function processColumn(FieldBuilder $fieldBuilder, CA\Annotation $colAnn) {
@@ -218,7 +240,8 @@ final class GraphBuilder {
 				$entityBuilder->setId($tblAnn->id);
 				break;
 			case TA\Login::class:
-				$this->requireUnique($tblAnn);
+				$entityBuilder->requireUnique($tblAnn);
+				$this->addAuthentication($entityBuilder->getTable(), $tblAnn->loginColumn, $tblAnn->passwordColumn);
 				break;
 			case TA\NavGroup::class:
 				$entityBuilder->requireUnique($tblAnn);

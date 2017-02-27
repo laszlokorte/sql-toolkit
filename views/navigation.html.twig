@@ -2,7 +2,7 @@
     <li><a href="{{ path('table_list', {'entity':entity.id}) }}" class="nav-table{% if current is defined and current == entity %} state-active{% endif %}">{{ entity.title(true) }}</a></li>
 {% endmacro %}
 
-<a href="?logout" rel="nofollow">Logout</a> | 
+<a href="{{ path('logout') }}" rel="nofollow">Logout</a> | 
 <label><input type="checkbox" onChange="document.body.classList.toggle('debug', this.checked)"/> Debug</label>
 <hr>
 
