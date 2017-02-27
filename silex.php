@@ -189,7 +189,7 @@ $silex->get('/table/{entity}/new', function (SilexApp $silex, Request $request, 
 ->convert('entity', 'converter.entity:convert')
 ->bind('table_new');
 
-$silex->get('/table/{entity}/{id}', function (SilexApp $silex, Request $request, $entity, $id) {
+$silex->get('/table/{entity}/{id}.{format}', function (SilexApp $silex, Request $request, $entity, $id) {
 	return $silex['twig']->render('detail.html.twig', [
         'graph' => $silex['graph'],
         'id' => $id,
@@ -197,6 +197,8 @@ $silex->get('/table/{entity}/{id}', function (SilexApp $silex, Request $request,
         'controller' => new DetailController($silex['db.connection'], $entity, $id, new ParameterBag($_GET)),
     ]);
 })
+->value('format', 'html')
+->assert('format', '[a-z]+')
 ->convert('entity', 'converter.entity:convert')
 ->convert('id', 'converter.id:convert')
 ->bind('table_detail');
@@ -361,14 +363,6 @@ $silex->get('/login', function (SilexApp $silex, Request $request) {
         'error' => $silex['security.last_error']($request),
         'last_username' => $silex['session']->get('_security.last_username'),
     ]);
-});
-
-$silex->post('/login', function (SilexApp $silex, Request $request) {
-    return 'Hello';
-});
-
-$silex->get('/logout', function (SilexApp $silex, Request $request) {
-    return 'Hello';
 });
 
 $silex->get('/password/{password}', function(SilexApp $silex, $password) {
