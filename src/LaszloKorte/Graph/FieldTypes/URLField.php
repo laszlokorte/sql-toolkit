@@ -5,21 +5,14 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class NumberField implements FieldType {
+class URLField implements FieldType {
 	private $columnId;
-	private $unit;
 
-	public function __construct(Identifier $columnId, $unit = null) {
+	public function __construct(Identifier $columnId) {
 		$this->columnId = $columnId;
-		$this->unit = $unit;
 	}
-
-	public function getUnit() {
-		return $this->unit;
-	}
-
 	public function getTemplateName() {
-		return 'number';
+		return 'url';
 	}
 
 	public function getRelatedColumns() {

@@ -187,7 +187,7 @@ final class ColumnFieldBuilder implements FieldBuilder {
 			case 'datetime':
 				return new FT\DateTimeField($columnName);
 			case 'number':
-				return new FT\NumberField($columnName);
+				return new FT\NumberField($columnName, $typeParams['unit']??null);
 			case 'password':
 				return new FT\PasswordField(false, $columnName);
 			case 'syntax':
@@ -200,6 +200,10 @@ final class ColumnFieldBuilder implements FieldBuilder {
 				return new FT\TimeField(false, $columnName);
 			case 'toggle':
 				return new FT\ToggleField(FT\ToggleField::TYPE_CHECKBOX, $columnName);
+			case 'url':
+				return new FT\URLField($columnName);
+			case 'email':
+				return new FT\EmailField($columnName);
 			case 'file':
 			case 'geo':
 				throw new \Exception(sprintf("Control '%s' can not be used on column '%s'", $typeName, $column));

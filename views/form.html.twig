@@ -23,6 +23,7 @@
                 {% for field in entity.fields %}
                 <dt>
                     {{ field.title }}
+                    {% if field.isRequired %}*{% endif %}
                     {% if field.description %}
                     <br>{{ field.description }}
                     {% endif %}

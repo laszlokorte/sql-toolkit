@@ -46,10 +46,17 @@
 
 {% macro number(field, record) %}
     {{ record[field.column('value')] }}
+    {% if field.type.unit %}
+    {{ field.type.unit }}
+    {% endif %}
 {% endmacro %}
 
 {% macro choice(field, record) %}
     {{ record[field.column('value')] }}
+{% endmacro %}
+
+{% macro color(field, record) %}
+    <span class="swatch" style="color: {{ record[field.column('value')] }}"></span>
 {% endmacro %}
 
 {% macro toggle(field, record) %}
@@ -66,12 +73,30 @@
 {% endmacro %}
 
 {% macro currency(field, record) %}
-    {{ record[field.column('value')] }}
+    {{ (record[field.column('value')]/100)|number_format(2, ',', '.') }}{{ field.type.unit|replace({'euro':'€'}) }}
 {% endmacro %}
 
 {% macro file(field, record) %}
     {{ _self.bytesToSize(record[field.column('size')]) }}
     {{ record[field.column('mime')] }}
+{% endmacro %}
+
+
+{% macro geo(field, record) %}
+    ({{ record[field.column('latitude')] }}° N,
+    {{ record[field.column('longitude')] }}° W)
+{% endmacro %}
+
+{% macro url(field, record) %}
+    {% if record[field.column('value')] %}
+	<a href="{{ record[field.column('value')] }}">{{ record[field.column('value')] }}</a>    
+    {% endif %}
+{% endmacro %}
+
+{% macro email(field, record) %}
+    {% if record[field.column('value')] %}
+	<a href="mailto:{{ record[field.column('value')] }}">{{ record[field.column('value')] }}</a>    
+    {% endif %}
 {% endmacro %}
 
 
