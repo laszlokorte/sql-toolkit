@@ -26,9 +26,9 @@
                 <a href="{{ path('export_all_badges', {'conference': 1}) }}">🖨 Print Badges</a> | 
         {% endif %}
         Export:
-        <a href="{{ path('table_list', {'entity':entity.id,'format':'xml'}) }}">XML</a> |
-        <a href="{{ path('table_list', {'entity':entity.id,'format':'csv'}) }}">CSV</a> |
-        <a href="{{ path('table_list', {'entity':entity.id,'format':'json'}) }}">JSON</a>
+        <a href="{{ path('table_export', {'entity':entity.id,'format':'xml'}) }}">XML</a> |
+        <a href="{{ path('table_export', {'entity':entity.id,'format':'csv'}) }}">CSV</a> |
+        <a href="{{ path('table_export', {'entity':entity.id,'format':'json'}) }}">JSON</a>
         </p>
 
         <div class="sql debug">{{ controller.sqlString }}</div>
@@ -134,7 +134,7 @@
                                 <a href="{{ path('table_detail', {'entity':entity.id, 'id':record.id(entity)}) }}">
                             {% endif %}
                             
-                            {{  attribute(fields, field.typeTemplate, [field, record])|trim|default('-')|raw }}
+                            {{  attribute(fields, field.typeTemplate, [field, record, templateRenderer])|trim|default('-')|raw }}
                             
                             {% if field.isLinked %}
                                 </a>

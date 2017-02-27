@@ -2,9 +2,18 @@
 
 namespace LaszloKorte\Resource;
 
+
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 final class IdConverter {
 	public function convert($id) {
-		return split_escaped(':', '!', $id);
+		$parts = split_escaped(':', '!', $id);
+
+		if(empty($parts)) {
+			throw new NotFoundHttpException();
+		}
+
+		return $parts;
 	}
 }
 

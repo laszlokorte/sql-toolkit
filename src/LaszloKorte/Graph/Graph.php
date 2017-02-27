@@ -25,6 +25,10 @@ class Graph {
 		return new Entity($this->graphDefinition, new Identifier($name));
 	}
 
+	public function hasEntity($name) {
+		return $this->graphDefinition->hasEntity(new Identifier($name));
+	}
+
 	public function ungroupedEntities() {
 		$entityIds = $this->graphDefinition->getUngroupedEntityIds();
 

@@ -1,14 +1,18 @@
-{% macro template(template, record, link) %}
-	{{ template.render(record, link)|raw }}
+{% macro template(template, record, templateRenderer, link) %}
+	{{ template.render(record, templateRenderer, link)|raw }}
 {% endmacro %}
 
 {% macro text(field, record) %}
-    {{ record[field.column('value')] }}
+    {% if field.type.isMultiline %}
+    	<div class="whitespaced">{{ record[field.column('value')] }}</div>
+	{% else %}
+	    {{ record[field.column('value')] }}
+    {% endif %}
 {% endmacro %}
 
-{% macro ref_parent(field, record) %}
+{% macro ref_parent(field, record, templateRenderer) %}
 	{% if record.foreignId(field.parent('ref')) %}
-	<a href="{{ path('table_detail', {'entity':field.parent('ref').targetEntity.id, 'id':record.foreignId(field.parent('ref'))}) }}" style="white-space: nowrap;">{{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, field.parent('ref').toLink) }}</a>
+	<a href="{{ path('table_detail', {'entity':field.parent('ref').targetEntity.id, 'id':record.foreignId(field.parent('ref'))}) }}" style="white-space: nowrap;">{{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, templateRenderer, field.parent('ref').toLink) }}</a>
 	{% endif %}
 {% endmacro %}
 
@@ -31,10 +35,12 @@
 {% endmacro %}
 
 {% macro time(field, record) %}
-    {% if field.type.includesSeconds %}
-    	{{ record[field.column('value')]|date('H:i:s') }}
-	{% else %}
-	    {{ record[field.column('value')]|date('H:i') }}
+	{% if record[field.column('value')] %}
+	    {% if field.type.includesSeconds %}
+	    	{{ record[field.column('value')]|date('H:i:s') }}
+		{% else %}
+		    {{ record[field.column('value')]|date('H:i') }}
+	    {% endif %}
     {% endif %}
 {% endmacro %}
 
@@ -44,4 +50,48 @@
 
 {% macro choice(field, record) %}
     {{ record[field.column('value')] }}
+{% endmacro %}
+
+{% macro toggle(field, record) %}
+    <input type="checkbox" disabled{% if record[field.column('value')] %} checked{% endif %} />
+    {% if record[field.column('value')] %} 
+    Yes 
+    {% else %}
+    No
+    {% endif %}
+{% endmacro %}
+
+{% macro syntax(field, record) %}
+    <div class="json-small">{{ record[field.column('value')] }}</div>
+{% endmacro %}
+
+{% macro currency(field, record) %}
+    {{ record[field.column('value')] }}
+{% endmacro %}
+
+{% macro file(field, record) %}
+    {{ _self.bytesToSize(record[field.column('size')]) }}
+    {{ record[field.column('mime')] }}
+{% endmacro %}
+
+
+{% macro bytesToSize(bytes) %}
+{% spaceless %}
+    {% set kilobyte = 1024 %}
+    {% set megabyte = kilobyte * 1024 %}
+    {% set gigabyte = megabyte * 1024 %}
+    {% set terabyte = gigabyte * 1024 %}
+
+    {% if bytes < kilobyte %}
+        {{ bytes ~ ' B' }}
+    {% elseif bytes < megabyte %}
+        {{ (bytes / kilobyte)|number_format(2, '.') ~ ' KB' }}
+    {% elseif bytes < gigabyte %}
+        {{ (bytes / megabyte)|number_format(2, '.') ~ ' MB' }}
+    {% elseif bytes < terabyte %}
+        {{ (bytes / gigabyte)|number_format(2, '.') ~ ' GB' }}
+    {% else %}
+        {{ (bytes / terabyte)|number_format(2, '.') ~ ' TB' }}
+    {% endif %}
+{% endspaceless %}
 {% endmacro %}

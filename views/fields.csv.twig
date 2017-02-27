@@ -1,14 +1,14 @@
-{% macro template(template, record, link) %}
-	{{ template.render(record, link)|raw }}
+{% macro template(template, record, templateRenderer, link) %}
+	{{ template.render(record, templateRenderer, link)|raw }}
 {% endmacro %}
 
 {% macro text(field, record) %}
     {{ record[field.column('value')] }}
 {% endmacro %}
 
-{% macro ref_parent(field, record) %}
+{% macro ref_parent(field, record, templateRenderer) %}
 	{% if record.foreignId(field.parent('ref')) %}
-	{{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, field.parent('ref').toLink) }}
+	{{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, templateRenderer, field.parent('ref').toLink) }}
 	{% endif %}
 {% endmacro %}
 

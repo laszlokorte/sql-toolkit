@@ -5,7 +5,8 @@ namespace LaszloKorte\Graph;
 use LaszloKorte\Configurator\ColumnAnnotation as CA;
 use LaszloKorte\Schema\Column;
 
-use LaszloKorte\Graph\FieldTypes\TextField;
+use LaszloKorte\Graph\FieldTypes AS FT;
+use LaszloKorte\Graph\Identifier;
 
 final class SyntheticFieldBuilder implements FieldBuilder {
 	private $prevAnnotations = [];
@@ -24,9 +25,12 @@ final class SyntheticFieldBuilder implements FieldBuilder {
 
 	private $unknownAnnotations = [];
 
-	public function __construct($name, Column ...$column) {
+	public function __construct($table, $name, $typeName, $columns, $typeParams) {
+		$this->table = $table;
 		$this->name = $name;
+		$this->typeName = $typeName;
 		$this->columns = $columns;
+		$this->typeParams = $typeParams;
 	}
 
 	public function reportUnknownAnnotation($annotation) {
@@ -99,8 +103,52 @@ final class SyntheticFieldBuilder implements FieldBuilder {
 		$this->isVisible = $isVisible;
 	}
 
-	public function buildField($ab, $entityDef) {
-		
+	public function buildField($ab, $entityBuilder, $entityDef) {
+		$title = $this->title ?? $ab->titelize($this->name);
+		$field = $entityDef->defineField(new Identifier($this->name), $title, $this->fieldType());
+
+		$field->setRequired(array_reduce($this->columns, function($acc, $c) {
+			return $acc || !$c->isNullable();
+		}), false);
+
+		if(!is_null($this->description)) {
+			$field->setDescription($this->description);
+		}
+
+		$field->setPriority($this->priority ?? 5);
+		$field->setSecret($this->isSecret);
+		$field->setLinked($this->isLinked);
+		$field->setVisibility($this->isVisible);
+		$field->setCollectionVisibility($this->visibleInCollection);
+	}
+
+	public function increasePriority($prio) {
+		$this->priority = ($this->priority ?? 0) + $prio;
+	}
+
+	public function handlesColumn($columnId) {
+		return array_reduce($this->columns, function($acc, $col) use ($columnId) {
+			return $acc || $col->getName() == $columnId;
+		}, false);
+	}
+
+	private function fieldType() {
+		switch($this->typeName) {
+			case 'file':
+				return new FT\FileField(
+					$this->typeParams['dir'], 
+					new Identifier((string)$this->columns[0]->getName()), 
+					new Identifier((string)$this->columns[1]->getName()), 
+					new Identifier((string)$this->columns[2]->getName())
+				);
+			case 'geo':
+				return new FT\GeoField(
+					new Identifier((string)$this->columns[0]->getName()), 
+					new Identifier((string)$this->columns[1]->getName())
+				);
+			default:
+				throw new \Exception(sprintf("Unknown control '%s'", $this->typeName));
+		}
 	}
 
 }

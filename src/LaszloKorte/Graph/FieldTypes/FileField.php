@@ -12,7 +12,7 @@ class FileField implements FieldType {
 	private $sizeColumnId;
 	private $mimeColumnId;
 
-	public function __construct($targetDir, Identifier $pathColumnId, Identifier $siteColumnId, Identifier $mimeColumnId) {
+	public function __construct($targetDir, Identifier $pathColumnId, Identifier $sizeColumnId, Identifier $mimeColumnId) {
 		$this->targetDir = $targetDir;
 		$this->pathColumnId = $pathColumnId;
 		$this->sizeColumnId = $sizeColumnId;

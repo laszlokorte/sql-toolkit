@@ -282,7 +282,10 @@ final class GraphBuilder {
 				$entityBuilder->setForeignKeyName($tblAnn->fkName, $singular, $plural);
 				break;
 			case TA\SyntheticControl::class:
-				$fieldBuilder = new SyntheticFieldBuilder($tblAnn->interfaceName);
+				$table = $entityBuilder->getTable();
+				$fieldBuilder = new SyntheticFieldBuilder($table, $tblAnn->id, $tblAnn->interfaceName, array_map(function($colName) use ($table) {
+					return $table->column($colName);
+				}, $tblAnn->columns), $tblAnn->params);
 
 				// foreach($columnConf->getAnnotations() AS $colAnnotation) {
 				// 	$this->processColumn($fieldBuilder, $colAnnotation);

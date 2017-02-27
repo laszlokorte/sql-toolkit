@@ -5,24 +5,21 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class TextField implements FieldType {
-	const TYPE_SINGLE_LINE = 1;
-	const TYPE_MULTI_LINE = 2;
-
-	private $type;
+class CurrencyField implements FieldType {
 	private $columnId;
+	private $unit;
 
-	public function __construct($type, Identifier $columnId) {
-		$this->type = $type;
+	public function __construct($unit, Identifier $columnId) {
+		$this->unit = $unit;
 		$this->columnId = $columnId;
 	}
 
-	public function isMultiline() {
-		return $this->type === self::TYPE_MULTI_LINE;
+	public function getUnit() {
+		return $this->unit;
 	}
 
 	public function getTemplateName() {
-		return 'text';
+		return 'currency';
 	}
 
 	public function getRelatedColumns() {

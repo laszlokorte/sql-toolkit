@@ -133,15 +133,15 @@ final class ColumnFieldBuilder implements FieldBuilder {
 
 	private function fieldType() {
 		if(isset($this->typeName)) {
-			return $this->buildFieldTypeForColumn($this->column, $typeName, $typeParams);
+			return $this->buildFieldTypeForColumn($this->column, $this->typeName, $this->typeParams);
 		} else {
-			return $this->defaultTypeForColumn();
+			return $this->defaultTypeForColumn($this->column);
 		}
 	}
 
-	private function defaultTypeForColumn() {
-		$columnType = $this->column->getType();
-		$columnName = new Identifier((string) $this->column->getName());
+	private function defaultTypeForColumn($column) {
+		$columnType = $column->getType();
+		$columnName = new Identifier((string) $column->getName());
 		switch(get_class($columnType)) {
 			case CT\Blob::class:
 				if($columnType->isBinary()) {
@@ -175,20 +175,34 @@ final class ColumnFieldBuilder implements FieldBuilder {
 	}
 
 	public function buildFieldTypeForColumn($column, $typeName, $typeParams) {
+		$columnName = new Identifier((string) $column->getName());
+
 		switch($typeName) {
 			case 'choice':
+				return new FT\ChoiceField(false, [], $columnName);
 			case 'color':
+				return new FT\ColorField($columnName);
 			case 'date':
+				return new FT\DateField($columnName);
 			case 'datetime':
+				return new FT\DateTimeField($columnName);
+			case 'number':
+				return new FT\NumberField($columnName);
+			case 'password':
+				return new FT\PasswordField(false, $columnName);
+			case 'syntax':
+				return new FT\SyntaxField($typeParams['grammar'] ?? null, $columnName);
+			case 'currency':
+				return new FT\CurrencyField($typeParams['unit'] ?? null, $columnName);
+			case 'text':
+				return new FT\TextField(FT\TextField::TYPE_SINGL_LINE, $columnName);
+			case 'time':
+				return new FT\TimeField(false, $columnName);
+			case 'toggle':
+				return new FT\ToggleField(FT\ToggleField::TYPE_CHECKBOX, $columnName);
 			case 'file':
 			case 'geo':
-			case 'number':
-			case 'password':
-			case 'sort':
-			case 'syntax':
-			case 'text':
-			case 'time':
-			case 'toggle':
+				throw new \Exception(sprintf("Control '%s' can not be used on column '%s'", $typeName, $column));
 			default:
 				throw new \Exception(sprintf("Unknown control '%s' used for column '%s'", $typeName, $column));
 		}

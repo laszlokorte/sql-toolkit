@@ -2,6 +2,8 @@
 
 namespace LaszloKorte\Graph\Template\Processed;
 
+use LaszloKorte\Graph\Template\Renderer;
+
 use IteratorAggregate;
 use ArrayIterator;
 
@@ -28,9 +30,9 @@ final class Sequence implements IteratorAggregate {
 		return $result;
 	}
 
-	public function render($record, $link = NULL) {
-		return implode('', array_map(function($c) use ($link, $record) {
-			return $c->render($record, $link);
+	public function render($record, Renderer $renderer, $link = NULL) {
+		return implode('', array_map(function($c) use ($link, $record, $renderer) {
+			return $c->render($record, $renderer, $link);
 		}, $this->children));
 	}
 

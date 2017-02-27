@@ -2,6 +2,8 @@
 
 namespace LaszloKorte\Graph\Template\Processed;
 
+use LaszloKorte\Graph\Template\Renderer;
+
 use LaszloKorte\Graph\Path\ColumnPath;
 use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Graph\Entity;
@@ -29,9 +31,9 @@ final class ColumnValue {
 		return new self($this->columnPath->relativeTo($base), $this->filters);
 	}
 
-	public function render($record, $link = NULL) {
-		return array_reduce($this->filters, function($val, $f) {
-			return $f->apply($val);
-		}, htmlentities($record[$link ? $this->columnPath->relativeTo(new TablePath($link)) : $this->columnPath], ENT_QUOTES, "UTF-8"));
+	public function render($record, Renderer $renderer, $link = NULL) {
+		return array_reduce($this->filters, function($val, $f) use ($renderer) {
+			return $f->apply($val, $renderer);
+		}, $renderer->unsafeText($record[$link ? $this->columnPath->relativeTo(new TablePath($link)) : $this->columnPath]));
 	}
 }

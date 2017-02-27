@@ -8,7 +8,7 @@
     {%- endif -%}
         {% for field in entity.fields %}
             {%- if field.isVisibleInCollection and (not field.isSecret) -%}
-            <{{ field.id }}>{{ attribute(fields, field.typeTemplate, [field, record])|trim|default('-')|raw }}</{{ field.id }}>
+            <{{ field.id }}>{{ attribute(fields, field.typeTemplate, [field, record, templateRenderer])|trim|default('-')|raw }}</{{ field.id }}>
             {%- endif -%}
         {% endfor %}
     </{{ entity.id }}>

@@ -18,7 +18,7 @@
 	    	#{{ controller.record.id(entity) -}}
     	{%- endif -%}
     	{%- if not entity.displayTemplateCompiled.empty -%}
-		: {{ entity.displayTemplateCompiled.render(controller.record) | raw}}
+		: {{ entity.displayTemplateCompiled.render(controller.record, templateRenderer) | raw}}
     	{% endif %}
     	</h1>
     	
@@ -46,7 +46,7 @@
 		        {% if field.secret %}
 					*******
 				{% else %}
-				    {{ attribute(fields, field.typeTemplate, [field, controller.record])|trim|default('-')|raw }}
+				    {{ attribute(fields, field.typeTemplate, [field, controller.record, templateRenderer])|trim|default('-')|raw }}
 		        {% endif %}
 		    </dd>
     		{% endfor %}

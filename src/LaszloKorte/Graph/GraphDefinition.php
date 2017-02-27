@@ -74,6 +74,10 @@ final class GraphDefinition {
 		return $this->entities[$id];
 	}
 
+	public function hasEntity(Identifier $id) {
+		return isset($this->entities[$id]);
+	}
+
 	public function getGroupIds() {
 		$result = [];
 		foreach($this->groups AS $id) {
