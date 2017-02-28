@@ -16,7 +16,7 @@
     {%- endif -%}
     {%- for field in entity.fields -%}
         {%- if field.isVisibleInCollection and (not field.isSecret) -%}
-        "{{- attribute(fields, field.typeTemplate, [field, record, templateRenderer])|trim|default('-')|raw -}}"
+        "{{- attribute(fields, field.typeTemplate, [field, record, templateRenderer])|trim|raw -}}"
         {%- if not loop.last -%}, {%- endif -%}
         {%- endif -%}
     {%- endfor -%}
