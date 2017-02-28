@@ -17,6 +17,7 @@ use LaszloKorte\Graph\Auth\Authenticator;
 
 use LaszloKorte\Schema\Table;
 use LaszloKorte\Schema\IdentifierMap;
+use LaszloKorte\Schema\Identifier as SchemaIdentifier;
 
 use LaszloKorte\Graph\Path;
 use LaszloKorte\Graph\Identifier;
@@ -58,7 +59,7 @@ final class GraphBuilder {
 
 			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
 				//$entityBuilder->build($entityBuilder);
-				$this->processTable($entityBuilder, $tableAnnotation);
+				$this->processTable($entityBuilder, $tableAnnotation, $tableConf);
 			}
 
 			foreach($table->foreignKeys() AS $fk) {
@@ -205,7 +206,7 @@ final class GraphBuilder {
 		}
 	}
 
-	private function processTable(EntityBuilder $entityBuilder, TA\Annotation $tblAnn) {
+	private function processTable(EntityBuilder $entityBuilder, TA\Annotation $tblAnn, $tableConf) {
 		switch(get_class($tblAnn)) {
 			case TA\Display::class:
 				// $entityBuilder->requireUnique($tblAnn);
@@ -287,9 +288,13 @@ final class GraphBuilder {
 					return $table->column($colName);
 				}, $tblAnn->columns), $tblAnn->params);
 
-				// foreach($columnConf->getAnnotations() AS $colAnnotation) {
-				// 	$this->processColumn($fieldBuilder, $colAnnotation);
-				// }
+				foreach($tblAnn->columns AS $colName) {
+					$columnConf = $tableConf->getColumnConf(new SchemaIdentifier($colName));
+
+					foreach($columnConf->getAnnotations() AS $colAnnotation) {
+						$this->processColumn($fieldBuilder, $colAnnotation);
+					}
+				}
 
 				$entityBuilder->attachFieldBuilder($fieldBuilder);
 				break;
