@@ -43,3 +43,64 @@
 {% macro choice(field, record) %}
     {{ record[field.column('value')] }}
 {% endmacro %}
+
+{% macro color(field, record) %}
+    {{ record[field.column('value')] }}
+{% endmacro %}
+
+{% macro toggle(field, record) %}
+    {% if record[field.column('value')] %} 
+    Yes 
+    {% else %}
+    No
+    {% endif %}
+{% endmacro %}
+
+{% macro syntax(field, record) %}
+    {{ record[field.column('value')] }}
+{% endmacro %}
+
+{% macro currency(field, record) %}
+    {{ (record[field.column('value')]/100)|number_format(2, ',', '.') }}{{ field.type.unit|replace({'euro':'€'}) }}
+{% endmacro %}
+
+{% macro file(field, record) %}
+    {{ _self.bytesToSize(record[field.column('size')]) }}
+    {{ record[field.column('mime')] }}
+{% endmacro %}
+
+
+{% macro geo(field, record) %}
+    ({{ record[field.column('latitude')] }}° N,
+    {{ record[field.column('longitude')] }}° W)
+{% endmacro %}
+
+{% macro url(field, record) %}
+    {{ record[field.column('value')] }}
+{% endmacro %}
+
+{% macro email(field, record) %}
+    {{ record[field.column('value')] }}
+{% endmacro %}
+
+
+{% macro bytesToSize(bytes) %}
+{% spaceless %}
+    {% set kilobyte = 1024 %}
+    {% set megabyte = kilobyte * 1024 %}
+    {% set gigabyte = megabyte * 1024 %}
+    {% set terabyte = gigabyte * 1024 %}
+
+    {% if bytes < kilobyte %}
+        {{ bytes ~ ' B' }}
+    {% elseif bytes < megabyte %}
+        {{ (bytes / kilobyte)|number_format(2, '.') ~ ' KB' }}
+    {% elseif bytes < gigabyte %}
+        {{ (bytes / megabyte)|number_format(2, '.') ~ ' MB' }}
+    {% elseif bytes < terabyte %}
+        {{ (bytes / gigabyte)|number_format(2, '.') ~ ' GB' }}
+    {% else %}
+        {{ (bytes / terabyte)|number_format(2, '.') ~ ' TB' }}
+    {% endif %}
+{% endspaceless %}
+{% endmacro %}
