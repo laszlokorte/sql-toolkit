@@ -203,6 +203,18 @@ final class EntityBuilder {
 		foreach($this->fieldBuilders AS $fieldBuilder) {
 			$fieldBuilder->buildField($ab, $this, $entityDef);
 		}
+
+		foreach($this->table->indices() as $index) {
+			if(!$index->isFulltext()) {
+				continue;
+			}
+
+			$entityDef->setSearchColumns(array_map(function($col) {
+				return new Identifier((string)$col->getName());
+			}, iterator_to_array($index->getColumns())));
+
+			break;
+		}
 	}
 
 	public function isColumnAlreadyHandled($columnId) {

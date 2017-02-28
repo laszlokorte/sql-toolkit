@@ -70,7 +70,7 @@ final class EntityDefinition {
 	}
 
 	public function setSearchColumns(array $columnIds) {
-		$this->searchColumns = $col;
+		$this->searchColumns = $columnIds;
 	}
 
 	public function setIcon($name) {

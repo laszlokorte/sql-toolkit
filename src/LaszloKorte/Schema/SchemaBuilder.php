@@ -185,7 +185,8 @@ final class SchemaBuilder {
 		SELECT DISTINCT 
 			index_name,
 			column_name AS name,
-			non_unique
+			non_unique,
+			index_type
 		FROM 
 			information_schema.statistics s
 		WHERE
@@ -210,12 +211,24 @@ final class SchemaBuilder {
 				return new Identifier($col->name);
 			}, $index);
 
-			$unique = array_reduce($index, function($carry, $col) {
-				return $carry || $col->non_unique == 0; 
-			}, FALSE);
+			$unique = $this->assumeSame($index, 'non_unique') == 0;
+
+			$indexType = $this->assumeSame($index, 'index_type');
+
+			if ($indexType === 'FULLTEXT') {
+				$type = IndexDefinition::TYPE_FULLTEXT;
+			} elseif ($indexType === 'BTREE') {
+				if ($unique) {
+					$type = $type = IndexDefinition::TYPE_UNIQUE;
+				} else {
+					$type = IndexDefinition::TYPE_KEY;
+				}
+			} else {
+				throw new \Exception("Unknown index type: ". $indexType);
+			}
 
 			$columnDef = $def->defineIndex(
-				$unique ? IndexDefinition::TYPE_UNIQUE : IndexDefinition::TYPE_KEY,
+				$type,
 				new Identifier($name), 
 				$columnNames
 			);
