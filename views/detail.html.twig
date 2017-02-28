@@ -24,12 +24,10 @@
     	
     	<p>
     	{% if entity.id == 'registration' %}
-    	        <a href="{{ path('export_single_badge', {'id': controller.record.id(entity)}) }}">🖨 Print Badge</a>
+    	        <a href="{{ path('export_single_badge', {'id': controller.record.id(entity)}) }}">🖨&nbsp; Print Badge</a>
+    	        |
+    	        <a href="{{ path('export_single_invoice', {'id': controller.record.id(entity)}) }}">🖨&nbsp; Print Invoice</a>
     	{% endif %}
-    	Export:
-    	<a href="">XML</a> |
-    	<a href="">CSV</a> |
-    	<a href="">JSON</a>
 		</p>
 
 
