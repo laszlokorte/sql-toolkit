@@ -28,6 +28,9 @@ use LaszloKorte\Graph\GraphBuilder;
 use LaszloKorte\Graph\Graph;
 use LaszloKorte\Graph\Entity;
 
+use LaszloKorte\Custom\BadgeExportController;
+use LaszloKorte\Custom\InvoiceExportController;
+
 use Doctrine\Common\Annotations\AnnotationRegistry;
 use Doctrine\Common\Inflector\Inflector;
 
@@ -39,9 +42,6 @@ $filename = __DIR__.preg_replace('#(\?.*)$#', '', $_SERVER['REQUEST_URI']);
 if (php_sapi_name() === 'cli-server' && is_file($filename)) {
     return false;
 }
-
-require('pdf/fpdf.php');
-require('pdf/qr.php');
 
 $loader = require __DIR__ . '/vendor/autoload.php';
 AnnotationRegistry::registerLoader([$loader,'loadClass']);
@@ -225,112 +225,6 @@ $silex->get('/table/{table}/{id}/{child}.{format}', function (SilexApp $silex, R
 ->convert('id', 'converter.id:convert')
 ->bind('table_detail_export');
 
-$silex->get('export/badge/{id}', function(SilexApp $silex, Request $request, $id) {
-    $stmt = $silex['db.connection']->prepare('SELECT conference.name as conf_name, registration.id, person.first_name, person.last_name FROM registration, person, conference, ticket_offer WHERE registration.person_id = person.id AND registration.ticket_offer_id
-     = ticket_offer.id AND ticket_offer.conference_id = conference.id AND registration.id = :id');
-    $stmt->bindValue(':id', $id);
-    $stmt->execute();
-
-    if(!($result = $stmt->fetch())) {
-        throw new \Exception("Not foudnd");
-    }
-
-    $pdf = new FPDF('P','mm','A4');
-    $pdf->AddPage();
-    $pdf->SetFont('Arial','',20);
-    $pdf->setY(150);
-    $pdf->Cell(95,120, sprintf('%s %s', $result->first_name, $result->last_name), 0, 0, 'C');
-    $pdf->Cell(95,120, sprintf('%s %s', $result->first_name, $result->last_name), 0, 0, 'C');
-
-    $qr = QRCode::getMinimumQRCode($result->id, QR_ERROR_CORRECT_LEVEL_L);
-    
-
-    $qrSize = $qr->getModuleCount();
-    $cellSize = 40/$qrSize;
-    for ($r = 0; $r < $qrSize; $r++) {
-        for ($c = 0; $c < $qrSize; $c++) {
-            if($qr->isDark($r, $c)) {
-                $pdf->SetFillColor(0, 0, 0); 
-            } else {
-                $pdf->SetFillColor(255, 255, 255); 
-            }
-            $pdf->Rect(95/2-10 + $cellSize*$r, 230+$cellSize*$c, $cellSize, $cellSize, 'F');
-
-            $pdf->Rect(95 + 95/2-10 + $cellSize*$r, 230+$cellSize*$c, $cellSize, $cellSize, 'F');
-        }
-    }
-
-    $pdf->SetTitle(sprintf('Badge-%s-%s-%s', $result->conf_name, $result->first_name, $result->last_name));
-
-    return new Response(
-        $pdf->Output('S', 'Badge', true),
-        200,
-        ['Content-Type' => 'application/pdf']
-    );
-})
-->bind('export_single_badge');
-
-$silex->get('export/badges/{conference}', function(SilexApp $silex, Request $request, $conference) {
-    $stmt = $silex['db.connection']->prepare('SELECT name FROM conference WHERE conference.id = :conference');
-    $stmt->execute([
-        ':conference' => $conference
-    ]);
-    $conf = $stmt->fetch();
-
-    $stmt = $silex['db.connection']->prepare('SELECT registration.id as id, person.first_name AS first_name, person.last_name AS last_name FROM person, registration, ticket_offer, conference WHERE person.id = registration.id AND registration.ticket_offer_id = ticket_offer.id AND conference.id = ticket_offer.conference_id AND conference.id = :conference');
-    $stmt->execute([
-        ':conference' => $conference
-    ]);
-
-    $pdf = new FPDF('P','mm','A4');
-
-    $pdf->AddPage();
-    $pdf->SetFont('Arial','',20);
-    $pdf->setY(100);
-    $pdf->Cell(0,20, sprintf('%s Badges', $conf->name), 0, 2, 'C');
-    $pdf->SetFont('Arial','',16);
-    $pdf->Cell(0,0, sprintf('%s', (new DateTime())->format('d.m.Y H:i')), 0, 2, 'C');
-    
-    while($result = $stmt->fetch()) {
-        $pdf->AddPage();
-        $pdf->SetFont('Arial','',20);
-        $pdf->setY(150);
-        $pdf->Cell(95,120, sprintf('%s %s', $result->first_name, $result->last_name), 0, 0, 'C');
-        $pdf->Cell(95,120, sprintf('%s %s', $result->first_name, $result->last_name), 0, 0, 'C');
-
-
-        $qr = QRCode::getMinimumQRCode($result->id, QR_ERROR_CORRECT_LEVEL_L);
-        
-
-        $qrSize = $qr->getModuleCount();
-        $cellSize = 40/$qrSize;
-        for ($r = 0; $r < $qrSize; $r++) {
-            for ($c = 0; $c < $qrSize; $c++) {
-                if($qr->isDark($r, $c)) {
-                    $pdf->SetFillColor(0, 0, 0); 
-                } else {
-                    $pdf->SetFillColor(255, 255, 255); 
-                }
-                $pdf->Rect(95/2-10 + $cellSize*$r, 230+$cellSize*$c, $cellSize, $cellSize, 'F');
-
-                $pdf->Rect(95 + 95/2-10 + $cellSize*$r, 230+$cellSize*$c, $cellSize, $cellSize, 'F');
-            }
-        }
-    }
-
-    $pdf->SetTitle(sprintf('All-Badges-%s', $conf->name));
-
-    return new Response(
-        $pdf->Output('S', 'Badge', true),
-        200,
-        [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => sprintf('inline; filename=All-Badges-%s.pdf', $conf->name),
-        ]
-    );
-})
-->bind('export_all_badges');
-
 $silex->post('/table/{table}', function (SilexApp $silex, Request $request, $table) {
     return 'Hello '.$silex->escape($table);
 })
@@ -398,6 +292,9 @@ $silex->get('/', function (SilexApp $silex, Request $request) {
 })
 ->bind('root')
 ;
+
+$silex->mount('/badges', new BadgeExportController());
+$silex->mount('/invoice', new InvoiceExportController());
 
 // $silex->error(function (\Exception $e, Request $request, $code) {
 //     return new Response('We are sorry, but something went terribly wrong.');
