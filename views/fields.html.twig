@@ -3,10 +3,12 @@
 {% endmacro %}
 
 {% macro text(field, record) %}
-    {% if field.type.isMultiline %}
-    	<div class="whitespaced">{{ record[field.column('value')] }}</div>
-	{% else %}
-	    {{ record[field.column('value')] }}
+	{% if record[field.column('value')] %}
+	    {% if field.type.isMultiline %}
+	    	<div class="whitespaced">{{ record[field.column('value')] }}</div>
+		{% else %}
+		    {{ record[field.column('value')] }}
+	    {% endif %}
     {% endif %}
 {% endmacro %}
 
