@@ -10,10 +10,12 @@ use LaszloKorte\Graph\Identifier;
 class RefParentField implements FieldType {
 	private $entityId;
 	private $fkOwnColumnNames;
+	private $fkChildColumnNames;
 
-	public function __construct(Identifier $entityId, array $fkOwnColumnNames) {
+	public function __construct(Identifier $entityId, array $fkOwnColumnNames, array $fkChildColumnNames) {
 		$this->entityId = $entityId;
 		$this->fkOwnColumnNames = $fkOwnColumnNames;
+		$this->fkChildColumnNames = $fkChildColumnNames;
 	}
 
 	public function getTemplateName() {
@@ -31,7 +33,7 @@ class RefParentField implements FieldType {
 	public function getParentAssociations() {
 		return [
 			'ref' => 
-			new AssociationDefinition($this->entityId, $this->fkOwnColumnNames),
+			new AssociationDefinition($this->entityId, $this->fkOwnColumnNames, $this->fkChildColumnNames),
 		];
 	}
 }

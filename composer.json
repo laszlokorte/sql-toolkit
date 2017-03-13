@@ -17,6 +17,8 @@
         "doctrine/inflector": "^1.1",
         "twig/twig": "^1.30",
         "symfony/twig-bridge": "^3.2",
-        "symfony/security": "^3.2"
+        "symfony/security": "^3.2",
+        "dompdf/dompdf": "^0.8.0",
+        "chillerlan/php-qrcode": "dev-master"
     }
 }

@@ -8,11 +8,13 @@ use LaszloKorte\Graph\Identifier;
 
 class RefChildrenField implements FieldType {
 	private $entityId;
-	private $fkOtherColumnNames;
+	private $fkParentColumnNames;
+	private $fkOwnColumnNames;
 
-	public function __construct(Identifier $entityId, $fkOtherColumnNames) {
+	public function __construct(Identifier $entityId, $fkParentColumnNames, array $fkOwnColumnNames) {
 		$this->entityId = $entityId;
-		$this->fkOtherColumnNames = $fkOtherColumnNames;
+		$this->fkParentColumnNames = $fkParentColumnNames;
+		$this->fkOwnColumnNames = $fkOwnColumnNames;
 	}
 
 	public function getTemplateName() {
@@ -26,7 +28,7 @@ class RefChildrenField implements FieldType {
 	public function getChildAssociations() {
 		return [
 			'ref' => 
-			new AssociationDefinition($this->entityId, $this->fkOtherColumnNames),
+			new AssociationDefinition($this->entityId, $this->fkParentColumnNames, $this->fkOwnColumnNames),
 		];
 	}
 

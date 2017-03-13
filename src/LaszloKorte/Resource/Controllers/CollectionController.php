@@ -65,7 +65,9 @@ final class CollectionController {
 
 			$stmt->execute();
 
-			$this->result = $stmt->fetchAll(PDO::FETCH_CLASS, Record::class);
+			$this->result = array_map(function($c) {
+				return new Record($c);
+			}, $stmt->fetchAll());
 
 			if(empty($this->result) && $this->page > 1) {
 				throw new NotFoundException();

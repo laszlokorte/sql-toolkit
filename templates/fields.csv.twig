@@ -3,49 +3,49 @@
 {% endmacro %}
 
 {% macro text(field, record) %}
-    {{ record[field.column('value')] }}
+    {{ record[field.column('value')]|raw }}
 {% endmacro %}
 
 {% macro ref_parent(field, record, templateRenderer) %}
 	{% if record.foreignId(field.parent('ref')) %}
-	{{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, templateRenderer, field.parent('ref').toLink) }}
+	{{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, templateRenderer, field.parent('ref').toLink)|raw }}
 	{% endif %}
 {% endmacro %}
 
 {% macro ref_children(field, record) %}
-	{{ record.count(field.child('ref')) }}
+	{{ record.count(field.child('ref'))|raw }}
 {% endmacro %}
 
 {% macro datetime(field, record) %}
 	{% if record[field.column('value')] %}
-    {{ record[field.column('value')]|date('d.m.Y H:i') }}
+    {{ record[field.column('value')]|date('d.m.Y H:i')|raw }}
     {% endif %}
 {% endmacro %}
 
 {% macro date(field, record) %}
 	{% if record[field.column('value')] %}
-    {{ record[field.column('value')]|date('d.m.Y') }}
+    {{ record[field.column('value')]|date('d.m.Y')|raw }}
     {% endif %}
 {% endmacro %}
 
 {% macro time(field, record) %}
     {% if field.type.includesSeconds %}
-    	{{ record[field.column('value')]|date('H:i:s') }}
+    	{{ record[field.column('value')]|date('H:i:s')|raw }}
 	{% else %}
-	    {{ record[field.column('value')]|date('H:i') }}
+	    {{ record[field.column('value')]|date('H:i')|raw }}
     {% endif %}
 {% endmacro %}
 
 {% macro number(field, record) %}
-    {{ record[field.column('value')] }}
+    {{ record[field.column('value')]|raw }}
 {% endmacro %}
 
 {% macro choice(field, record) %}
-    {{ record[field.column('value')] }}
+    {{ record[field.column('value')]|raw }}
 {% endmacro %}
 
 {% macro color(field, record) %}
-    {{ record[field.column('value')] }}
+    {{ record[field.column('value')]|raw }}
 {% endmacro %}
 
 {% macro toggle(field, record) %}
@@ -57,30 +57,30 @@
 {% endmacro %}
 
 {% macro syntax(field, record) %}
-    {{ record[field.column('value')] }}
+    {{ record[field.column('value')]|raw }}
 {% endmacro %}
 
 {% macro currency(field, record) %}
-    {{ (record[field.column('value')]/100)|number_format(2, ',', '.') }}{{ field.type.unit|replace({'euro':'€'}) }}
+    {{ (record[field.column('value')]/100)|number_format(2, ',', '.')|raw }}{{ field.type.unit|replace({'euro':'€'})|raw }}
 {% endmacro %}
 
 {% macro file(field, record) %}
-    {{ _self.bytesToSize(record[field.column('size')]) }}
-    {{ record[field.column('mime')] }}
+    {{ _self.bytesToSize(record[field.column('size')])|raw }}
+    {{ record[field.column('mime')]|raw }}
 {% endmacro %}
 
 
 {% macro geo(field, record) %}
-    ({{ record[field.column('latitude')] }}° N,
-    {{ record[field.column('longitude')] }}° W)
+    ({{ record[field.column('latitude')]|raw }}° N,
+    {{ record[field.column('longitude')]|raw }}° W)
 {% endmacro %}
 
 {% macro url(field, record) %}
-    {{ record[field.column('value')] }}
+    {{ record[field.column('value')]|raw }}
 {% endmacro %}
 
 {% macro email(field, record) %}
-    {{ record[field.column('value')] }}
+    {{ record[field.column('value')]|raw }}
 {% endmacro %}
 
 

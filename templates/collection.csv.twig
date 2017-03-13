@@ -1,23 +1,26 @@
 {%- import "fields.csv.twig" as fields -%}
-
+{% autoescape false %}
+{% set csv_sep = ";" %}
 {%- if entity.serialColumn -%}
-    {{- entity.serialColumn -}},
+    {{- entity.serialColumn -}}
+    {{- csv_sep -}}
 {%- endif -%}
 {%- for field in entity.fields -%}
 	{%- if field.isVisibleInCollection and (not field.isSecret) -%}
 	{{- field.title -}}
-    {%- if not loop.last -%}, {%- endif -%}
+    {%- if not loop.last -%}{{- csv_sep -}} {%- endif -%}
 	{%- endif -%}
 {%- endfor -%}
 {%- for record in controller.records -%}
     {{ "\n" }}
     {%- if entity.serialColumn -%}
-        "{{- record[entity.column(entity.serialColumn)] -}}",
+        "{{- record[entity.column(entity.serialColumn)]|replace({'"':'""'})|raw -}}"{{- csv_sep -}}
     {%- endif -%}
     {%- for field in entity.fields -%}
         {%- if field.isVisibleInCollection and (not field.isSecret) -%}
-        "{{- attribute(fields, field.typeTemplate, [field, record, templateRenderer])|trim|raw -}}"
-        {%- if not loop.last -%}, {%- endif -%}
+        "{{- attribute(fields, field.typeTemplate, [field, record, templateRenderer])|trim|replace({'"':'""'})|raw -}}"
+        {%- if not loop.last -%}{{- csv_sep -}} {%- endif -%}
         {%- endif -%}
     {%- endfor -%}
 {%- endfor -%}
+{% endautoescape %}

@@ -6,49 +6,11 @@ use Silex\Application as SilexApp;
 use Silex\Api\ControllerProviderInterface;
 use Symfony\Component\HttpFoundation\Response;
 
-require_once __DIR__.'/../../../pdf/fpdf.php';
-require_once __DIR__.'/../../../pdf/qr.php';
-
-use FPDF;
-use QRCode;
-use DateTime;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class InvoiceExportController implements ControllerProviderInterface
 {
-    const A4_WIDTH = 210;
-    const A4_HEIGHT = 297;
-    const MARGIN_V = 15;
-    const MARGIN_H = 10;
-
-	private function createDocument() {
-		return new FPDF('P','mm','A4');
-	}
-
-    private function printInvoice($pdf, $data) {
-        $pdf->SetMargins(self::A4_WIDTH, self::A4_HEIGHT);
-        $pdf->AddPage();
-        $pdf->SetFont('Arial','',13);
-        $pdf->setXY(self::MARGIN_H, self::MARGIN_V);
-        $title = "Invoice ISHL 10";
-        $length = $pdf->GetStringWidth( $title );
-        $pdf->Cell( $length, 2, $title);
-
-        $someText = (new DateTime($data->date))->format('d.m.Y');
-        $length = $pdf->GetStringWidth( $someText );
-        $pdf->setXY(self::A4_WIDTH - self::MARGIN_H - $length, self::MARGIN_V);
-        $pdf->Cell( $length, 2, $someText, 0, 0, 'R');
-
-        $someText = sprintf("Ticket for %s %s", $data->first_name, $data->last_name);
-        $length = $pdf->GetStringWidth( $someText );
-        $pdf->setXY(self::MARGIN_H, self::MARGIN_V + 30);
-        $pdf->Cell($length, 2, $someText, 0, 0, 'L');
-
-        $someText = sprintf("Price: %.2f €", $data->amount/100);
-        $length = $pdf->GetStringWidth($someText);
-        $pdf->setXY(self::MARGIN_H, self::MARGIN_V + 36);
-        $pdf->Cell($length, 2, $someText, 0, 0, 'L');
-    }
-
     public function connect(SilexApp $app)
     {
         // creates a new controller based on the default route
@@ -64,16 +26,27 @@ class InvoiceExportController implements ControllerProviderInterface
                 throw new \Exception("Not foudnd");
             }
 
-            $pdf = $this->createDocument();
+            $options = new Options();
+            $options->setDefaultMediaType('print');
+            $options->setDefaultFont('sans-serif');
+            $pdf = new Dompdf($options);
+            $pdf->loadHtml(
+                $silex['twig']->render('custom/invoice.html.twig', [
+                    'invoice' => $data,
+                    'basepath' => __DIR__ . '/../../../images/',
+                ])
+            );
 
-            $this->printInvoice($pdf, $data);
-
-            $pdf->SetTitle(sprintf('Invoice-%s-%s-%s', $data->conf_name, $data->first_name, $data->last_name));
+            $pdf->render();
 
             return new Response(
-                $pdf->Output('S', 'Invoice', true),
+                $pdf->output(),
                 200,
-                ['Content-Type' => 'application/pdf']
+                [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => sprintf('inline; filename=Invoice.pdf'),
+
+                ]
             );
         })
         ->bind('export_single_invoice');

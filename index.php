@@ -38,6 +38,13 @@ use Silex\Application as SilexApp;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+use Dompdf\Dompdf;
+use Dompdf\Options;
+
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\Output\QRImage;
+use chillerlan\QRCode\Output\QRImageOptions;
+
 $filename = __DIR__.preg_replace('#(\?.*)$#', '', $_SERVER['REQUEST_URI']);
 if (php_sapi_name() === 'cli-server' && is_file($filename)) {
     return false;
@@ -138,7 +145,7 @@ $silex->register(new Silex\Provider\SecurityServiceProvider(), [
 ]);
 
 $silex->register(new Silex\Provider\TwigServiceProvider(), array(
-    'twig.path' => __DIR__.'/views',
+    'twig.path' => __DIR__.'/templates',
 ));
 
 $silex->extend('twig', function($twig, $silex) {
@@ -148,7 +155,20 @@ $silex->extend('twig', function($twig, $silex) {
     ]));
 
     $twig->addFilter(new \Twig_SimpleFilter('titlelize', function($s) {
-    	return ucwords(str_replace('_', ' ', $s));
+        return ucwords(str_replace('_', ' ', $s));
+    }));
+
+    $twig->addFilter(new \Twig_SimpleFilter('qrcode', function($data) {
+        $outputOptions = new QRImageOptions;
+        $outputOptions->type = QRCode::OUTPUT_IMAGE_PNG;
+        $outputOptions->pixelSize = 10;
+        $outputInterface = new QRImage($outputOptions);
+
+        // invoke a fresh QRCode instance
+        $qrcode = new QRCode($data, $outputInterface);
+
+        // and dump the output
+        return $qrcode->output();
     }));
 
     return $twig;
@@ -176,6 +196,10 @@ $silex->get('/table/{entity}.{format}', function (SilexApp $silex, Request $requ
         'json' => 'application/json',
     ];
 
+    if(!array_key_exists($format, $contentTypes)) {
+        throw new \Exception("Unexpected format");
+    }
+
     return new Response($silex['twig']->render('collection.'.$format.'.twig', [
         'graph' => $silex['graph'],
         'entity' => $entity,
@@ -184,7 +208,8 @@ $silex->get('/table/{entity}.{format}', function (SilexApp $silex, Request $requ
     ]),
     200,
     [
-        'Content-Type' => $contentTypes[$format]
+        'Content-Type' => $contentTypes[$format],
+        'Content-Disposition' => sprintf('attachment; filename="%s-export_%s.%s"', $entity->title(true), (new \DateTime())->format('Y-m-d_H_i'), $format),
     ]);
 })
 ->assert('format', '[a-z]+')

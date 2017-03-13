@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Test</title>
+
+	<style>
+		td {
+			vertical-align: top;
+		}
+
+		#footer {
+			display: none;
+		}
+
+		table {
+			table-layout:fixed;
+		}
+
+		@media print {
+			body {
+			    margin-bottom: 3cm;
+			 }
+
+			#footer {
+				display: block;
+				position: fixed;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				height: 2cm;
+				color: black;
+				font-size: 1em;
+			}
+
+			.page-number:before {
+			  content: "Page " counter(page);
+			}
+		}
+	</style>
+</head>
+<body>
+	<div id="footer">
+		<p>
+			<table width="100%">
+				<tr>
+					<td>
+						Bankbank AG, Ratingen<br/>
+						IBAN: DE77 0000 0000 0000 116 203<br/>
+						BIC: DRESFFFF000
+					</td>
+					<td align="right" style="vertical-align: bottom;">
+						UST-ID Nr. DE12345678910
+					</td>
+				</tr>
+				<tr>
+					<td colspan="2">
+						<center>
+							<span class="page-number"></span>
+						</center>
+					</td>
+				</tr>
+			</table>
+			
+		</p>
+	</div>
+	<table width="100%">
+		<tr>
+			<td colspan="2">
+				<img src="{{basepath}}invoice-head.png"  />
+			</td>
+		</tr>
+		<tr>
+			<td width="70%">
+				<p>
+					<small>
+						10<sup>th</sup> International Symposium on Hodgkin Lymphoma<br/>
+						TCA Hanke, Test Str. 12, 12345 Ratingen, Germany
+					</small>
+				</p>
+				
+				<p>
+					XXX<br />
+					YYY<br />
+					ZZZ<br />
+				</p>
+
+
+				<p>
+					Ratingen, 12.03.2017
+				</p>
+			</td>
+			<td width="30%">
+				<p>
+					Gabriele Hanke<br/>
+					Conference Management<br/>
+					Travel &amp; Congress Activities
+				</p>
+
+				<p>
+					Test Str. 12<br/>
+					12345 Ratingen<br/>
+					Germany<br/>
+				</p>
+
+				<p>
+					Tel. +49 (0) 1234.669 12<br/>
+					Fax +49 (0) 1234.96 48 12<br/>
+				</p>
+
+				<p>
+					<a href="mailto:e@mail.com">e@mail.com</a><br/>
+					<a href="mailto:info@hodgkinsymposium.org">info@hodgkinsymposium.org</a><br/>
+					<a href="https://www.hodgkinsymposium.org">www.hodgkinsymposium.org</a>
+				</p>
+			</td>
+		</tr>
+		<tr style="page-break-after: avoid;">
+			<td colspan="2" style="page-break-after: avoid;">
+				<center>
+					<h2 style="text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 0;">Invoice</h2>
+					<small>2016/12-0077</small>
+				</center>
+
+
+				<h3 style="font-size: 1.1em; margin-bottom: 2em;">Subject</h3>
+			</td>
+		</tr>
+		<tr>
+			<td colspan="2">
+				<p>
+					On account of XXX we charge you for your registration as follows:
+				</p>
+				<table class="list" width="100%" style="margin: 1.5em 0;">
+					
+					<tr>
+						<td>
+							Registration Fee for XXX YYY
+						</td>
+						<td>
+							€ 425,00
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Registration Fee for XXX YYY
+						</td>
+						<td>
+							€ 425,00
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Registration Fee for XXX YYY
+						</td>
+						<td>
+							€ 425,00
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Registration Fee for XXX YYY
+						</td>
+						<td>
+							€ 425,00
+						</td>
+					</tr>
+					<tr>
+						<td>
+							Registration Fee for XXX YYY
+						</td>
+						<td>
+							€ 425,00
+						</td>
+					</tr>
+					<tr>
+						<td style="border-top: 1px solid black;">
+							Total
+						</td>
+						<td style="border-top: 1px solid black;">
+							<strong>€ 425,00</strong>
+						</td>
+					</tr>
+				</table>
+
+				<p>
+					<small>„Under paragraph 4 No. 22. a) Value Added Tax Act this amount is free of tax.”</small>
+				</p>
+			</td>
+		</tr>
+	</table>
+</body>
+</html>

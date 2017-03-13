@@ -36,6 +36,6 @@ final class ChildAssociation {
 	}
 
 	public function toLink() {
-		return new PathLink($this->name, $this->sourceId, $this->assocDef->getTargetId(), $this->getSourceEntity()->idColumns(), $this->assocDef->getJoinColumns());
+		return new PathLink($this->name, $this->sourceId, $this->assocDef->getTargetId(), $this->assocDef->getTargetColumns(), $this->assocDef->getJoinColumns());
 	}
 }

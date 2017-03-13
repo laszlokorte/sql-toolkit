@@ -108,11 +108,15 @@ final class RelationFieldBuilder implements FieldBuilder {
 		if($this->reversed) {
 			$type = new RefChildrenField(new Identifier((string) $this->foreignKey->getOwnTable()->getName()), array_map(function($c) {
 				return new Identifier((string)$c->getName());
-			}, iterator_to_array($this->foreignKey->getOwnColumns())));
+			}, iterator_to_array($this->foreignKey->getOwnColumns())), array_map(function($c) {
+				return new Identifier((string)$c->getName());
+			}, iterator_to_array($this->foreignKey->getForeignColumns())));
 		} else {
 			$type = new RefParentField(new Identifier((string) $this->foreignKey->getTargetTable()->getName()),  array_map(function($c) {
 				return new Identifier((string)$c->getName());
-			}, iterator_to_array($this->foreignKey->getOwnColumns())));
+			}, iterator_to_array($this->foreignKey->getOwnColumns())), array_map(function($c) {
+				return new Identifier((string)$c->getName());
+			}, iterator_to_array($this->foreignKey->getForeignColumns())));
 		}
 		$field = $entityDef->defineField(new Identifier($id), $title, $type);
 

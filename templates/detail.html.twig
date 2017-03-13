@@ -44,7 +44,7 @@
 		        {% if field.secret %}
 					*******
 				{% else %}
-				    {{ attribute(fields, field.typeTemplate, [field, controller.record, templateRenderer])|trim|default('-')|raw }}
+				    {{ attribute(fields, field.typeTemplate, [field, controller.record, templateRenderer, controller])|trim|default('-')|raw }}
 		        {% endif %}
 		    </dd>
     		{% endfor %}

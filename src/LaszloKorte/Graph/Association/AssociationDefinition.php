@@ -7,8 +7,9 @@ use LaszloKorte\Graph\Identifier;
 final class AssociationDefinition {
 	private $targetId;
 	private $joinColumns;
+	private $targetColumns;
 
-	public function __construct(Identifier $targetId, array $joinColumns) {
+	public function __construct(Identifier $targetId, array $joinColumns, array $targetColumns) {
 		foreach($joinColumns AS $c) {
 			if(!$c instanceof Identifier) {
 				throw new \Exception(sprintf('Join column is expected to be an %s but %s given', Identifier::class, get_class($c)));
@@ -16,6 +17,7 @@ final class AssociationDefinition {
 		}
 		$this->targetId = $targetId;
 		$this->joinColumns = $joinColumns;
+		$this->targetColumns = $targetColumns;
 	}
 
 	public function getTargetId() {
@@ -24,5 +26,9 @@ final class AssociationDefinition {
 
 	public function getJoinColumns() {
 		return $this->joinColumns;
+	}
+
+	public function getTargetColumns() {
+		return $this->targetColumns;
 	}
 }

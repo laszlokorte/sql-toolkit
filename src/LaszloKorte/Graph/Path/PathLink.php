@@ -15,7 +15,7 @@ class PathLink {
 
 	public function __construct(Identifier $name, Identifier $sourceTable, Identifier $targetTable, array $sourceColumns, array $targetColumns) {
 		if(count($sourceColumns) !== count($targetColumns)) {
-			throw new \Exception("Column count does not match");
+			throw new \Exception(sprintf("Column count does not match: source[%s] VS target[%s] - %s", implode(', ', $sourceColumns), implode(', ', $targetColumns), $name));
 		}
 		foreach($sourceColumns AS $c) {
 			if(!$c instanceof Identifier) {

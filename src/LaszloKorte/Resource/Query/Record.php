@@ -12,10 +12,16 @@ use LaszloKorte\Graph\Association\ParentAssociation;
 use ArrayAccess;
 
 final class Record implements ArrayAccess {
+	private $fields;
+
+	public function __construct($fields) {
+		$this->fields = $fields;
+	}
+
 	public function offsetGet($offset) {
 		if ($offset instanceof ColumnPath) {
 			$propName = $this->propName($offset);
-			return $this->$propName;
+			return $this->fields->$propName;
 		} else {
 			echo get_class($offset);
 		}
@@ -29,7 +35,7 @@ final class Record implements ArrayAccess {
 		if ($offset instanceof OwnColumnPath || $offset instanceof ForeignColumnPath) {
 			$propName = $this->propName($offset);
 
-			return property_exists($this, $propName);
+			return property_exists($this->fields, $propName);
 		} else {
 			return false;
 		}
@@ -66,6 +72,6 @@ final class Record implements ArrayAccess {
 	public function count($field) {
 		$propName = sprintf('aggr_%s_COUNT', $field->getName());
 
-		return $this->$propName;
+		return $this->fields->$propName;
 	}
 }

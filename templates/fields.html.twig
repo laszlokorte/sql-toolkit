@@ -18,7 +18,7 @@
 	{% endif %}
 {% endmacro %}
 
-{% macro ref_children(field, record) %}
+{% macro ref_children(field, record, _) %}
 	<a class="badge" href="">
 		{{ record.count(field.child('ref')) }}
 	</a>

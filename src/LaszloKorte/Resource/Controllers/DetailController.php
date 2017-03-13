@@ -3,6 +3,7 @@
 namespace LaszloKorte\Resource\Controllers;
 
 use LaszloKorte\Graph\Entity;
+use LaszloKorte\Graph\Association\ChildAssociation;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
 use LaszloKorte\Resource\Query\Record;
 
@@ -51,8 +52,7 @@ final class DetailController {
 			$this->queryBuilder->bindId($stmt, $this->id);
 			$stmt->execute();
 
-			$stmt->setFetchMode(PDO::FETCH_CLASS, Record::class);
-			$this->result = $stmt->fetch();
+			$this->result = new Record($stmt->fetch());
 
 			if($this->result === false) {
 				throw new NotFoundException();
@@ -64,5 +64,9 @@ final class DetailController {
 
 	public function sqlString() {
 		return $this->getQuery();
+	}
+
+	public function children(ChildAssociation $assoc) {
+		return new CollectionController($this->$database, $assoc->getTargetEntity(), $this->parameters, [(string)$assoc->getName()]);
 	}
 }
