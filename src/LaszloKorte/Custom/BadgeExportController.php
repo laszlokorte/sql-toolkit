@@ -8,7 +8,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 use Dompdf\Dompdf;
 use Dompdf\Options;
-use Endroid\QrCode\QrCode;
 use DateTime;
 
 class BadgeExportController implements ControllerProviderInterface
@@ -19,7 +18,7 @@ class BadgeExportController implements ControllerProviderInterface
         // creates a new controller based on the default route
         $controllers = $app['controllers_factory'];
 
-        $controllers->get('single/{id}', function(SilexApp $silex, $id) {
+        $controllers->get('single/{id}.{format}', function(SilexApp $silex, $id, $foramt) {
             $stmt = $silex['db.connection']->prepare('SELECT conference.name as conf_name, registration.id, person.first_name, person.last_name FROM registration, person, conference, ticket_offer WHERE registration.person_id = person.id AND registration.ticket_offer_id
              = ticket_offer.id AND ticket_offer.conference_id = conference.id AND registration.id = :id');
             $stmt->bindValue(':id', $id);
@@ -27,6 +26,12 @@ class BadgeExportController implements ControllerProviderInterface
 
             if(!($result = $stmt->fetch())) {
                 throw new \Exception("Not foudnd");
+            }
+
+            if($format === 'html') {
+                return $silex['twig']->render('custom/badge.html.twig', [
+                    'registration' => $result,
+                ]);
             }
 
             $options = new Options();
@@ -50,10 +55,12 @@ class BadgeExportController implements ControllerProviderInterface
 
                 ]
             );
-        })
+        }) 
+        ->value('format', 'pdf')
+        ->assert('format', '(html|pdf)')
         ->bind('export_single_badge');
 
-        $controllers->get('all/{conference}', function(SilexApp $silex, $conference) {
+        $controllers->get('all/{conference}.{format}', function(SilexApp $silex, $conference, $format) {
             $stmt = $silex['db.connection']->prepare('SELECT name FROM conference WHERE conference.id = :conference');
             $stmt->execute([
                 ':conference' => $conference
@@ -65,13 +72,23 @@ class BadgeExportController implements ControllerProviderInterface
                 ':conference' => $conference
             ]);
 
+
+
+            if($format === 'html') {
+                return $silex['twig']->render('custom/badges.html.twig', [
+                    'registrations' => $stmt,
+                    'conference' => $conf,
+                    'date' => new DateTime(),
+                ]);
+            }
+
             $options = new Options();
             $options->setDefaultMediaType('print');
             $options->setDefaultFont('sans-serif');
             $pdf = new Dompdf($options);
             $pdf->loadHtml(
                 $silex['twig']->render('custom/badges.html.twig', [
-                    'registrations' => $stmt->fetchAll(),
+                    'registrations' => $stmt,
                     'conference' => $conf,
                     'date' => new DateTime(),
                 ])
@@ -88,7 +105,9 @@ class BadgeExportController implements ControllerProviderInterface
 
                 ]
             );
-        })
+        }) 
+        ->value('format', 'pdf')
+        ->assert('format', '(html|pdf)')
         ->bind('export_all_badges');
 
         return $controllers;

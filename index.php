@@ -168,7 +168,7 @@ $silex->extend('twig', function($twig, $silex) {
         $qrcode = new QRCode($data, $outputInterface);
 
         // and dump the output
-        return $qrcode->output();
+        return $qrcode->getRawData();
     }));
 
     return $twig;
