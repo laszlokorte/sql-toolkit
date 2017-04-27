@@ -2,7 +2,7 @@
 <html>
 <head>
 	<meta charset="utf-8">
-	<title>Badges {{- conference.name -}}</title>
+	<title>Badges {{ conference.name }}</title>
 	<style media="screen">
 		.badge-page, .cover {
 			display: none;
@@ -103,11 +103,11 @@
 	    	{{- _self.svgQR(reg.id, qr) | raw -}}
 
 	    	<div class="badge badge-left">
-				<svg width="105" height="105"><use x="0" y ="0" href="#{{reg.id}}" /></svg>
+				<svg width="{{- qr|length * 5 -}}" height="{{- qr|length * 5 -}}"><use x="0" y ="0" href="#{{reg.id}}" /></svg>
 	    		<div>{{ reg.first_name }} {{ reg.last_name }}</div>
 	    	</div>
 	    	<div class="badge badge-right">
-	    		<svg width="105" height="105"><use x="0" y ="0" href="#{{reg.id}}" /></svg>
+	    		<svg width="{{- qr|length * 5 -}}" height="{{- qr|length * 5 -}}"><use x="0" y ="0" href="#{{reg.id}}" /></svg>
 	    		<div>{{ reg.first_name }} {{ reg.last_name }}</div>
 	    	</div>
 	    	<br style="page-break-after: always;">

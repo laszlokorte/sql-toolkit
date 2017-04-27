@@ -31,7 +31,8 @@ thead th a {
 
 }
 
-tfoot td {
+tfoot td,
+tfoot th {
 	text-align: left;
 	border-top: 1px solid #555;
 	font-weight: 400;
@@ -42,7 +43,8 @@ tfoot td {
 
 table {
 	min-width: 100%;
-	border-collapse: collapse;
+	border-collapse: separate;
+	border-spacing: 0;
 }
 
 dt {
@@ -74,6 +76,7 @@ tbody td {
 	padding-bottom: 0.3em;
 	vertical-align: top;
 	border-bottom: 1px solid transparent;
+	border-top: 1px solid transparent;
 }
 
 tbody tr:nth-child(2n) td {
@@ -83,6 +86,10 @@ tbody tr:nth-child(2n) td {
 tr.state-selected > td {
 	background-color: #ffffaa !important;
 	border-bottom-color: #eeee99;
+}
+
+tr:not(.state-selected) + tr.state-selected > td {
+	border-top-color: #eeee99;
 }
 
 svg {
