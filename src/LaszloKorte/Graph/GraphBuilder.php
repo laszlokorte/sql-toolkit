@@ -142,6 +142,7 @@ final class GraphBuilder {
 					if(!isset($templates[$tplType])) {
 						$templates[$tplType] = new IdentifierMap();
 					}
+					
 					$templates[$tplType][new Identifier((string) $tableId)] = (object) [
 						'template' => $this->templateParser->parse($this->templateLexer->tokenize($tableAnnotation->getString())),
 						'table' => $table,

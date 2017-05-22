@@ -1,6 +1,10 @@
 {% import "fields.html.twig" as fields %}
 {% extends 'layout.html.twig' %}
 
+{%- block title -%}
+    {{- entity.title }} - {{ parent() -}}
+{%- endblock -%}
+
 {% block body %}
     <div class='menu'>
     	{% include 'header.html.twig' %}

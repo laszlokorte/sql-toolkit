@@ -267,6 +267,17 @@ $silex->get('/table/{entity}/{id}/edit', function (SilexApp $silex, Request $req
 ->convert('id', 'converter.id:convert')
 ->bind('table_edit');
 
+$silex->get('/table/{entity}/batch/{id}/edit', function (SilexApp $silex, Request $request, $entity, $id) {
+    return $silex['twig']->render('batch_form.html.twig', [
+        'graph' => $silex['graph'],
+        'entity' => $entity,
+        'controller' => new BatchFormController(),
+    ]);
+})
+->convert('entity', 'converter.entity:convert')
+->convert('id', 'converter.id:convert')
+->bind('table_batch_edit');
+
 $silex->put('/table/{table}/{id}', function (SilexApp $silex, Request $request, $table, $id) {
     return 'Hello '.$silex->escape($table);
 })

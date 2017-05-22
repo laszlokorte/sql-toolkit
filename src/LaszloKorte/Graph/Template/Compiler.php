@@ -21,7 +21,11 @@ final class Compiler {
 			$template = $templates[$tableId]->template;
 			$table = $templates[$tableId]->table;
 
-			$preprocessed[$tableId] = $this->preprocessTemplate($template, $table);
+			$preproc = $this->preprocessTemplate($template, $table);
+			if(FALSE === $preproc) {
+				throw new \Exception(sprintf("Invalid template for table %s", $table));
+			}
+			$preprocessed[$tableId] = $preproc;
 		}
 
 		foreach($preprocessed AS $tableId) {
