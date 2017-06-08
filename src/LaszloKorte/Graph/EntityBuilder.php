@@ -9,6 +9,7 @@ use LaszloKorte\Graph\Template\Nodes\StaticText;
 use LaszloKorte\Graph\Template\Nodes\Path;
 use LaszloKorte\Graph\Template\Nodes\OutputTag;
 use LaszloKorte\Graph\Template\Processed;
+use LaszloKorte\Graph\Association\AssociationDefinition;
 
 use LaszloKorte\Graph\Identifier;
 
@@ -24,7 +25,7 @@ final class EntityBuilder {
 	private $description = NULL;
 	private $groupName = NULL;
 	private $hasChildren = true;
-	private $parentName = NULL;
+	private $parent = NULL;
 	private $priority = 0;
 	private $sortColumn = null;
 	private $singularTitle = null;
@@ -93,11 +94,8 @@ final class EntityBuilder {
 		$this->id = $id;
 	}
 
-	public function setParent($parentName) {
-		if(!is_string($parentName)) {
-			throw new \InvalidArgumentException(__METHOD__);
-		}
-		$this->parentName = $parentName;
+	public function setParent(AssociationDefinition $parent) {
+		$this->parent = $parent;
 	}
 
 	public function setPriority($prio) {
@@ -192,8 +190,8 @@ final class EntityBuilder {
 			$entityDef->setDescription($this->description);
 		}
 
-		if($this->parentName !== NULL) {
-			$entityDef->setParent(new Identifier($this->parentName));
+		if($this->parent !== NULL) {
+			$entityDef->setParent($this->parent);
 		}
 
 		if($this->sortColumn !== NULL) {

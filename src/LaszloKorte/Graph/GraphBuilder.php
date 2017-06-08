@@ -21,6 +21,7 @@ use LaszloKorte\Schema\Identifier as SchemaIdentifier;
 
 use LaszloKorte\Graph\Path;
 use LaszloKorte\Graph\Identifier;
+use LaszloKorte\Graph\Association\AssociationDefinition;
 
 
 use Doctrine\Common\Inflector\Inflector;
@@ -255,7 +256,20 @@ final class GraphBuilder {
 				break;
 			case TA\ParentRel::class:
 				$entityBuilder->requireUnique($tblAnn);
-				$entityBuilder->setParent($tblAnn->parentName);
+				if(!$tableConf->getTable()->foreignKeys()->contains($tblAnn->parentName)) {
+					throw new \Exception(sprintf("Invalid Parent. Foreign key %s does not exist on table %s.", $tblAnn->parentName, $tableConf->getTable()->getName()));
+				}
+				$parentFk = $tableConf->getTable()->foreignKeys()->getByName($tblAnn->parentName);
+				$parent = new Identifier((string) $parentFk->getTargetTable()->getName());
+				$entityBuilder->setParent(new AssociationDefinition(
+					$parent,
+					array_map(function($col) {
+						return new Identifier((string) $col->getName());
+					}, iterator_to_array($parentFk->getOwnColumns())),
+					array_map(function($col) {
+						return new Identifier((string) $col->getName());
+					}, iterator_to_array($parentFk->getForeignColumns()))
+				));
 				break;
 			case TA\Priority::class:
 				$entityBuilder->requireUnique($tblAnn);

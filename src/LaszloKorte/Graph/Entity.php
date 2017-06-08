@@ -70,7 +70,12 @@ class Entity {
 	}
 
 	public function parentEntity() {
-		return new self($this->appDef, $this->def()->getParentId());
+		$parentId = $this->def()->getParentId();
+		if($parentId !== NULL) {
+			return new self($this->appDef, $parentId);
+		} else {
+			return NULL;
+		}
 	}
 
 	public function getDisplayTemplateCompiled() {
@@ -83,5 +88,9 @@ class Entity {
 
 	public function column(Identifier $columnId) {
 		return new OwnColumnPath($this->entityId, $columnId);
+	}
+
+	public function __toString() {
+		return sprintf('%s', $this->entityId);
 	}
 }

@@ -5,13 +5,14 @@ namespace LaszloKorte\Graph;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Template\Nodes\Sequence;
 use LaszloKorte\Graph\Template\Processed;
+use LaszloKorte\Graph\Association\AssociationDefinition;
 
 final class EntityDefinition {
 
 	private $identifierColumns;
 	private $serialColumn;
 
-	private $parentEntityId;
+	private $parentAssociation;
 
 	private $templateSequenceCompiled;
 	private $singularName;
@@ -53,8 +54,8 @@ final class EntityDefinition {
 		$this->isVisible = $isVisible;
 	}
 
-	public function setParent(Identifier $parentEntityId) {
-		$this->parentEntityId = $parentEntityId;
+	public function setParent(AssociationDefinition $parentAssociation) {
+		$this->parentAssociation = $parentAssociation;
 	}
 
 	public function setDescription($description) {
@@ -137,8 +138,16 @@ final class EntityDefinition {
 		return $this->icon;
 	}
 
+	public function getParentAssociation() {
+		return $this->parentAssociation;
+	}
+
 	public function getParentId() {
-		return $this->parentEntityId;
+		if($this->parentAssociation) {
+			return $this->parentAssociation->getTargetId();
+		} else {
+			return NULL;
+		}
 	}
 
 	public function getDisplayTemplateCompiled() {

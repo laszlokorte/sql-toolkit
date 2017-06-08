@@ -60,4 +60,12 @@ final class ForeignKeysIterator implements Iterator, Countable, ArrayAccess {
 		return in_array(new Identifier($name), $this->fkNames);
 	}
 
+	public function getByName($name) {
+		$id = new Identifier($name);
+		if(!in_array($id, $this->fkNames)) {
+			throw new \Exception(sprintf("FK does not exist: %s", $name));
+		}
+		return new ForeignKey($id, $this->schemaDefinition);
+	}
+
 }
