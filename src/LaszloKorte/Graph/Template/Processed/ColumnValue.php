@@ -9,7 +9,9 @@ use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\Record;
 
-final class ColumnValue {
+use Serializable;
+
+final class ColumnValue implements Serializable {
 
 	private $columnPath;
 	private $filters;
@@ -35,5 +37,19 @@ final class ColumnValue {
 		return array_reduce($this->filters, function($val, $f) use ($renderer) {
 			return $f->apply($val, $renderer);
 		}, $renderer->unsafeText($record[$link ? $this->columnPath->relativeTo(new TablePath($link)) : $this->columnPath]));
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->columnPath,
+			$this->filters,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->columnPath,
+			$this->filters,
+		) = unserialize($data);
 	}
 }

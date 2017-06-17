@@ -70,12 +70,24 @@ $silex['schemaConf'] = function($silex) {
 	return $silex['confBuilder']->buildConfigurationFor($silex['schema']);
 };
 
-$silex['graphDefinition'] = function($silex) {
-	return $silex['graphBuilder']->buildGraph($silex['schemaConf']);
+$silex['graphDefinition.cached.file'] = __DIR__ . '/cache/graph.txt';
+$silex['graphDefinition.cached'] = function($silex) {
+    $cacheFile = $silex['graphDefinition.cached.file'];
+    if(file_exists($cacheFile)) {
+        $def = unserialize(file_get_contents($cacheFile));
+    } else {
+        $def = $silex['graphDefinition.fresh'];
+        file_put_contents($silex['graphDefinition.cached.file'], serialize($def));
+    }
+    return $def;
+};
+
+$silex['graphDefinition.fresh'] = function($silex) {
+    return $silex['graphBuilder']->buildGraph($silex['schemaConf'], $silex['schema']);
 };
 
 $silex['graph'] = function($silex) {
-	return new Graph($silex['graphDefinition']);
+    return new Graph($silex['graphDefinition.cached'] ?? $silex['graphDefinition.fresh']);
 };
 
 $silex['helper.inflector'] = function() {

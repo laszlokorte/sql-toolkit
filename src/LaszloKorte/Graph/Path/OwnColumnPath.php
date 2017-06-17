@@ -4,7 +4,9 @@ namespace LaszloKorte\Graph\Path;
 
 use LaszloKorte\Graph\Identifier;
 
-class OwnColumnPath implements ColumnPath {
+use Serializable;
+
+class OwnColumnPath implements ColumnPath, Serializable {
 	private $tableName;
 	private $columnName;
 
@@ -31,5 +33,19 @@ class OwnColumnPath implements ColumnPath {
 
 	public function getColumnName() {
 		return $this->columnName;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->tableName,
+			$this->columnName,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->tableName,
+			$this->columnName,
+		) = unserialize($data);
 	}
 }

@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class SyntaxField implements FieldType {
+use Serializable;
+
+class SyntaxField implements FieldType, Serializable {
 	private $grammar;
 	private $columnId;
 
@@ -28,5 +30,19 @@ class SyntaxField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->columnId,
+			$this->grammar,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->columnId,
+			$this->grammar,
+		) = unserialize($data);
 	}
 }

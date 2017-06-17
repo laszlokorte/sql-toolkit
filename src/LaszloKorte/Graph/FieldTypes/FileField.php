@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class FileField implements FieldType {
+use Serializable;
+
+class FileField implements FieldType, Serializable {
 	private $targetDir;
 
 	private $pathColumnId;
@@ -37,5 +39,23 @@ class FileField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->pathColumnId,
+			$this->targetDir,
+			$this->sizeColumnId,
+			$this->mimeColumnId,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->pathColumnId,
+			$this->targetDir,
+			$this->sizeColumnId,
+			$this->mimeColumnId,
+		) = unserialize($data);
 	}
 }

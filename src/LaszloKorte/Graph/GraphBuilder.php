@@ -16,6 +16,7 @@ use LaszloKorte\Graph\Template\Nodes\OutputTag;
 use LaszloKorte\Graph\Auth\Authenticator;
 
 use LaszloKorte\Schema\Table;
+use LaszloKorte\Schema\Schema;
 use LaszloKorte\Schema\IdentifierMap;
 use LaszloKorte\Schema\Identifier as SchemaIdentifier;
 
@@ -43,19 +44,19 @@ final class GraphBuilder {
 		$this->inflector = new Inflector();
 	}
 
-	public function buildGraph(SchemaConfiguration $configuration) {
+	public function buildGraph(SchemaConfiguration $configuration, Schema $schema) {
 		$graphDef = new GraphDefinition();
 		$entityBuilders = new IdentifierMap();
 
-		$templates = $this->processTemplates($configuration);
+		$templates = $this->processTemplates($configuration, $schema);
 
-		foreach($configuration->getTableIds() as $tableId) {
-			$tableConf = $configuration->getTableConf($tableId);
+		foreach($schema->tables() as $table) {
+			$tableName = $table->getName();
+			$tableConf = $configuration->getTableConf($tableName);
 
-			$table = $tableConf->getTable();
 			$entityBuilder = new EntityBuilder($table);
-			if(isset($templates[TA\Display::class][$tableId])) {
-				$entityBuilder->setDisplayTemplateCompiled($templates[TA\Display::class][$tableId]);
+			if(isset($templates[TA\Display::class][$tableName])) {
+				$entityBuilder->setDisplayTemplateCompiled($templates[TA\Display::class][$tableName]);
 			}
 
 			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
@@ -83,12 +84,12 @@ final class GraphBuilder {
 				$entityBuilder->attachFieldBuilder($fieldBuilder);
 			}
 
-			$colCount = count($tableConf->getColumnIds());
-			foreach($tableConf->getColumnIds() AS $columnIndex =>  $columnId) {
-				$columnConf = $tableConf->getColumnConf($columnId);
-				$column = $columnConf->getColumn();
+			$colCount = count($table->columns());
+			foreach($table->columns() AS $columnIndex => $column) {
+				$columnName = $column->getName();
+				$columnConf = $tableConf->getColumnConf($columnName);
 
-				if($entityBuilder->isColumnAlreadyHandled($columnId)) {
+				if($entityBuilder->isColumnAlreadyHandled($columnName)) {
 					continue;
 				}
 
@@ -101,7 +102,7 @@ final class GraphBuilder {
 				$entityBuilder->attachFieldBuilder($fieldBuilder);
 			}
 
-			$entityBuilders[$tableId] = $entityBuilder;
+			$entityBuilders[$tableName] = $entityBuilder;
 		}
 
 		foreach($entityBuilders AS $tableId) {
@@ -129,13 +130,12 @@ final class GraphBuilder {
 		$this->authenticators[] = new Authenticator(new Identifier((string) $table->getName()), new Identifier($loginCol), new Identifier($passwordCol));
 	}
 
-	private function processTemplates(SchemaConfiguration $configuration) {
+	private function processTemplates(SchemaConfiguration $configuration, Schema $schema) {
 		$templates = [];
 
-		foreach($configuration->getTableIds() as $tableId) {
-			$tableConf = $configuration->getTableConf($tableId);
-
-			$table = $tableConf->getTable();
+		foreach($schema->tables() as $table) {
+			$tableName = $table->getName();
+			$tableConf = $configuration->getTableConf($tableName);
 
 			foreach($tableConf->getAnnotations() AS $tableAnnotation) {
 				if($tableAnnotation instanceof Template) {
@@ -144,7 +144,7 @@ final class GraphBuilder {
 						$templates[$tplType] = new IdentifierMap();
 					}
 					
-					$templates[$tplType][new Identifier((string) $tableId)] = (object) [
+					$templates[$tplType][new Identifier((string) $tableName)] = (object) [
 						'template' => $this->templateParser->parse($this->templateLexer->tokenize($tableAnnotation->getString())),
 						'table' => $table,
 					];
@@ -256,10 +256,11 @@ final class GraphBuilder {
 				break;
 			case TA\ParentRel::class:
 				$entityBuilder->requireUnique($tblAnn);
-				if(!$tableConf->getTable()->foreignKeys()->contains($tblAnn->parentName)) {
-					throw new \Exception(sprintf("Invalid Parent. Foreign key %s does not exist on table %s.", $tblAnn->parentName, $tableConf->getTable()->getName()));
+				$table = $entityBuilder->getTable();
+				if(!$table->foreignKeys()->contains($tblAnn->parentName)) {
+					throw new \Exception(sprintf("Invalid Parent. Foreign key %s does not exist on table %s.", $tblAnn->parentName, $table->getName()));
 				}
-				$parentFk = $tableConf->getTable()->foreignKeys()->getByName($tblAnn->parentName);
+				$parentFk = $table->foreignKeys()->getByName($tblAnn->parentName);
 				$parent = new Identifier((string) $parentFk->getTargetTable()->getName());
 				$entityBuilder->setParent(new AssociationDefinition(
 					$parent,

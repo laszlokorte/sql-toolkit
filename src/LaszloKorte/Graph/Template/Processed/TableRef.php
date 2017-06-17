@@ -6,7 +6,9 @@ use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\Record;
 
-final class TableRef {
+use Serializable;
+
+final class TableRef implements Serializable {
 
 	private $tablePath;
 
@@ -20,5 +22,17 @@ final class TableRef {
 
 	public function getPath() {
 		return $this->tablePath;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->tablePath,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->tablePath,
+		) = unserialize($data);
 	}
 }

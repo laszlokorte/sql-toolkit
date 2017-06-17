@@ -4,7 +4,9 @@ namespace LaszloKorte\Graph\Association;
 
 use LaszloKorte\Graph\Identifier;
 
-final class AssociationDefinition {
+use Serializable;
+
+final class AssociationDefinition implements Serializable {
 	private $targetId;
 	private $joinColumns;
 	private $targetColumns;
@@ -30,5 +32,21 @@ final class AssociationDefinition {
 
 	public function getTargetColumns() {
 		return $this->targetColumns;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->targetId,
+			$this->joinColumns,
+			$this->targetColumns,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->targetId,
+			$this->joinColumns,
+			$this->targetColumns,
+		) = unserialize($data);
 	}
 }

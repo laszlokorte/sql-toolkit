@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\Template\Nodes;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\Record;
 
-final class OutputTag {
+use Serializable;
+
+final class OutputTag implements Serializable {
 
 	private $path;
 	private $filters;
@@ -36,5 +38,19 @@ final class OutputTag {
 			'{{ %s }}', 
 			implode(' | ', array_merge([$this->path], $this->filters))
 		);
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->path,
+			$this->filters,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->path,
+			$this->filters,
+		) = unserialize($data);
 	}
 }

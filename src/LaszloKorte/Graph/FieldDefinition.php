@@ -2,7 +2,9 @@
 
 namespace LaszloKorte\Graph;
 
-final class FieldDefinition {
+use Serializable;
+
+final class FieldDefinition implements Serializable {
 
 	private $type;
 	private $title;
@@ -89,5 +91,33 @@ final class FieldDefinition {
 
 	public function getPriority() {
 		return $this->priority;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->type,
+			$this->title,
+			$this->description,
+			$this->isRequired,
+			$this->isVisible,
+			$this->isVisibleInCollection,
+			$this->isSecret,
+			$this->priority,
+			$this->isLinked,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->type,
+			$this->title,
+			$this->description,
+			$this->isRequired,
+			$this->isVisible,
+			$this->isVisibleInCollection,
+			$this->isSecret,
+			$this->priority,
+			$this->isLinked,
+		) = unserialize($data);
 	}
 }

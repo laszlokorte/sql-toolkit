@@ -2,7 +2,9 @@
 
 namespace LaszloKorte\Graph\Template\Nodes;
 
-final class Filter {
+use Serializable;
+
+final class Filter implements Serializable {
 
 	private $name;
 
@@ -16,5 +18,17 @@ final class Filter {
 
 	public function getName() {
 		return $this->name;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->name
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->name,
+		) = unserialize($data);
 	}
 }

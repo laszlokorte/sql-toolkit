@@ -3,17 +3,14 @@
 namespace LaszloKorte\Configurator;
 
 use LaszloKorte\Schema\Column;
-use LaszloKorte\Schema\Table;
 use LaszloKorte\Schema\IdentifierMap;
 use LaszloKorte\Schema\Identifier;
 
 class TableConfiguration {
-	private $table;
 	private $columnConfigurations = [];
 	private $annotations = [];
 
-	public function __construct(Table $table, array $annotations) {
-		$this->table = $table;
+	public function __construct(array $annotations) {
 		$this->annotations = $annotations;
 		$this->columnConfigurations = new IdentifierMap();
 	}
@@ -31,21 +28,8 @@ class TableConfiguration {
 		return $conf;
 	}
 
-	public function getColumnIds() {
-		$result = [];
-		foreach($this->columnConfigurations AS $c) {
-			$result[] = $c;
-		}
-
-		return $result;
-	}
-
-	public function getColumnConf(Identifier $id) {
-		return $this->columnConfigurations[$id];
-	}
-
-	public function getTable() {
-		return $this->table;
+	public function getColumnConf(Identifier $columnName) {
+		return $this->columnConfigurations[$columnName];
 	}
 
 	public function getAnnotations() {

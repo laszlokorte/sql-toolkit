@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class PasswordField implements FieldType {
+use Serializable;
+
+class PasswordField implements FieldType, Serializable {
 	private $requireRepeat = false;
 	private $columnId;
 
@@ -29,5 +31,19 @@ class PasswordField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->columnId,
+			$this->requireRepeat,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->columnId,
+			$this->requireRepeat,
+		) = unserialize($data);
 	}
 }

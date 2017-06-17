@@ -7,7 +7,9 @@ use LaszloKorte\Graph\Template\Renderer;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\Record;
 
-final class StaticText {
+use Serializable;
+
+final class StaticText implements Serializable {
 
 	private $text;
 
@@ -21,5 +23,17 @@ final class StaticText {
 
 	public function render($record, Renderer $renderer, $link = NULL) {
 		return $renderer->unsafeText($this->text);
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->text,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->text,
+		) = unserialize($data);
 	}
 }

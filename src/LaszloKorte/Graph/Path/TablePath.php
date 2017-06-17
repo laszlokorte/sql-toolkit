@@ -2,7 +2,9 @@
 
 namespace LaszloKorte\Graph\Path;
 
-class TablePath implements Path {
+use Serializable;
+
+class TablePath implements Path, Serializable {
 	private $pathLinks;
 	private $target;
 
@@ -42,5 +44,19 @@ class TablePath implements Path {
 		}
 
 		return $newPath;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->pathLinks,
+			$this->target,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->pathLinks,
+			$this->target,
+		) = unserialize($data);
 	}
 }

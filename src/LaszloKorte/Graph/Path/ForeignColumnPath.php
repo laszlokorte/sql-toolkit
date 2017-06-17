@@ -4,7 +4,9 @@ namespace LaszloKorte\Graph\Path;
 
 use LaszloKorte\Graph\Identifier;
 
-class ForeignColumnPath implements ColumnPath {
+use Serializable;
+
+class ForeignColumnPath implements ColumnPath, Serializable {
 	private $tablePath;
 	private $columnName;
 
@@ -31,5 +33,19 @@ class ForeignColumnPath implements ColumnPath {
 
 	public function relativeTo(TablePath $p) {
 		return new ForeignColumnPath($this->tablePath->relativeTo($p), $this->columnName);
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->tablePath,
+			$this->columnName,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->tablePath,
+			$this->columnName,
+		) = unserialize($data);
 	}
 }

@@ -7,7 +7,9 @@ use LaszloKorte\Graph\Template\Nodes\Sequence;
 use LaszloKorte\Graph\Template\Processed;
 use LaszloKorte\Graph\Association\AssociationDefinition;
 
-final class EntityDefinition {
+use Serializable;
+
+final class EntityDefinition implements Serializable {
 
 	private $identifierColumns;
 	private $serialColumn;
@@ -24,7 +26,6 @@ final class EntityDefinition {
 
 
 	private $orderColumn;
-	private $fieldDefinitions;
 	private $searchColumns;
 
 	private $iconName;
@@ -156,5 +157,41 @@ final class EntityDefinition {
 
 	public function getDisplayPaths() {
 		return $this->templateSequenceCompiled->getPaths();
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->identifierColumns,
+			$this->serialColumn,
+			$this->parentAssociation,
+			$this->templateSequenceCompiled,
+			$this->singularName,
+			$this->pluralName,
+			$this->isVisible,
+			$this->description,
+			$this->displayPaths,
+			$this->orderColumn,
+			$this->searchColumns,
+			$this->iconName,
+			$this->fields,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->identifierColumns,
+			$this->serialColumn,
+			$this->parentAssociation,
+			$this->templateSequenceCompiled,
+			$this->singularName,
+			$this->pluralName,
+			$this->isVisible,
+			$this->description,
+			$this->displayPaths,
+			$this->orderColumn,
+			$this->searchColumns,
+			$this->iconName,
+			$this->fields,
+		) = unserialize($data);
 	}
 }

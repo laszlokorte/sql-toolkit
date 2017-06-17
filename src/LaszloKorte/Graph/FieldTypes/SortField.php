@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class SortField implements FieldType {
+use Serializable;
+
+class SortField implements FieldType, Serializable {
 	
 	private $columnId;
 
@@ -27,5 +29,17 @@ class SortField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->columnId,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->columnId,
+		) = unserialize($data);
 	}
 }

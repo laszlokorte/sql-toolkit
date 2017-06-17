@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class NumberField implements FieldType {
+use Serializable;
+
+class NumberField implements FieldType, Serializable {
 	private $columnId;
 	private $unit;
 
@@ -32,5 +34,19 @@ class NumberField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->columnId,
+			$this->unit,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->columnId,
+			$this->unit,
+		) = unserialize($data);
 	}
 }

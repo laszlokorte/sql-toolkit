@@ -4,8 +4,9 @@ namespace LaszloKorte\Graph\Template\Nodes;
 
 use IteratorAggregate;
 use ArrayIterator;
+use Serializable;
 
-final class Sequence implements IteratorAggregate {
+final class Sequence implements IteratorAggregate, Serializable {
 
 	private $children;
 
@@ -23,5 +24,17 @@ final class Sequence implements IteratorAggregate {
 
 	public function __toString() {
 		return implode('', $this->children);
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->children,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->children,
+		) = unserialize($data);
 	}
 }

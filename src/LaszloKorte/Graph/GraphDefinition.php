@@ -4,7 +4,9 @@ namespace LaszloKorte\Graph;
 
 use LaszloKorte\Graph\Auth\Authenticator;
 
-final class GraphDefinition {
+use Serializable;
+
+final class GraphDefinition implements Serializable {
 
 	private $entities;
 	private $groups;
@@ -104,5 +106,23 @@ final class GraphDefinition {
 
 	public function getAuthenticators() {
 		return $this->authenticators;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->entities,
+			$this->groups,
+			$this->ungrouped,
+			$this->authenticators,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->entities,
+			$this->groups,
+			$this->ungrouped,
+			$this->authenticators
+		) = unserialize($data);
 	}
 }

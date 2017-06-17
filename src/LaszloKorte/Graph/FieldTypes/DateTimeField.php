@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class DateTimeField implements FieldType {
+use Serializable;
+
+class DateTimeField implements FieldType, Serializable {
 	private $columnId;
 
 	public function __construct(Identifier $columnId) {
@@ -26,5 +28,17 @@ class DateTimeField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->columnId,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->columnId,
+		) = unserialize($data);
 	}
 }

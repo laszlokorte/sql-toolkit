@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\Template\Nodes;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\Record;
 
-final class StaticText {
+use Serializable;
+
+final class StaticText implements Serializable {
 
 	private $text;
 
@@ -19,5 +21,17 @@ final class StaticText {
 
 	public function getText() {
 		return $this->text;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->text,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->text,
+		) = unserialize($data);
 	}
 }

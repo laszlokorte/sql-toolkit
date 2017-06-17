@@ -14,29 +14,19 @@ class SchemaConfiguration {
 		$this->tableConfigurations = new IdentifierMap();
 	}
 
-	public function configureTable(Table $table, array $annotations) {
-		$conf = new TableConfiguration($table, $annotations);
-		$idx = $table->getName();
+	public function configureTable(Identifier $tableName, array $annotations) {
+		$conf = new TableConfiguration($annotations);
 
-		if(isset($this->columnConfigurations[$idx])) {
-			throw new \Exception('Duplicate configuration for table "%s"', $idx);
+		if(isset($this->columnConfigurations[$tableName])) {
+			throw new \Exception('Duplicate configuration for table "%s"', $tableName);
 		}
 
-		$this->tableConfigurations[$idx] = $conf;
+		$this->tableConfigurations[$tableName] = $conf;
 
 		return $conf;
 	}
 
-	public function getTableIds() {
-		$result = [];
-		foreach($this->tableConfigurations AS $t) {
-			$result[] = $t;
-		}
-
-		return $result;
-	}
-
-	public function getTableConf(Identifier $id) {
-		return $this->tableConfigurations[$id];
+	public function getTableConf(Identifier $tableName) {
+		return $this->tableConfigurations[$tableName];
 	}
 }

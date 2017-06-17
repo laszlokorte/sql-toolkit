@@ -6,7 +6,9 @@ use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Association\AssociationDefinition;
 use LaszloKorte\Graph\Identifier;
 
-class RefChildrenField implements FieldType {
+use Serializable;
+
+class RefChildrenField implements FieldType, Serializable {
 	private $entityId;
 	private $fkParentColumnNames;
 	private $fkOwnColumnNames;
@@ -34,5 +36,21 @@ class RefChildrenField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->entityId,
+			$this->fkParentColumnNames,
+			$this->fkOwnColumnNames,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->entityId,
+			$this->fkParentColumnNames,
+			$this->fkOwnColumnNames,
+		) = unserialize($data);
 	}
 }

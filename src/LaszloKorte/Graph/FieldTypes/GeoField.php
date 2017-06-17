@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class GeoField implements FieldType {
+use Serializable;
+
+class GeoField implements FieldType, Serializable {
 	private $longitudeColumnId;
 	private $latitudeColumnId;
 
@@ -28,5 +30,19 @@ class GeoField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->longitudeColumnId,
+			$this->latitudeColumnId,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->longitudeColumnId,
+			$this->latitudeColumnId,
+		) = unserialize($data);
 	}
 }

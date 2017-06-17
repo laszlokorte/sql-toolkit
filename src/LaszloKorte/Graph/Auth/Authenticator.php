@@ -4,7 +4,9 @@ namespace LaszloKorte\Graph\Auth;
 
 use LaszloKorte\Graph\Identifier;
 
-final class Authenticator {
+use Serializable;
+
+final class Authenticator implements Serializable {
 	private $tableName;
 	private $loginColumn;
 	private $passwordColumn;
@@ -25,5 +27,21 @@ final class Authenticator {
 
 	public function getPasswordColumn() {
 		return $this->passwordColumn;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->tableName,
+			$this->loginColumn,
+			$this->passwordColumn,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->tableName,
+			$this->loginColumn,
+			$this->passwordColumn,
+		) = unserialize($data);
 	}
 }

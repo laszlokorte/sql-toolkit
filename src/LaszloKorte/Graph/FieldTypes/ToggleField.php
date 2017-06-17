@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class ToggleField implements FieldType {
+use Serializable;
+
+class ToggleField implements FieldType, Serializable {
 	const TYPE_RADIO = 1;
 	const TYPE_CHECKBOX = 2;
 
@@ -31,5 +33,19 @@ class ToggleField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->type,
+			$this->columnId,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->type,
+			$this->columnId,
+		) = unserialize($data);
 	}
 }

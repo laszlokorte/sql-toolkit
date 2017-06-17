@@ -3,16 +3,10 @@
 namespace LaszloKorte\Configurator;
 
 class ColumnConfiguration {
-	private $column;
 	private $annotations = [];
 
-	public function __construct($column, $annotations) {
-		$this->column = $column;
+	public function __construct($annotations) {
 		$this->annotations = $annotations;
-	}
-
-	public function getColumn() {
-		return $this->column;
 	}
 
 	public function getAnnotations() {

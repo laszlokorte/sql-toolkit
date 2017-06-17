@@ -5,13 +5,15 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class RefManyField implements FieldType {
+use Serializable;
+
+class RefManyField implements FieldType, Serializable {
 	const STYLE_TAGS = 1;
 	const STYLE_DETAILED = 2;
 
 	private $style;
 	private $joinEntityId;
-	private $fkOwnColumns;
+	private $fkOwnColumnNames;
 	private $fkOtherColumnNames;
 
 	public function __construct($style, Identifier $joinEntityId, array $fkOwnColumnNames, array $fkOtherColumnNames) {
@@ -35,5 +37,23 @@ class RefManyField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->style,
+			$this->joinEntityId,
+			$this->fkOwnColumnNames,
+			$this->fkOtherColumnNames,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->style,
+			$this->joinEntityId,
+			$this->fkOwnColumnNames,
+			$this->fkOtherColumnNames,
+		) = unserialize($data);
 	}
 }

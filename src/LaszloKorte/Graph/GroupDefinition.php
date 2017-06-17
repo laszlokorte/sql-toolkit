@@ -2,7 +2,9 @@
 
 namespace LaszloKorte\Graph;
 
-class GroupDefinition {
+use Serializable;
+
+class GroupDefinition implements Serializable {
 	private $icon;
 	private $title;
 	private $entityIds = [];
@@ -53,5 +55,25 @@ class GroupDefinition {
 
 	public function getPriority() {
 		return $this->priority;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->icon,
+			$this->title,
+			$this->entityIds,
+			$this->entityPrios,
+			$this->priority,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->icon,
+			$this->title,
+			$this->entityIds,
+			$this->entityPrios,
+			$this->priority,
+		) = unserialize($data);
 	}
 }

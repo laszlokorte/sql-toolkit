@@ -4,7 +4,9 @@ namespace LaszloKorte\Graph\Path;
 
 use LaszloKorte\Graph\Identifier;
 
-class PathLink {
+use Serializable;
+
+class PathLink implements Serializable {
 	private $name;
 
 	private $sourceTable;
@@ -56,5 +58,25 @@ class PathLink {
 
 	public function getName() {
 		return $this->name;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->name,
+			$this->sourceTable,
+			$this->targetTable,
+			$this->sourceColumns,
+			$this->targetColumns,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->name,
+			$this->sourceTable,
+			$this->targetTable,
+			$this->sourceColumns,
+			$this->targetColumns,
+		) = unserialize($data);
 	}
 }

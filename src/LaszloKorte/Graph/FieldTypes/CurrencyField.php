@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class CurrencyField implements FieldType {
+use Serializable;
+
+class CurrencyField implements FieldType, Serializable {
 	private $columnId;
 	private $unit;
 
@@ -32,5 +34,19 @@ class CurrencyField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->unit,
+			$this->columnId,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->unit,
+			$this->columnId,
+		) = unserialize($data);
 	}
 }

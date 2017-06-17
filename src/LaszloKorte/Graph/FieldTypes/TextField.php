@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class TextField implements FieldType {
+use Serializable;
+
+class TextField implements FieldType, Serializable {
 	const TYPE_SINGLE_LINE = 1;
 	const TYPE_MULTI_LINE = 2;
 
@@ -35,5 +37,19 @@ class TextField implements FieldType {
 
 	public function getParentAssociations() {
 		return [];
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->type,
+			$this->columnId,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->type,
+			$this->columnId,
+		) = unserialize($data);
 	}
 }

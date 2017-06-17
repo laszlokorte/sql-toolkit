@@ -5,7 +5,9 @@ namespace LaszloKorte\Graph\FieldTypes;
 use LaszloKorte\Graph\FieldTypes\FieldType;
 use LaszloKorte\Graph\Identifier;
 
-class TimeField implements FieldType {
+use Serializable;
+
+class TimeField implements FieldType, Serializable {
 	private $includesSeconds = false;
 	private $columnId;
 
@@ -32,5 +34,19 @@ class TimeField implements FieldType {
 
 	public function includesSeconds() {
 		return $this->includesSeconds;
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->includesSeconds,
+			$this->columnId,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->includesSeconds,
+			$this->columnId,
+		) = unserialize($data);
 	}
 }

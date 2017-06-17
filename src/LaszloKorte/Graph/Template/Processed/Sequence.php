@@ -6,8 +6,9 @@ use LaszloKorte\Graph\Template\Renderer;
 
 use IteratorAggregate;
 use ArrayIterator;
+use Serializable;
 
-final class Sequence implements IteratorAggregate {
+final class Sequence implements IteratorAggregate, Serializable {
 
 	private $children;
 
@@ -38,5 +39,17 @@ final class Sequence implements IteratorAggregate {
 
 	public function isEmpty() {
 		return empty($this->children);
+	}
+
+	public function serialize() {
+		return serialize([
+			$this->children,
+		]);
+	}
+
+	public function unserialize($data) {
+		list(
+			$this->children,
+		) = unserialize($data);
 	}
 }
