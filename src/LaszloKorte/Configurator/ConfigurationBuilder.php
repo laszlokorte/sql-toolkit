@@ -27,7 +27,7 @@ class ConfigurationBuilder {
 		foreach($schema->tables() AS $table) {
 			$tableConf = $conf->configureTable($table->getName(), $this->parseTable($table));
 			foreach($table->columns() AS $col) {
-				$tableConf->configureColumn($col, $this->parseColumn($col));
+				$tableConf->configureColumn($col->getName(), $this->parseColumn($col));
 			}
 		}
 

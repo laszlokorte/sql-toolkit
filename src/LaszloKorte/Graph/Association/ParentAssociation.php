@@ -5,22 +5,27 @@ namespace LaszloKorte\Graph\Association;
 use LaszloKorte\Graph\Identifier;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Graph\Path\PathLink;
+use LaszloKorte\Graph\GraphDefinition;
 
 final class ParentAssociation {
-	private $appDef;
+	private $graphDef;
 	private $sourceId;
 	private $name;
 	private $assocDef;
 
-	public function __construct($appDef, Identifier $sourceId, Identifier $name, AssociationDefinition $assocDef) {
-		$this->appDef = $appDef;
+	public function __construct(GraphDefinition $graphDef, Identifier $sourceId, Identifier $name, AssociationDefinition $assocDef) {
+		$this->graphDef = $graphDef;
 		$this->sourceId = $sourceId;
 		$this->name = $name;
 		$this->assocDef = $assocDef;
 	}
 
 	public function getTargetEntity() {
-		return new Entity($this->appDef, $this->assocDef->getTargetId());
+		return new Entity($this->graphDef, $this->assocDef->getTargetId());
+	}
+
+	public function getTargetId() {
+		return $this->assocDef->getTargetId();
 	}
 
 	public function __toString() {

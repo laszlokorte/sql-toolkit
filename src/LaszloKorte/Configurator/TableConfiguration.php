@@ -15,15 +15,14 @@ class TableConfiguration {
 		$this->columnConfigurations = new IdentifierMap();
 	}
 
-	public function configureColumn(Column $column, array $annotations) {
-		$conf = new ColumnConfiguration($column, $annotations);
-		$idx = $column->getName();
+	public function configureColumn(Identifier $columnName, array $annotations) {
+		$conf = new ColumnConfiguration($annotations);
 
-		if(isset($this->columnConfigurations[$idx])) {
-			throw new \Exception('Duplicate configuration for column "%s"', $idx);
+		if(isset($this->columnConfigurations[$columnName])) {
+			throw new \Exception('Duplicate configuration for column "%s"', $columnName);
 		}
 
-		$this->columnConfigurations[$idx] = $conf;
+		$this->columnConfigurations[$columnName] = $conf;
 
 		return $conf;
 	}

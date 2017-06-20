@@ -6,6 +6,8 @@ use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
 use LaszloKorte\Resource\Query\Record;
 
+use LaszloKorte\Resource\Scope\ScopeController;
+
 use PDO;
 
 final class CollectionController {
@@ -14,6 +16,7 @@ final class CollectionController {
 	private $queryBuilder;
 	private $entity;
 	private $scope;
+	private $scopes;
 	private $parameters;
 	private $result = null;
 	private $page = 0;
@@ -30,6 +33,7 @@ final class CollectionController {
 		$this->export = $export;
 
 		$this->queryBuilder->includeFieldColumns();
+		$this->scopes = new ScopeController($db, $entity, $parameters);
 	}
 
 	public function getParams() {
@@ -75,6 +79,10 @@ final class CollectionController {
 		}
 		
 		return $this->result;
+	}
+
+	public function scopes() {
+		return $this->scopes;
 	}
 
 	public function hasPrevPage() {

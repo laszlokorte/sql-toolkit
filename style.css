@@ -349,3 +349,56 @@ li a.state-active::after {
 	background-color: #ffaaaa;
 	padding: 1em;
 }
+
+.breadcrumb-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.breadcrumb-list-item {
+	padding: 0;
+	display: inline;
+}
+
+.breadcrumb-list-item::before {
+	content: ' / ';
+}
+
+.dropdown {
+	position: relative;
+}
+
+.dropdown-body {
+	display: none;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	padding: 0.5em;
+	margin: 0;
+	list-style: none;
+	background-color: #fff;
+	overflow: visible;
+	white-space: nowrap;
+	max-height: 70vh;
+	max-width: 40vw;
+	overflow-y: auto;
+	box-shadow: 1px 1px 10px rgba(40,40,40,0.5);
+}
+
+.dropdown-body::before {
+	content: '';
+	position: absolute;
+	top: -2em;
+	bottom: -1em;
+	left: 0;
+	right: 0;
+	pointer-events: none;
+}
+
+.dropdown-head:hover + .dropdown-body,
+.dropdown-body:hover,
+.dropdown-body:focus,
+.dropdown-body:active {
+	display: block;
+}

@@ -2,23 +2,27 @@
 
 namespace LaszloKorte\Graph;
 
+use LaszloKorte\Graph\Identifier;
 use LaszloKorte\Graph\Path\OwnColumnPath;
+use LaszloKorte\Graph\Association\ParentAssociation;
+use LaszloKorte\Graph\Tree\Chain;
+
 
 class Entity {
-	private $appDef;
+	private $graphDef;
 	private $entityId;
 
-	public function __construct(GraphDefinition $appDef, Identifier $entityId) {
-		$this->appDef = $appDef;
+	public function __construct(GraphDefinition $graphDef, Identifier $entityId) {
+		$this->graphDef = $graphDef;
 		$this->entityId = $entityId;
 	}
 
 	private function def() {
-		return $this->appDef->getEntity($this->entityId);
+		return $this->graphDef->getEntity($this->entityId);
 	}
 
 	public function otherEntity(Identifier $id) {
-		return new self($this->appDef, $id);
+		return new self($this->graphDef, $id);
 	}
 
 	public function id() {
@@ -26,11 +30,11 @@ class Entity {
 	}
 
 	public function fields() {
-		return new FieldIterator($this->appDef, $this->entityId, $this->def()->getFieldIds());
+		return new FieldIterator($this->graphDef, $this->entityId, $this->def()->getFieldIds());
 	}
 
 	public function field($name) {
-		return new Field($this->appDef, $this->entityId, new Identifier($name));
+		return new Field($this->graphDef, $this->entityId, new Identifier($name));
 	}
 
 	public function title($plural = FALSE) {
@@ -72,10 +76,35 @@ class Entity {
 	public function parentEntity() {
 		$parentId = $this->def()->getParentId();
 		if($parentId !== NULL) {
-			return new self($this->appDef, $parentId);
+			return new self($this->graphDef, $parentId);
 		} else {
 			return NULL;
 		}
+	}
+
+	public function parentAssociation() {
+		$assocDef = $this->def()->getParentAssociation();
+		if($assocDef === NULL) {
+			return NULL;
+		} else {
+			return new ParentAssociation($this->graphDef, $this->entityId, new Identifier(sprintf('$%s_parent', $this->entityId)), $assocDef);
+		}
+	}
+
+	public function hasParentEntity() {
+		return $this->def()->getParentId() !== NULL;
+	}
+
+	public function getTreeChain() {
+		$entity = $this;
+		$segments = [];
+		while($entity->hasParentEntity()) {
+			$parentAssoc = $entity->parentAssociation();
+			$entity = $parentAssoc->getTargetEntity();
+			$segments[] = $parentAssoc;
+		}
+
+		return new Chain($this->graphDef, $this->entityId, array_reverse($segments));
 	}
 
 	public function getDisplayTemplateCompiled() {

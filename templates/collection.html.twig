@@ -13,15 +13,31 @@
     </div>
 
     <div class="content">
-        {% macro parentPath(entity) %}
-            {% if entity.parentEntity %}
-                {{ _self.parentPath(entity.parentEntity) }} /
-                
-                {{ entity.parentEntity.title(true) }}
-            {% endif %}
-        {% endmacro %}
-
-        {{ _self.parentPath(entity) }}
+        <ul class="breadcrumb-list">
+            {% for scope in controller.scopes %}
+                <li class="breadcrumb-list-item">
+                    <span class="dropdown">
+                        <span class="dropdown-head">
+                            {% if scope.active %}
+                                <strong>{{ scope }}</strong> <a href="?{{ controller.params.remove(['scope']) }}">[x]</a>
+                            {% else %}
+                                {{ scope }}
+                            {% endif %}
+                        </span>
+                        <ul class="dropdown-body">
+                            {% for scopeChoice in scope.choices %}
+                                <li>
+                                    <a href="?{{ controller.params.replace(['scope','entity'], scope.entity.id).replace(['scope','id'], scopeChoice.id(scope.entity)) }}">
+                                        {{ scope.entity.displayTemplateCompiled.render(scopeChoice, templateRenderer) | raw}}
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </span>
+                    <div class="sql debug">{{ scope.query }}</div>
+                </li>
+            {% endfor %}
+        </ul>
 
     	<h1>{{ entity.title(true) }}</h1>
 
