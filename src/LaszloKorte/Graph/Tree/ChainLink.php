@@ -17,7 +17,7 @@ final class ChainLink {
 	}
 
 	public function isLast() {
-		return $this->index === $this->chain->length() - 1;
+		return $this->index === $this->chain->length();
 	}
 
 	public function source() {
@@ -29,7 +29,7 @@ final class ChainLink {
 	}
 
 	public function target() {
-		if($this->index >= $this->chain->length() - 1) {
+		if($this->isLast()) {
 			return $this->chain->getTarget();
 		} else {
 			return $this->chain->getSegment($this->index)->getTargetEntity();

@@ -13,14 +13,17 @@ use ArrayAccess;
 
 final class Record implements ArrayAccess {
 	private $fields;
+	private $flatNames;
 
-	public function __construct($fields) {
+	public function __construct($fields, $flatNames = FALSE) {
 		$this->fields = $fields;
+		$this->flatNames = $flatNames;
 	}
 
 	public function offsetGet($offset) {
 		if ($offset instanceof ColumnPath) {
 			$propName = $this->propName($offset);
+
 			return $this->fields->$propName;
 		} else {
 			echo get_class($offset);
@@ -45,11 +48,12 @@ final class Record implements ArrayAccess {
 		
 	}
 
-	public function id(Entity $e) {
+	public function id(Entity $e, $asArray = FALSE) {
 		$table = $e->id();
-		return implode(':', array_map(function($col) use($table) {
+		$components = array_map(function($col) use($table) {
 			return $this[new OwnColumnPath($table, $col)];
-		}, $e->idColumns()));
+		}, $e->idColumns());
+		return $asArray ? $components : implode(':', $components);
 	}
 
 	public function foreignId(ParentAssociation $e) {
@@ -61,11 +65,17 @@ final class Record implements ArrayAccess {
 
 	private function propName(ColumnPath $offset) {
 		if($offset instanceof ForeignColumnPath) {
-			return sprintf('foreign_%s_%s', implode('_', array_map(function($l) {
+			return $this->flatNames ? 
+			sprintf('%s_%s', $offset->getTablePath()->getTarget(), $offset->getColumnName()) 
+			:
+			sprintf('foreign_%s_%s', implode('_', array_map(function($l) {
 				return $l->getName();
 			}, $offset->getTablePath()->getLinks())), $offset->getColumnName());
 		} elseif ($offset instanceof OwnColumnPath) {
-			return sprintf('own_%s_%s', $offset->getTableName(), $offset->getColumnName());
+			return $this->flatNames ?
+			sprintf('%s_%s', $offset->getTableName(), $offset->getColumnName())
+			:
+			sprintf('own_%s_%s', $offset->getTableName(), $offset->getColumnName());
 		}
 	}
 

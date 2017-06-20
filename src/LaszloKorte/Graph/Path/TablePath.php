@@ -23,7 +23,7 @@ class TablePath implements Path, Serializable {
 
 	public function append(PathLink $link) {
 		if($link->getSource() != $this->target->getTarget()) {
-			throw new \Exception("Invalid Path");
+			throw new \Exception(sprintf("Invalid Path: %s </> %s", $link->getSource(), $this->target->getTarget()));
 		}
 		$this->pathLinks[] = $link;
 		$this->target = $link;

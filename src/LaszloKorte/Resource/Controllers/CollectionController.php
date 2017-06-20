@@ -47,6 +47,7 @@ final class CollectionController {
 		} else {
 			$this->queryBuilder->sortDefault(($this->parameters['order']['dir']??null) === 'asc');
 		}
+		$this->scopes->buildQueryAfter($this->queryBuilder);
 		$query = $this->queryBuilder->getQuery();
 
 		if(!$this->export) {
@@ -66,7 +67,7 @@ final class CollectionController {
 	public function records() {
 		if($this->result === null) {
 			$stmt = $this->getQuery()->getPrepared($this->database);
-
+			$this->scopes->prepare($this->queryBuilder, $stmt);
 			$stmt->execute();
 
 			$this->result = array_map(function($c) {

@@ -6,11 +6,16 @@ final class Scope {
 
 	private $entity;
 
-	public function __construct($entity, $choices, $query, $active) {
+	public function __construct($entity, $record, $choices, $query, $active) {
 		$this->entity = $entity;
 		$this->choices = $choices;
 		$this->query = $query;
 		$this->active = $active;
+		$this->record = $record;
+	}
+
+	public function record() {
+		return $this->record;
 	}
 
 	public function getEntity() {
@@ -27,5 +32,9 @@ final class Scope {
 
 	public function __toString() {
 		return $this->entity->title();
+	}
+
+	public function parent() {
+		return $this->entity->parentEntity();
 	}
 }

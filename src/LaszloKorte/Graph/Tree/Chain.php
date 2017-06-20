@@ -22,6 +22,10 @@ final class Chain implements IteratorAggregate {
 	}
 
 	public function getSegment($index) {
+		if(!isset($this->segments[$index])) {
+			throw new \Exception();
+			
+		}
 		return $this->segments[$index];
 	} 
 
@@ -40,50 +44,12 @@ final class Chain implements IteratorAggregate {
 	}
 
 	public function length() {
-		return count($this->segments) + 1;
+		return count($this->segments);
 	}
 
 	public function getIterator() {
 		return new ArrayIterator(array_map(function($i) {
 			return new ChainLink($this, $i);
-		}, range(0, max(0, $this->length() - 1))));
-	}
-
-	public function getRoot() {
-		if(count($this->segments) > 0) {
-			$target = $this->segments[0]->getTargetId();
-			return new self($this->graphDef, $target, []);
-		} else {
-			return $this;
-		}
-	}
-
-	public function intersectWith(Chain $other) {
-		if($this->graphDef !== $other->graphDef) {
-			throw new \Exception("xxx");
-		}
-
-		$segmentsA = $this->getIterator();
-		$segmentsB = $other->getIterator();
-		$segments = [];
-		$target = NULL;
-
-		for ($i = 0, $max=min(count($segmentsA), count($segmentsB)) - 1; $i < $max; $i++) { 
-			$ownParent = $segmentsA[$i]->target()->id();
-			$otherParent = $segmentsB[$i]->target()->id();
-			if($ownParent == $otherParent) {
-				if($i > 0) {
-					$segments[] = $segmentsA[$i]->target()->parentAssociation();
-				}
-			} else {
-				$target = $segmentsA[$i]->target()->id();
-				break;
-			}
-		}
-
-		if ($target === NULL) {
-			$target = $this->targetEntityId;	
-		}
-		return new Chain($this->graphDef, $target, $segments);
+		}, range(0, $this->length())));
 	}
 }

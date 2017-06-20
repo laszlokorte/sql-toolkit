@@ -19,6 +19,8 @@ final class EntityQuery {
 	private $limit = null;
 	private $orders = null;
 	private $keyColumns = null;
+	private $scopeColumns = null;
+	private $flatNames = false;
 
 	public function __construct(Identifier $tableName) {
 		$this->tableName = $tableName;
@@ -26,6 +28,10 @@ final class EntityQuery {
 
 	public function setKeyColumns($cols) {
 		$this->keyColumns = $cols;
+	}
+
+	public function setScopeColumns($cols) {
+		$this->scopeColumns = $cols;
 	}
 
 	public function includeColumn(ColumnPath $col) {
@@ -46,6 +52,10 @@ final class EntityQuery {
 		$this->aggregations[] = $aggre;
 
 		$this->aggregations = array_unique($this->aggregations, SORT_REGULAR);
+	}
+
+	public function flatNames() {
+		$this->flatNames = TRUE;
 	}
 
 	public function countChildren() {
@@ -123,11 +133,9 @@ final class EntityQuery {
 			array_map(function($o) {
 				$c = $o->getColumnOrAggregation();
 				if($c instanceof OwnColumnPath) {
-					$colName = sprintf('own_%s_%s', $this->tableName, $c->getColumnName());
+					$colName = $this->ownColumnAlias($c);
 				} elseif($c instanceof ForeignColumnPath) {
-					$colName = sprintf('foreign_%s_%s', implode('_', array_map(function($l) {
-						return $l->getName();
-					}, $c->getTablePath()->getLinks())), $c->getColumnName());
+					$colName = $this->foreignColumnAlias($c);
 				} elseif($c instanceof Aggregation) {
 					$colName = sprintf("aggr_%s_%s", $c->getName(), $c->getType());
 				}
@@ -139,20 +147,32 @@ final class EntityQuery {
 			return sprintf('%s.%s = :%s', $this->tableName, $col->getColumnName(), $i);
 		}, $this->keyColumns, array_keys($this->keyColumns))) : '1';
 
+		if($this->scopeColumns) {
+			$where .= ' AND ' . implode(' AND ', array_map(function($col, $i) {
+				return sprintf('%s.%s = :%s', $this->tableName, $col->getColumnName(), $i);
+			}, $this->scopeColumns, array_keys($this->scopeColumns)));
+		}
+
 		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nWHERE\n\t%s\nORDER BY\n\t%s%s", $columns, $tables, $where, $ordering, is_null($this->limit) ? '' : sprintf("\nLIMIT %d\nOFFSET %d", $this->limit, $this->offset));
 	}
 
 	private function ownColumnAlias($column) {
-		return sprintf('own_%s_%s', $this->tableName, $column->getColumnName());
+		return $this->flatNames ? 
+		sprintf('%s_%s', $this->tableName, $column->getColumnName())
+		:
+		sprintf('own_%s_%s', $this->tableName, $column->getColumnName());
 	}
 
 	private function foreignColumnAlias($column) {
-		return sprintf('foreign_%s_%s', 
+		return $this->flatNames ? 
+		sprintf('%s_%s', $column->getTablePath()->getTarget(), $column->getColumnName()) 
+		:
+		sprintf('foreign_%s_%s', 
 			implode('_', 
 				array_map(function($l) {
 					return $l->getName();
 				}, $column->getTablePath()->getLinks())
-			), 
+			),
 			$column->getColumnName()
 		);
 	}

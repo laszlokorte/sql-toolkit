@@ -382,8 +382,10 @@ li a.state-active::after {
 	white-space: nowrap;
 	max-height: 70vh;
 	max-width: 40vw;
+	min-width: 90%;
 	overflow-y: auto;
 	box-shadow: 1px 1px 10px rgba(40,40,40,0.5);
+	z-index: 10;
 }
 
 .dropdown-body::before {
@@ -393,7 +395,14 @@ li a.state-active::after {
 	bottom: -1em;
 	left: 0;
 	right: 0;
-	pointer-events: none;
+	z-index: 10;
+}
+
+.dropdown-head {
+	white-space: nowrap;
+	z-index: 0;
+	position: relative;
+	cursor: default;
 }
 
 .dropdown-head:hover + .dropdown-body,
@@ -401,4 +410,9 @@ li a.state-active::after {
 .dropdown-body:focus,
 .dropdown-body:active {
 	display: block;
+}
+
+.dropdown-body > * {
+	z-index: 50;
+	position: relative;
 }

@@ -40,6 +40,15 @@ final class ParameterBag implements ArrayAccess {
 	}
 
 	public function __toString() {
+		
+
+		// echo "<pre>";
+		// var_dump($arrays);
+
+		return urldecode(http_build_query($this->toArray(), '_', '&'));
+	}
+
+	public function toArray() {
 		$arrays = [];
 		$bag = $this;
 		do {
@@ -47,10 +56,7 @@ final class ParameterBag implements ArrayAccess {
 			$bag = $bag->parent;
 		} while($bag !== NULL);
 
-		// echo "<pre>";
-		// var_dump($arrays);
-
-		return urldecode(http_build_query(array_replace_recursive(...array_reverse($arrays)), '_', '&'));
+		return array_replace_recursive(...array_reverse($arrays));
 	}
 
 	public function offsetGet($offset) {
@@ -75,5 +81,9 @@ final class ParameterBag implements ArrayAccess {
 
 	public function offsetUnset($offset) {
 		
+	}
+
+	public function only($key) {
+		return new ParameterBag([$key => $this->toArray()[$key] ?? NULL]);
 	}
 }

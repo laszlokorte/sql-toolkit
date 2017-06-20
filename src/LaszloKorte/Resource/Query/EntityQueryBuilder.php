@@ -16,16 +16,26 @@ final class EntityQueryBuilder {
 	private $entity;
 	private $includeDisplayColumns = FALSE;
 	private $includeFieldColumns = FALSE;
+	private $includeParents = FALSE;
 	private $sortByField = NULL;
 	private $sortOrderAscending = TRUE;
 	private $oneById = FALSE;
+	private $scopeToParent = FALSE;
 
 	public function __construct(Entity $entity) {
 		$this->entity = $entity;
 	}
 
+	public function getEntity() {
+		return $this->entity;
+	}
+
 	public function oneById() {
 		$this->oneById = TRUE;
+	}
+
+	public function scopeToParent() {
+		$this->scopeToParent = TRUE;
 	}
 
 	public function includeDisplayColumns() {
@@ -34,6 +44,10 @@ final class EntityQueryBuilder {
 
 	public function includeFieldColumns() {
 		$this->includeFieldColumns = true;
+	}
+
+	public function includeParents() {
+		$this->includeParents = true;
 	}
 
 	public function sortByField($fieldName, $asc = TRUE) {
@@ -98,15 +112,59 @@ final class EntityQueryBuilder {
 			}
 		}
 
+		if($this->includeParents) {
+			$entity = $this->entity;
+			if($entity->hasParentEntity()) {
+				$base = new TablePath($entity->parentAssociation()->toLink());
+			}
+			$prevBase = NULL;
+
+			while($entity->hasParentEntity()) {
+				$assoc = $entity->parentAssociation();
+				$parent = $assoc->getTargetEntity();
+
+				if($this->includeDisplayColumns) {
+					foreach($this->pathsFromAssociation($entity, $assoc) AS $c) {
+						$query->includeColumn($prevBase ? $c->relativeTo($prevBase) : $c);
+					}
+				}
+
+				foreach($parent->idColumns() AS $idCol) {
+					$query->includeColumn(new ForeignColumnPath($base, $idCol));
+				}
+
+				$entity = $parent;
+
+				$prevBase = $base;
+				if($parent->hasParentEntity()) {
+					$base = (new TablePath($parent->parentAssociation()->toLink()))->relativeTo($base);
+				}
+			}
+		}
+
 		if($this->oneById) {
+			$cols = $this->entity->idColumns();
 			$query->setKeyColumns(array_combine(
 				array_map(function($colId) {
 					return sprintf('key_%s', $colId);
-				}, $this->entity->idColumns())
+				}, $cols)
 			, 
 				array_map(function($colId) use ($table) {
 					return new OwnColumnPath($table, $colId);
-				}, $this->entity->idColumns())
+				}, $cols)
+			));
+		}
+
+		if($this->scopeToParent) {
+			$cols = $this->entity->parentAssociation()->getJoinColumns();
+			$query->setScopeColumns(array_combine(
+				array_map(function($colId) {
+					return sprintf('scope_%s', $colId);
+				}, $cols)
+			, 
+				array_map(function($colId) use ($table) {
+					return new OwnColumnPath($table, $colId);
+				}, $cols)
 			));
 		}
 		
@@ -120,7 +178,13 @@ final class EntityQueryBuilder {
 		}
 	}
 
-	private function pathsFromAssociation($entity, ParentAssociation $assoc) {
+	public function bindParent($stmt, $id) {
+		foreach($this->entity->parentAssociation()->getJoinColumns() AS $idx => $colId) {
+			$stmt->bindValue(sprintf('scope_%s', $colId), $id[$idx]);
+		}
+	}
+
+	private function pathsFromAssociation(Entity $entity, ParentAssociation $assoc) {
 		$target = $assoc->getTargetEntity();
 
 		$base = new TablePath($assoc->toLink());
@@ -170,10 +234,13 @@ final class EntityQueryBuilder {
 
 			$parentPaths,
 
+			array_map(function($col) use ($table) {
+				return new OwnColumnPath($table, $col);
+			}, array_values($field->relatedColumns())),
 
 			array_map(function($col) use ($table) {
 				return new OwnColumnPath($table, $col);
-			}, array_values($field->relatedColumns()))
+			}, $this->entity->idColumns())
 		);
 	}
 }

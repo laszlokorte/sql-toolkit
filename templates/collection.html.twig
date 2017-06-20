@@ -9,7 +9,7 @@
     <div class='menu'>
     	{% include 'header.html.twig' %}
 
-		{% include 'navigation.html.twig' with {'groups': graph.groups, 'entity': entity, 'ungrouped':graph.ungroupedEntities} only %}
+		{% include 'navigation.html.twig' with {'groups': graph.groups, 'entity': entity, 'ungrouped':graph.ungroupedEntities, 'params': controller.params} only %}
     </div>
 
     <div class="content">
@@ -19,15 +19,46 @@
                     <span class="dropdown">
                         <span class="dropdown-head">
                             {% if scope.active %}
-                                <strong>{{ scope }}</strong> <a href="?{{ controller.params.remove(['scope']) }}">[x]</a>
+                                <strong>{{ scope.entity.title }}:</strong>
                             {% else %}
-                                {{ scope }}
+                                {{ scope.entity.title(true) }}
+                            {% endif %}
+
+                            {% if scope.active %}
+                                {{ scope.entity.displayTemplateCompiled.render(scope.record, templateRenderer) | raw}}
+                                {% if scope.parent %}
+                                    <a href="?{{ controller.params.remove('group').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)) }}">
+                                        [x]
+                                    </a>
+                                {% else %}
+                                    <a href="?{{ controller.params.remove('scope').remove('group') }}">
+                                        [x]
+                                    </a>
+                                {% endif %}
+                            {% elseif controller.params['group']|default(null) == scope.entity.id %}
+                                <a href="?{{ controller.params.remove('group') }}">
+                                    [Ungroup]
+                                </a>
                             {% endif %}
                         </span>
                         <ul class="dropdown-body">
+                            <li>
+                                <a href="">
+                                    {% if scope.parent %}
+                                        <a href="?{{ controller.params.remove('group').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)).replace('group', scope.entity.id) }}">
+                                            <em>Group By</em>
+                                        </a>
+                                    {% else %}
+                                        <a href="?{{ controller.params.remove('scope').replace('group',scope.entity.id) }}">
+                                            <em>Group By</em>
+                                        </a>
+                                    {% endif %}
+                                </a>
+                                <hr>
+                            </li>
                             {% for scopeChoice in scope.choices %}
                                 <li>
-                                    <a href="?{{ controller.params.replace(['scope','entity'], scope.entity.id).replace(['scope','id'], scopeChoice.id(scope.entity)) }}">
+                                    <a href="?{{ controller.params.remove('group').replace(['scope','entity'], scope.entity.id).replace(['scope','id'], scopeChoice.id(scope.entity)) }}">
                                         {{ scope.entity.displayTemplateCompiled.render(scopeChoice, templateRenderer) | raw}}
                                     </a>
                                 </li>

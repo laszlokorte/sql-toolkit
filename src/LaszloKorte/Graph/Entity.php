@@ -87,7 +87,7 @@ class Entity {
 		if($assocDef === NULL) {
 			return NULL;
 		} else {
-			return new ParentAssociation($this->graphDef, $this->entityId, new Identifier(sprintf('$%s_parent', $this->entityId)), $assocDef);
+			return new ParentAssociation($this->graphDef, $this->entityId, new Identifier(sprintf('parent_%s_%s', $this->entityId, $assocDef->getTargetId())), $assocDef);
 		}
 	}
 

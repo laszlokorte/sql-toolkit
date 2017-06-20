@@ -1,5 +1,5 @@
-{% macro item(entity, current) %}
-    <li><a href="{{ path('table_list', {'entity':entity.id}) }}" class="nav-table{% if current is defined and current == entity %} state-active{% endif %}">{{ entity.title(true) }}</a></li>
+{% macro item(entity, current, params) %}
+    <li><a href="{{ path('table_list', {'entity':entity.id}) }}?{{ params.only('scope') }}" class="nav-table{% if current is defined and current == entity %} state-active{% endif %}">{{ entity.title(true) }}</a></li>
 {% endmacro %}
 
 <a href="{{ path('logout') }}" rel="nofollow">Logout</a> | 
@@ -10,7 +10,7 @@
 <h3 class="nav-group-title">{{ group.title }}</h3>
 <ul class="nav-list">
 	{% for e in group.entities %}
-		{{ _self.item(e, entity) }}
+		{{ _self.item(e, entity, params) }}
 	{% endfor %}
 </ul>
 {% endfor %}
@@ -19,7 +19,7 @@
 <h3 class="nav-group-title">Other</h3>
 <ul class="nav-list">
 	{% for e in ungrouped %}
-		{{ _self.item(e, entity) }}
+		{{ _self.item(e, entity, params) }}
 	{% endfor %}
 </ul>
 {% endif %}

@@ -28,6 +28,10 @@ final class ParentAssociation {
 		return $this->assocDef->getTargetId();
 	}
 
+	public function getJoinColumns() {
+		return $this->assocDef->getJoinColumns();
+	}
+
 	public function __toString() {
 		return "parent:".$this->name;
 	}
