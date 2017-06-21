@@ -30,8 +30,8 @@ final class EntityQuery {
 		$this->keyColumns = $cols;
 	}
 
-	public function setScope($cols) {
-		$this->scope = $cols;
+	public function setScope(Scope $scope) {
+		$this->scope = $scope;
 	}
 
 	public function includeColumn(ColumnPath $col) {
@@ -115,20 +115,7 @@ final class EntityQuery {
 		}
 
 		if($this->scope) {
-			$scopeJoin = implode(' ', array_map(function($link, $first) {
-				return sprintf(
-					"\nINNER JOIN %s scope_%s\n\tON %s", 
-					$link->getTarget(), 
-					$link->getTarget(), 
-					implode("\n\tAND\n\t", 
-						$this->joinCondition(
-							$first ? $link->getSource() : sprintf('scope_%s', $link->getSource()), 
-							sprintf('scope_%s', $link->getTarget()), 
-							$link
-						)
-					)
-				);
-			}, $this->scope->getLinks(), [true]));
+			$scopeJoin = implode(' ', $this->joinsForScope($this->scope));
 			$tables .= $scopeJoin;
 		}
 
@@ -147,7 +134,7 @@ final class EntityQuery {
 			}
 		}
 
-		$ordering = !empty($this->orders) ? implode(",\n\t", 
+		$ordering = !empty($this->orders) ?  
 			array_map(function($o) {
 				$c = $o->getColumnOrAggregation();
 				if($c instanceof OwnColumnPath) {
@@ -159,23 +146,28 @@ final class EntityQuery {
 				}
 				return sprintf('%s %s', $colName, $o->getDirection());
 			}, $this->orders)
-		) : '1';
+		: [];
 
-		$where = $this->keyColumns ? implode(' AND ', array_map(function($col, $i) {
+		$where = $this->keyColumns ? array_map(function($col, $i) {
 			return sprintf('%s.%s = :%s', $this->tableName, $col->getColumnName(), $i);
-		}, $this->keyColumns, array_keys($this->keyColumns))) : '1';
+		}, $this->keyColumns, array_keys($this->keyColumns)) : [];
 
 		if($this->scope) {
-			$scopeCols = $this->scope->getTargetColumns();
-			$scopeTarget = $this->scope->getTarget();
-			$where .= ' AND '
-
-			. implode(' AND ', array_map(function($colName) use($scopeTarget) {
-				return sprintf('scope_%s.%s = :scope_%s', $scopeTarget, $colName, $colName);
+			$scopeCols = $this->scope->getColumnNames();
+			$scopeTable = $this->scope->getTargetTable();
+			array_push($where, ...array_map(function($colName) use($scopeTable) {
+				return sprintf('scope_%s.%s = :scope_%s', $scopeTable, $colName, $colName);
 			}, $scopeCols));
 		}
 
-		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nWHERE\n\t%s\nORDER BY\n\t%s%s", $columns, $tables, $where, $ordering, is_null($this->limit) ? '' : sprintf("\nLIMIT %d\nOFFSET %d", $this->limit, $this->offset));
+		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nWHERE\n\t%s\nORDER BY\n\t%s%s", 
+			$columns, 
+			$tables, 
+			implode(' AND ', array_pad($where, 1, '1')), 
+			implode(",\n\t", array_pad($ordering, 1, '1')), 
+			is_null($this->limit) ? '' : 
+				sprintf("\nLIMIT %d\nOFFSET %d", $this->limit, $this->offset)
+			);
 	}
 
 	private function ownColumnAlias($column) {
@@ -217,7 +209,7 @@ final class EntityQuery {
 
 	private function joinsForPaths(array $foreignPaths) {
 		$joins = array_merge(...array_map(function($p) {
-			return $this->joinForPath($this->tableName, $p);
+			return $this->joinsForPath($this->tableName, $p);
 		}, $foreignPaths));
 
 		return array_map(function($alias, $join) {
@@ -225,7 +217,7 @@ final class EntityQuery {
 		}, array_keys($joins), array_values($joins));
 	}
 
-	private function joinForPath(Identifier $tableName, TablePath $path) {
+	private function joinsForPath(Identifier $tableName, TablePath $path) {
 		$joins = [];
 		$prevAlias = $tableName;
 		foreach($path->getLinks() AS $link) {
@@ -241,6 +233,23 @@ final class EntityQuery {
 		}
 
 		return $joins;
+	}
+
+	private function joinsForScope(Scope $scope) {
+		return array_map(function($link, $first) {
+			return sprintf(
+				"\nINNER JOIN %s scope_%s\n\tON %s", 
+				$link->getTarget(), 
+				$link->getTarget(), 
+				implode("\n\tAND\n\t", 
+					$this->joinCondition(
+						$first ? $link->getSource() : sprintf('scope_%s', $link->getSource()), 
+						sprintf('scope_%s', $link->getTarget()), 
+						$link
+					)
+				)
+			);
+		}, $this->scope->getLinks(), [true]);
 	}
 
 	private function joinCondition($sourceAlias, $targetAlias, $relationship) {

@@ -37,17 +37,17 @@ final class ChainLink {
 		}
 	}
 
-	public function restPath() {
+	public function backLinks() {
 		$max=$this->chain->length(); 
 		if($this->index === 0) {
 			return null;
 		}
-		$path = new TablePath($this->chain->getSegment($this->index - 1)->toLink());
+		$links = [$this->chain->getSegment($this->index - 1)->toLink()];
 		for ($i=$this->index;
 			$i < $max; $i++) { 
-			$path = $path->relativeTo(new TablePath($this->chain->getSegment($i)->toLink()));
+			$links[] = $this->chain->getSegment($i)->toLink();
 		}
 
-		return $path;
+		return array_reverse($links);
 	}
 }

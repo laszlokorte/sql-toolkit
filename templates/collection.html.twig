@@ -13,6 +13,10 @@
     </div>
 
     <div class="content">
+        {% if controller.scopes.query %}
+            <div class="sql debug">{{ controller.scopes.query }}</div>
+        {% endif %}
+
         <ul class="breadcrumb-list">
             {% for scope in controller.scopes %}
                 {% if scope.choices|length %}

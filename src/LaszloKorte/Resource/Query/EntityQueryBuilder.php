@@ -20,7 +20,7 @@ final class EntityQueryBuilder {
 	private $sortByField = NULL;
 	private $sortOrderAscending = TRUE;
 	private $oneById = FALSE;
-	private $scopeToParent = FALSE;
+	private $scope = FALSE;
 
 	public function __construct(Entity $entity) {
 		$this->entity = $entity;
@@ -34,8 +34,8 @@ final class EntityQueryBuilder {
 		$this->oneById = TRUE;
 	}
 
-	public function scopeToParent(TablePath $parentPath) {
-		$this->scopeToParent = $parentPath;
+	public function scope(Scope $scope) {
+		$this->scope = $scope;
 	}
 
 	public function includeDisplayColumns() {
@@ -155,8 +155,8 @@ final class EntityQueryBuilder {
 			));
 		}
 
-		if($this->scopeToParent) {
-			$query->setScope($this->scopeToParent);
+		if($this->scope) {
+			$query->setScope($this->scope);
 		}
 		
 
@@ -169,8 +169,8 @@ final class EntityQueryBuilder {
 		}
 	}
 
-	public function bindParent($stmt, $id) {
-		foreach($this->scopeToParent->getTargetColumns() AS $idx => $colId) {
+	public function bindScope($stmt, $id) {
+		foreach($this->scope->getColumnNames() AS $idx => $colId) {
 			$stmt->bindValue(sprintf('scope_%s', $colId), $id[$idx]);
 		}
 	}

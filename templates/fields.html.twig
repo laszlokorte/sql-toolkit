@@ -47,9 +47,13 @@
 {% endmacro %}
 
 {% macro number(field, record) %}
-    {{ record[field.column('value')] }}
-    {% if field.type.unit %}
-    {{ field.type.unit }}
+    {% if record[field.column('value')] %}
+        {{ record[field.column('value')] }}
+        {% if field.type.unit %}
+        {{ field.type.unit }}
+        {% endif %}
+    {% else %}
+        -
     {% endif %}
 {% endmacro %}
 

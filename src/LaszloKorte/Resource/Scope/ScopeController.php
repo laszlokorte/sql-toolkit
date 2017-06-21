@@ -8,6 +8,7 @@ use LaszloKorte\Graph\Identifier;
 use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
 use LaszloKorte\Resource\Query\Record;
+use LaszloKorte\Resource\Query\Scope as QueryScope;
 
 use PDO;
 use IteratorAggregate;
@@ -18,6 +19,8 @@ final class ScopeController implements IteratorAggregate {
 	private $database;
 	private $scopes;
 	private $scopeRecord;
+	private $queryScope;
+	private $query;
 
 	public function __construct(PDO $database, Entity $entity, $parameters) {
 		$this->database = $database;
@@ -34,9 +37,9 @@ final class ScopeController implements IteratorAggregate {
 			$queryBuilder->oneById();
 			$queryBuilder->includeParents();
 			$queryBuilder->includeDisplayColumns();
-			$query = $queryBuilder->getQuery();
-			$query->flatNames();
-			$stmt = $query->getPrepared($database);
+			$this->query = $queryBuilder->getQuery();
+			$this->query->flatNames();
+			$stmt = $this->query->getPrepared($database);
 			$queryBuilder->bindId($stmt, $scopeId);
 			$stmt->execute();
 			$r = $stmt->fetch();
@@ -59,23 +62,24 @@ final class ScopeController implements IteratorAggregate {
 			) AS 
 			list($entityLink, $scopeLink)
 		) {
+			$entity = $entityLink->target();
 			if($entityLink->isLast()) {
-				$this->pathToScope = $entityLink->restPath();
-				// echo "<div style='text-align:right;font-size: 3em;'>B</div>";
+				if ($backLinks = $entityLink->backLinks()) {
+					$this->queryScope = new QueryScope($backLinks, $entity->idColumns());
+				}
 				break;
 			}
 			$source = $entityLink->source();
-			$entity = $entityLink->target();
 			$queryBuilder = new EntityQueryBuilder($entity);
 			$queryBuilder->includeDisplayColumns();
 			if($source) {
-				$queryBuilder->scopeToParent(new TablePath($entity->parentAssociation()->toLink()));
+				$queryBuilder->scope(new QueryScope([$entity->parentAssociation()->toLink()], $entity->parentEntity()->idColumns()));
 			}
 
 			$query = $queryBuilder->getQuery();
 			$stmt = $query->getPrepared($database);
 			if($source) {
-				$queryBuilder->bindParent($stmt, $record->id($entity->parentEntity(), true));
+				$queryBuilder->bindScope($stmt, $record->id($entity->parentEntity(), true));
 			}
 			$stmt->execute();
 			$scopeChoices = array_map(function($c) {
@@ -93,8 +97,9 @@ final class ScopeController implements IteratorAggregate {
 					continue;
 				}
 			}
-			// echo "<div style='text-align:right;font-size: 3em;'>A</div>";
-			$this->pathToScope = $entityLink->restPath();
+			if($backLinks = $entityLink->backLinks()) {
+				$this->queryScope = new QueryScope($backLinks, $entity->idColumns());
+			}
 			break;
 		}
 
@@ -106,14 +111,18 @@ final class ScopeController implements IteratorAggregate {
 	}
 
 	public function prepare($queryBuilder, $stmt) {
-		if($this->pathToScope) {
-			$queryBuilder->bindParent($stmt, $this->scopeRecord->id($this->entity->otherEntity($this->pathToScope->getTarget()), true));
+		if($this->queryScope) {
+			$queryBuilder->bindScope($stmt, $this->scopeRecord->id($this->entity->otherEntity($this->queryScope->getTargetTable()), true));
 		}
 	}
 
 	public function buildQueryAfter($queryBuilder) {
-		if($this->pathToScope) {
-			$queryBuilder->scopeToParent($this->pathToScope);
+		if($this->queryScope) {
+			$queryBuilder->scope($this->queryScope);
 		}
+	}
+
+	public function getQuery() {
+		return $this->query;
 	}
 }
