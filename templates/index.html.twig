@@ -4,7 +4,7 @@
     <div class='menu'>
     	{% include 'header.html.twig' %}
 
-		{% include 'navigation.html.twig' with {'groups': graph.groups, 'ungrouped':graph.ungroupedEntities, 'entity': null} only %}
+		{% include 'navigation.html.twig' with {'groups': graph.groups, 'ungrouped':graph.ungroupedEntities, 'entity': null, params: params} only %}
     </div>
 
     <div class="content">

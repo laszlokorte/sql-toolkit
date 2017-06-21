@@ -336,6 +336,7 @@ $silex->get('/password/{password}', function(SilexApp $silex, $password) {
 $silex->get('/', function (SilexApp $silex, Request $request) {
     return $silex['twig']->render('index.html.twig', [
         'graph' => $silex['graph'],
+        'params' => new ParameterBag($_GET),
     ]);
 })
 ->bind('root')
