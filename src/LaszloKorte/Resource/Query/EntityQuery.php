@@ -20,6 +20,7 @@ final class EntityQuery {
 	private $orders = null;
 	private $keyColumns = null;
 	private $scope = null;
+	private $grouping = null;
 	private $flatNames = false;
 
 	public function __construct(Identifier $tableName) {
@@ -32,6 +33,14 @@ final class EntityQuery {
 
 	public function setScope(Scope $scope) {
 		$this->scope = $scope;
+	}
+
+	public function setGrouping(Grouping $grouping) {
+		$this->grouping = $grouping;
+	}
+
+	public function isGrouped() {
+		return $this->grouping !== NULL;
 	}
 
 	public function includeColumn(ColumnPath $col) {
@@ -119,10 +128,15 @@ final class EntityQuery {
 			$tables .= $scopeJoin;
 		}
 
+		if($this->grouping) {
+			$groupingJoin = implode(' ', $this->joinsForGrouping($this->grouping));
+			$tables .= $groupingJoin;
+		}
+
 		if(empty($columns)) {
-			$columns = sprintf('%s.*', $this->tableName);
+			$columns = [sprintf('%s.*', $this->tableName)];
 		} else {
-			$columns = implode(",\n\t", array_map([$this, 'columnProjection'], $columns));
+			$columns = array_map([$this, 'columnProjection'], $columns);
 		}
 
 		if(!empty($this->aggregations)) {
@@ -130,7 +144,7 @@ final class EntityQuery {
 				$conditions = $this->joinCondition($this->tableName, sprintf('aggr_%s', $aggr->getName()), $aggr->getLink());
 				$subQuery = sprintf("SELECT\n\t\tCOUNT(*)\n\tFROM \n\t\t%s AS aggr_%s\n\tWHERE\n\t\t%s", $aggr->getLink()->getTarget(), $aggr->getName(), implode(' AND ', $conditions));
 
-				$columns .= sprintf(",\n\t(\n\t%s\n\t) AS aggr_%s_%s", $subQuery, $aggr->getName(), $aggr->getType());
+				$columns []= sprintf("(\n\t%s\n\t) AS aggr_%s_%s", $subQuery, $aggr->getName(), $aggr->getType());
 			}
 		}
 
@@ -160,8 +174,19 @@ final class EntityQuery {
 			}, $scopeCols));
 		}
 
+		if($this->grouping) {
+			$groupingTable = $this->grouping->getTargetTable();
+			$columns[] = sprintf(
+				'IFNULL(CONCAT(\'g_\', %s), \'none\') AS grouping', 
+				implode(', ', array_map(function($col) use ($groupingTable) {
+					return sprintf('grouping_%s.%s', $groupingTable, $col);
+				}, $this->grouping->getTargetColumns()))
+			);
+			array_unshift($ordering, 'grouping ASC');
+		}
+
 		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nWHERE\n\t%s\nORDER BY\n\t%s%s", 
-			$columns, 
+			implode(",\n\t", $columns),
 			$tables, 
 			implode(' AND ', array_pad($where, 1, '1')), 
 			implode(",\n\t", array_pad($ordering, 1, '1')), 
@@ -250,6 +275,23 @@ final class EntityQuery {
 				)
 			);
 		}, $this->scope->getLinks(), [true]);
+	}
+
+	private function joinsForGrouping(Grouping $grouping) {
+		return array_map(function($link, $first) {
+			return sprintf(
+				"\nLEFT JOIN %s grouping_%s\n\tON %s", 
+				$link->getTarget(), 
+				$link->getTarget(), 
+				implode("\n\tAND\n\t", 
+					$this->joinCondition(
+						$first ? $link->getSource() : sprintf('grouping_%s', $link->getSource()), 
+						sprintf('grouping_%s', $link->getTarget()), 
+						$link
+					)
+				)
+			);
+		}, $this->grouping->getLinks(), [true]);
 	}
 
 	private function joinCondition($sourceAlias, $targetAlias, $relationship) {

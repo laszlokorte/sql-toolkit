@@ -24,22 +24,22 @@
                     <span class="dropdown">
                         <span class="dropdown-head">
                             {% if not scope.active %}
-                                {{ scope.entity.title(true) }}
+                                All {{ scope.entity.title(true) }}
                             {% endif %}
 
                             {% if scope.active %}
                                 {{ scope.entity.displayTemplateCompiled.render(scope.record, templateRenderer) | raw}}
                                 {% if scope.parent %}
-                                    <a href="?{{ controller.params.remove('group').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)) }}">
+                                    <a href="?{{ controller.params.remove('page').remove('group').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)) }}">
                                         [x]
                                     </a>
                                 {% else %}
-                                    <a href="?{{ controller.params.remove('scope').remove('group') }}">
+                                    <a href="?{{ controller.params.remove('page').remove('scope').remove('group') }}">
                                         [x]
                                     </a>
                                 {% endif %}
                             {% elseif controller.params['group']|default(null) == scope.entity.id %}
-                                <a href="?{{ controller.params.remove('group') }}">
+                                <a href="?{{ controller.params.remove('page').remove('group') }}">
                                     [Ungroup]
                                 </a>
                             {% endif %}
@@ -53,11 +53,11 @@
                             <li>
                                 <a href="">
                                     {% if scope.parent %}
-                                        <a href="?{{ controller.params.remove('group').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)).replace('group', scope.entity.id) }}">
+                                        <a href="?{{ controller.params.remove('page').remove('group').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)).replace('group', scope.entity.id) }}">
                                             <em>Group By</em>
                                         </a>
                                     {% else %}
-                                        <a href="?{{ controller.params.remove('scope').replace('group',scope.entity.id) }}">
+                                        <a href="?{{ controller.params.remove('page').remove('scope').replace('group',scope.entity.id) }}">
                                             <em>Group By</em>
                                         </a>
                                     {% endif %}
@@ -66,7 +66,7 @@
                             </li>
                             {% for scopeChoice in scope.choices %}
                                 <li>
-                                    <a href="?{{ controller.params.remove('group').replace(['scope','entity'], scope.entity.id).replace(['scope','id'], scopeChoice.id(scope.entity)) }}">
+                                    <a href="?{{ controller.params.remove('page').remove('group').replace(['scope','entity'], scope.entity.id).replace(['scope','id'], scopeChoice.id(scope.entity)) }}">
                                         {{ scope.entity.displayTemplateCompiled.render(scopeChoice, templateRenderer) | raw}}
                                     </a>
                                 </li>
@@ -131,14 +131,14 @@
     			<tr>
                     {% if entity.serialColumn %}
                         <th>
-                            <a href="?{{ controller.params.replace(['order','dir'], controller.isOrderedBy(null, 'desc') ? 'asc' : 'desc').remove(['page']).remove(['order','field']) }}">{{ entity.serialColumn }}</a>
-                            <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove(['page']).remove(['order','field']) }}">
+                            <a href="?{{ controller.params.replace(['order','dir'], controller.isOrderedBy(null, 'desc') ? 'asc' : 'desc').remove('page').remove(['order','field']) }}">{{ entity.serialColumn }}</a>
+                            <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove('page').remove(['order','field']) }}">
                                 {%- if controller.isOrderedBy(null, 'asc') -%}
                                     ▲
                                 {%- else -%}
                                     △
                                 {%- endif -%}
-                            </a><a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove(['page']).remove(['order','field']) }}">
+                            </a><a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove('page').remove(['order','field']) }}">
                                 {%- if controller.isOrderedBy(null, 'desc') -%}
                                     ▼
                                 {%- else -%}
@@ -152,14 +152,14 @@
 						<th>
                         <a href="?{{ controller.params.replace(['order','dir'], 
                             controller.isOrderedBy(field, 'desc') ? 'asc' : 'desc'
-                        ).replace(['order','field'], field.id).remove(['page']) }}">{{ field.title }}</a>
-                        <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove(['page']).replace(['order','field'], field.id) }}">
+                        ).replace(['order','field'], field.id).remove('page') }}">{{ field.title }}</a>
+                        <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove('page').replace(['order','field'], field.id) }}">
                             {%- if controller.isOrderedBy(field, 'asc') %}
                                 ▲
                             {%- else -%}
                                 △
                             {%- endif -%}
-                        </a><a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove(['page']).replace(['order','field'], field.id) }}">
+                        </a><a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove('page').replace(['order','field'], field.id) }}">
                             {%- if controller.isOrderedBy(field, 'desc') -%}
                                 ▼
                             {%- else -%}
@@ -232,7 +232,13 @@
                 {% else %}
                     <tr>
                         <td colspan="{{ entity.fields|length + 2 + (entity.serialColumn ? 1 : 0) }}">
-                            <center class='no-data'>No Data</center>
+                            <center class='no-data'>
+                                No Data
+                                {% if controller.params.scope %}
+                                    <br>
+                                    <a href="?{{ controller.params.remove('scope') }}">Try to remove the scope</a>
+                                {% endif %}
+                            </center>
                         </td>
                     </tr>
                 {% endfor %}

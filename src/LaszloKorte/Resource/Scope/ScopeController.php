@@ -9,6 +9,7 @@ use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
 use LaszloKorte\Resource\Query\Record;
 use LaszloKorte\Resource\Query\Scope as QueryScope;
+use LaszloKorte\Resource\Query\Grouping as QueryGrouping;
 
 use PDO;
 use IteratorAggregate;
@@ -21,6 +22,7 @@ final class ScopeController implements IteratorAggregate {
 	private $scopeRecord;
 	private $queryScope;
 	private $query;
+	private $grouping;
 
 	public function __construct(PDO $database, Entity $entity, $parameters) {
 		$this->database = $database;
@@ -98,6 +100,11 @@ final class ScopeController implements IteratorAggregate {
 				}
 			}
 			if($backLinks = $entityLink->backLinks()) {
+				if($parameters['group'] == $entity->id()) {
+					$groupingLinks = $backLinks;
+					array_pop($groupingLinks);
+					$this->grouping = new QueryGrouping($groupingLinks);
+				}
 				$this->queryScope = new QueryScope($backLinks, $entity->idColumns());
 			}
 			break;
@@ -119,6 +126,9 @@ final class ScopeController implements IteratorAggregate {
 	public function buildQueryAfter($queryBuilder) {
 		if($this->queryScope) {
 			$queryBuilder->scope($this->queryScope);
+		}
+		if($this->grouping) {
+			$queryBuilder->group($this->grouping);
 		}
 	}
 

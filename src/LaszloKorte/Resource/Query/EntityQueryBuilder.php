@@ -20,7 +20,8 @@ final class EntityQueryBuilder {
 	private $sortByField = NULL;
 	private $sortOrderAscending = TRUE;
 	private $oneById = FALSE;
-	private $scope = FALSE;
+	private $scope = NULL;
+	private $group = NULL;
 
 	public function __construct(Entity $entity) {
 		$this->entity = $entity;
@@ -36,6 +37,10 @@ final class EntityQueryBuilder {
 
 	public function scope(Scope $scope) {
 		$this->scope = $scope;
+	}
+
+	public function group(Grouping $group) {
+		$this->group = $group;
 	}
 
 	public function includeDisplayColumns() {
@@ -157,6 +162,10 @@ final class EntityQueryBuilder {
 
 		if($this->scope) {
 			$query->setScope($this->scope);
+		}
+
+		if($this->group) {
+			$query->setGrouping($this->group);
 		}
 		
 
