@@ -15,12 +15,11 @@
     <div class="content">
         <ul class="breadcrumb-list">
             {% for scope in controller.scopes %}
+                {% if scope.choices|length %}
                 <li class="breadcrumb-list-item">
                     <span class="dropdown">
                         <span class="dropdown-head">
-                            {% if scope.active %}
-                                <strong>{{ scope.entity.title }}:</strong>
-                            {% else %}
+                            {% if not scope.active %}
                                 {{ scope.entity.title(true) }}
                             {% endif %}
 
@@ -42,6 +41,11 @@
                             {% endif %}
                         </span>
                         <ul class="dropdown-body">
+                            {% if scope.active %}
+                                <li>
+                                    <strong>{{ scope.entity.title }}:</strong>
+                                </li>
+                            {% endif %}
                             <li>
                                 <a href="">
                                     {% if scope.parent %}
@@ -62,11 +66,15 @@
                                         {{ scope.entity.displayTemplateCompiled.render(scopeChoice, templateRenderer) | raw}}
                                     </a>
                                 </li>
+                            {% else %}
+                                <li><em>---</em></li>
                             {% endfor %}
                         </ul>
                     </span>
                     <div class="sql debug">{{ scope.query }}</div>
                 </li>
+
+                {% endif %}
             {% endfor %}
         </ul>
 

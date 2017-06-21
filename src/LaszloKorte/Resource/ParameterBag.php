@@ -9,7 +9,7 @@ final class ParameterBag implements ArrayAccess {
 	private $values;
 	private $parent;
 	
-	public function __construct(array $values, $parent = NULL) {
+	public function __construct(array $values = [], $parent = NULL) {
 		$this->values = array_map([$this, 'scalarize'], $values);
 		$this->parent = $parent;
 	}
