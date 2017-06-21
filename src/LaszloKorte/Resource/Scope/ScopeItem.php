@@ -2,7 +2,7 @@
 
 namespace LaszloKorte\Resource\Scope;
 
-final class Scope {
+final class ScopeItem {
 
 	private $entity;
 

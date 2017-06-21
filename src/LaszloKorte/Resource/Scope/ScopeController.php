@@ -83,13 +83,13 @@ final class ScopeController implements IteratorAggregate {
 			}, $stmt->fetchAll());
 
 			if($scopeLink === NULL) {
-				$scopes[]= new Scope($entity, $record, $scopeChoices, $query, false);
+				$scopes[]= new ScopeItem($entity, $record, $scopeChoices, $query, false);
 			} else {
 				$scopeTarget = $scopeLink->target();
 				if($entity->id() != $scopeTarget->id()) {
-					$scopes[]= new Scope($entity, $record, $scopeChoices, $query, false);
+					$scopes[]= new ScopeItem($entity, $record, $scopeChoices, $query, false);
 				} else {
-					$scopes[]= new Scope($entity, $record, $scopeChoices, $query, true);
+					$scopes[]= new ScopeItem($entity, $record, $scopeChoices, $query, true);
 					continue;
 				}
 			}
