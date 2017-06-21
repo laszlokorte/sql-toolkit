@@ -17,6 +17,10 @@ class TablePath implements Path, Serializable {
 		return $this->target->getTarget();
 	}
 
+	public function getTargetColumns() {
+		return $this->target->getTargetColumns();
+	}
+
 	public function getLinks() {
 		return $this->pathLinks;
 	}

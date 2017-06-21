@@ -5,6 +5,7 @@ namespace LaszloKorte\Graph\Tree;
 use LaszloKorte\Graph\Identifier;
 use LaszloKorte\Graph\GraphDefinition;
 use LaszloKorte\Graph\Entity;
+use LaszloKorte\Graph\Path\TablePath;
 
 final class ChainLink {
 	public function __construct($chain, $index) {
@@ -34,5 +35,19 @@ final class ChainLink {
 		} else {
 			return $this->chain->getSegment($this->index)->getTargetEntity();
 		}
+	}
+
+	public function restPath() {
+		$max=$this->chain->length(); 
+		if($this->index === 0) {
+			return null;
+		}
+		$path = new TablePath($this->chain->getSegment($this->index - 1)->toLink());
+		for ($i=$this->index;
+			$i < $max; $i++) { 
+			$path = $path->relativeTo(new TablePath($this->chain->getSegment($i)->toLink()));
+		}
+
+		return $path;
 	}
 }

@@ -34,8 +34,8 @@ final class EntityQueryBuilder {
 		$this->oneById = TRUE;
 	}
 
-	public function scopeToParent() {
-		$this->scopeToParent = TRUE;
+	public function scopeToParent(TablePath $parentPath) {
+		$this->scopeToParent = $parentPath;
 	}
 
 	public function includeDisplayColumns() {
@@ -156,16 +156,7 @@ final class EntityQueryBuilder {
 		}
 
 		if($this->scopeToParent) {
-			$cols = $this->entity->parentAssociation()->getJoinColumns();
-			$query->setScopeColumns(array_combine(
-				array_map(function($colId) {
-					return sprintf('scope_%s', $colId);
-				}, $cols)
-			, 
-				array_map(function($colId) use ($table) {
-					return new OwnColumnPath($table, $colId);
-				}, $cols)
-			));
+			$query->setScope($this->scopeToParent);
 		}
 		
 
@@ -179,7 +170,7 @@ final class EntityQueryBuilder {
 	}
 
 	public function bindParent($stmt, $id) {
-		foreach($this->entity->parentAssociation()->getJoinColumns() AS $idx => $colId) {
+		foreach($this->scopeToParent->getTargetColumns() AS $idx => $colId) {
 			$stmt->bindValue(sprintf('scope_%s', $colId), $id[$idx]);
 		}
 	}

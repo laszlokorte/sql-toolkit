@@ -5,6 +5,7 @@ namespace LaszloKorte\Resource\Scope;
 use LaszloKorte\Resource\IdConverter;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Graph\Identifier;
+use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
 use LaszloKorte\Resource\Query\Record;
 
@@ -59,6 +60,8 @@ final class ScopeController implements IteratorAggregate {
 			list($entityLink, $scopeLink)
 		) {
 			if($entityLink->isLast()) {
+				$this->pathToScope = $entityLink->restPath();
+				// echo "<div style='text-align:right;font-size: 3em;'>B</div>";
 				break;
 			}
 			$source = $entityLink->source();
@@ -66,7 +69,7 @@ final class ScopeController implements IteratorAggregate {
 			$queryBuilder = new EntityQueryBuilder($entity);
 			$queryBuilder->includeDisplayColumns();
 			if($source) {
-				$queryBuilder->scopeToParent();
+				$queryBuilder->scopeToParent(new TablePath($entity->parentAssociation()->toLink()));
 			}
 
 			$query = $queryBuilder->getQuery();
@@ -90,6 +93,8 @@ final class ScopeController implements IteratorAggregate {
 					continue;
 				}
 			}
+			// echo "<div style='text-align:right;font-size: 3em;'>A</div>";
+			$this->pathToScope = $entityLink->restPath();
 			break;
 		}
 
@@ -101,14 +106,14 @@ final class ScopeController implements IteratorAggregate {
 	}
 
 	public function prepare($queryBuilder, $stmt) {
-		if($this->scopeRecord) {
-			//$queryBuilder->bindParent($stmt, $this->scopeRecord->id($queryBuilder->getEntity()->parentEntity(), true));
+		if($this->pathToScope) {
+			$queryBuilder->bindParent($stmt, $this->scopeRecord->id($this->entity->otherEntity($this->pathToScope->getTarget()), true));
 		}
 	}
 
 	public function buildQueryAfter($queryBuilder) {
-		if($this->scopeRecord) {
-			//s$queryBuilder->scopeToParent();
+		if($this->pathToScope) {
+			$queryBuilder->scopeToParent($this->pathToScope);
 		}
 	}
 }

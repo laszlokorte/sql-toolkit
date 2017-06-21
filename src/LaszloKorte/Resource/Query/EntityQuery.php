@@ -19,7 +19,7 @@ final class EntityQuery {
 	private $limit = null;
 	private $orders = null;
 	private $keyColumns = null;
-	private $scopeColumns = null;
+	private $scope = null;
 	private $flatNames = false;
 
 	public function __construct(Identifier $tableName) {
@@ -30,8 +30,8 @@ final class EntityQuery {
 		$this->keyColumns = $cols;
 	}
 
-	public function setScopeColumns($cols) {
-		$this->scopeColumns = $cols;
+	public function setScope($cols) {
+		$this->scope = $cols;
 	}
 
 	public function includeColumn(ColumnPath $col) {
@@ -114,6 +114,24 @@ final class EntityQuery {
 			$tables = $this->tableName;
 		}
 
+		if($this->scope) {
+			$scopeJoin = implode(' ', array_map(function($link, $first) {
+				return sprintf(
+					"\nINNER JOIN %s scope_%s\n\tON %s", 
+					$link->getTarget(), 
+					$link->getTarget(), 
+					implode("\n\tAND\n\t", 
+						$this->joinCondition(
+							$first ? $link->getSource() : sprintf('scope_%s', $link->getSource()), 
+							sprintf('scope_%s', $link->getTarget()), 
+							$link
+						)
+					)
+				);
+			}, $this->scope->getLinks(), [true]));
+			$tables .= $scopeJoin;
+		}
+
 		if(empty($columns)) {
 			$columns = sprintf('%s.*', $this->tableName);
 		} else {
@@ -147,10 +165,14 @@ final class EntityQuery {
 			return sprintf('%s.%s = :%s', $this->tableName, $col->getColumnName(), $i);
 		}, $this->keyColumns, array_keys($this->keyColumns))) : '1';
 
-		if($this->scopeColumns) {
-			$where .= ' AND ' . implode(' AND ', array_map(function($col, $i) {
-				return sprintf('%s.%s = :%s', $this->tableName, $col->getColumnName(), $i);
-			}, $this->scopeColumns, array_keys($this->scopeColumns)));
+		if($this->scope) {
+			$scopeCols = $this->scope->getTargetColumns();
+			$scopeTarget = $this->scope->getTarget();
+			$where .= ' AND '
+
+			. implode(' AND ', array_map(function($colName) use($scopeTarget) {
+				return sprintf('scope_%s.%s = :scope_%s', $scopeTarget, $colName, $colName);
+			}, $scopeCols));
 		}
 
 		return sprintf("SELECT\n\t%s\nFROM\n\t%s\nWHERE\n\t%s\nORDER BY\n\t%s%s", $columns, $tables, $where, $ordering, is_null($this->limit) ? '' : sprintf("\nLIMIT %d\nOFFSET %d", $this->limit, $this->offset));
