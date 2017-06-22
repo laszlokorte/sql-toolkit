@@ -1,3 +1,4 @@
+
 * {
 	box-sizing: border-box;
 }
@@ -39,6 +40,14 @@ tfoot th {
 	white-space: nowrap;
 	min-width: 1em;
 	padding-right: 0.5em;
+}
+
+[data-max] {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	display: inline-block;
+	max-width: 15em;
+	overflow: hidden;
 }
 
 table {

@@ -188,7 +188,7 @@ final class GraphBuilder {
 				$fieldBuilder->setType($colAnn->name, $colAnn->params);
 				break;
 			case CA\Link::class:
-				$fieldBuilder->requireUnique($colAnn);
+				// $fieldBuilder->requireUnique($colAnn);
 				$fieldBuilder->setLinked(true);
 				break;
 			case CA\Secret::class:

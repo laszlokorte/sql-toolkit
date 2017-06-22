@@ -9,6 +9,9 @@ use LaszloKorte\Graph\Path\ForeignColumnPath;
 use LaszloKorte\Graph\Path\OwnColumnPath;
 use LaszloKorte\Graph\Path\TablePath;
 
+use LaszloKorte\Resource\Query\Naming\Convention;
+use LaszloKorte\Resource\Query\Naming\NestedConvention;
+
 final class EntityQuery {
 
 	private $tableName;
@@ -21,10 +24,11 @@ final class EntityQuery {
 	private $keyColumns = null;
 	private $scope = null;
 	private $grouping = null;
-	private $flatNames = false;
+	private $namingConvention;
 
-	public function __construct(Identifier $tableName) {
+	public function __construct(Identifier $tableName, Convention $convention = NULL) {
 		$this->tableName = $tableName;
+		$this->namingConvention = $convention ?? new NestedConvention();
 	}
 
 	public function setKeyColumns($cols) {
@@ -61,10 +65,6 @@ final class EntityQuery {
 		$this->aggregations[] = $aggre;
 
 		$this->aggregations = array_unique($this->aggregations, SORT_REGULAR);
-	}
-
-	public function flatNames() {
-		$this->flatNames = TRUE;
 	}
 
 	public function countChildren() {
@@ -144,19 +144,17 @@ final class EntityQuery {
 				$conditions = $this->joinCondition($this->tableName, sprintf('aggr_%s', $aggr->getName()), $aggr->getLink());
 				$subQuery = sprintf("SELECT\n\t\tCOUNT(*)\n\tFROM \n\t\t%s AS aggr_%s\n\tWHERE\n\t\t%s", $aggr->getLink()->getTarget(), $aggr->getName(), implode(' AND ', $conditions));
 
-				$columns []= sprintf("(\n\t%s\n\t) AS aggr_%s_%s", $subQuery, $aggr->getName(), $aggr->getType());
+				$columns []= sprintf("(\n\t%s\n\t) AS %s", $subQuery, $this->aggregationName($aggr->getType(), $aggr->getName()));
 			}
 		}
 
 		$ordering = !empty($this->orders) ?  
 			array_map(function($o) {
 				$c = $o->getColumnOrAggregation();
-				if($c instanceof OwnColumnPath) {
-					$colName = $this->ownColumnAlias($c);
-				} elseif($c instanceof ForeignColumnPath) {
-					$colName = $this->foreignColumnAlias($c);
+				if($c instanceof ColumnPath) {
+					$colName = $this->namingConvention->columnName($c);
 				} elseif($c instanceof Aggregation) {
-					$colName = sprintf("aggr_%s_%s", $c->getName(), $c->getType());
+					$colName = $this->namingConvention->aggregationName($c->getType(), $c->getName());
 				}
 				return sprintf('%s %s', $colName, $o->getDirection());
 			}, $this->orders)
@@ -195,30 +193,9 @@ final class EntityQuery {
 			);
 	}
 
-	private function ownColumnAlias($column) {
-		return $this->flatNames ? 
-		sprintf('%s_%s', $this->tableName, $column->getColumnName())
-		:
-		sprintf('own_%s_%s', $this->tableName, $column->getColumnName());
-	}
-
-	private function foreignColumnAlias($column) {
-		return $this->flatNames ? 
-		sprintf('%s_%s', $column->getTablePath()->getTarget(), $column->getColumnName()) 
-		:
-		sprintf('foreign_%s_%s', 
-			implode('_', 
-				array_map(function($l) {
-					return $l->getName();
-				}, $column->getTablePath()->getLinks())
-			),
-			$column->getColumnName()
-		);
-	}
-
 	private function columnProjection($column) {
 		if($column instanceof OwnColumnPath) {
-			return sprintf('%s.%s AS %s', $this->tableName, $column->getColumnName(), $this->ownColumnAlias($column));
+			return sprintf('%s.%s AS %s', $this->tableName, $column->getColumnName(), $this->namingConvention->columnName($column));
 		} else {
 			return sprintf('%s_%s.%s AS %s', 
 				$this->tableName, 
@@ -227,7 +204,7 @@ final class EntityQuery {
 						return $l->getName();
 					}, $column->getTablePath()->getLinks())
 				), $column->getColumnName(),
-				$this->foreignColumnAlias($column)
+				$this->namingConvention->columnName($column)
 			);
 		}
 	}
@@ -301,6 +278,10 @@ final class EntityQuery {
 				$targetAlias, $targetField
 			);
 		}, $relationship->getSourceColumns(), $relationship->getTargetColumns());
+	}
+
+	private function aggregationName($type, $name) {
+		return $this->namingConvention->aggregationName($type, $name);
 	}
 
 }

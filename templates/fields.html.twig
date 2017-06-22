@@ -14,7 +14,9 @@
 
 {% macro ref_parent(field, record, templateRenderer) %}
 	{% if record.foreignId(field.parent('ref')) %}
-	<a href="{{ path('table_detail', {'entity':field.parent('ref').targetEntity.id, 'id':record.foreignId(field.parent('ref'))}) }}" style="white-space: nowrap;">{{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, templateRenderer, field.parent('ref').toLink) }}</a>
+	<a data-max href="{{ path('table_detail', {'entity':field.parent('ref').targetEntity.id, 'id':record.foreignId(field.parent('ref'))}) }}" style="white-space: nowrap;">
+        {{ _self.template(field.parent('ref').targetEntity.displayTemplateCompiled, record, templateRenderer, field.parent('ref').toLink) }}
+    </a>
 	{% endif %}
 {% endmacro %}
 
@@ -52,8 +54,6 @@
         {% if field.type.unit %}
         {{ field.type.unit }}
         {% endif %}
-    {% else %}
-        -
     {% endif %}
 {% endmacro %}
 

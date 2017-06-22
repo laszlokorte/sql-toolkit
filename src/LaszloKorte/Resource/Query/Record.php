@@ -8,16 +8,18 @@ use LaszloKorte\Graph\Path\ColumnPath;
 use LaszloKorte\Graph\Path\ForeignColumnPath;
 use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Graph\Association\ParentAssociation;
+use LaszloKorte\Resource\Query\Naming\Convention;
+use LaszloKorte\Resource\Query\Naming\NestedConvention;
 
 use ArrayAccess;
 
 final class Record implements ArrayAccess {
 	private $fields;
-	private $flatNames;
+	private $namingConvention;
 
-	public function __construct($fields, $flatNames = FALSE) {
+	public function __construct($fields, Convention $namingConvention = NULL) {
 		$this->fields = $fields;
-		$this->flatNames = $flatNames;
+		$this->namingConvention = $namingConvention ?? new NestedConvention();
 	}
 
 	public function offsetGet($offset) {
@@ -58,29 +60,17 @@ final class Record implements ArrayAccess {
 
 	public function foreignId(ParentAssociation $e) {
 		$tablePath = new TablePath($e->toLink());
-		return implode(':', array_map(function($col) use( $tablePath) {
+		return implode(':', array_map(function($col) use($tablePath) {
 			return $this[new ForeignColumnPath($tablePath, $col)];
 		}, $e->getTargetEntity()->idColumns()));
 	}
 
-	private function propName(ColumnPath $offset) {
-		if($offset instanceof ForeignColumnPath) {
-			return $this->flatNames ? 
-			sprintf('%s_%s', $offset->getTablePath()->getTarget(), $offset->getColumnName()) 
-			:
-			sprintf('foreign_%s_%s', implode('_', array_map(function($l) {
-				return $l->getName();
-			}, $offset->getTablePath()->getLinks())), $offset->getColumnName());
-		} elseif ($offset instanceof OwnColumnPath) {
-			return $this->flatNames ?
-			sprintf('%s_%s', $offset->getTableName(), $offset->getColumnName())
-			:
-			sprintf('own_%s_%s', $offset->getTableName(), $offset->getColumnName());
-		}
+	private function propName(ColumnPath $path) {
+		return $this->namingConvention->columnName($path);
 	}
 
 	public function count($field) {
-		$propName = sprintf('aggr_%s_COUNT', $field->getName());
+		$propName = $this->namingConvention->aggregationName('COUNT', $field->getName());
 
 		return $this->fields->$propName;
 	}

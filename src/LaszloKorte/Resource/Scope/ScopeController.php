@@ -9,7 +9,7 @@ use LaszloKorte\Graph\Path\TablePath;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
 use LaszloKorte\Resource\Query\Record;
 use LaszloKorte\Resource\Query\Scope as QueryScope;
-use LaszloKorte\Resource\Query\Grouping as QueryGrouping;
+use LaszloKorte\Resource\Query\Naming\FlatConvention;
 
 use PDO;
 use IteratorAggregate;
@@ -22,7 +22,6 @@ final class ScopeController implements IteratorAggregate {
 	private $scopeRecord;
 	private $queryScope;
 	private $query;
-	private $grouping;
 
 	public function __construct(PDO $database, Entity $entity, $parameters) {
 		$this->database = $database;
@@ -35,17 +34,18 @@ final class ScopeController implements IteratorAggregate {
 			$scopeEntity = $entity->otherEntity(new Identifier($parameters['scope']['entity']));
 			$scopeChain = $scopeEntity->getTreeChain();
 			
+			$flatConvention = new FlatConvention();
 			$queryBuilder = new EntityQueryBuilder($scopeEntity);
 			$queryBuilder->oneById();
 			$queryBuilder->includeParents();
 			$queryBuilder->includeDisplayColumns();
-			$this->query = $queryBuilder->getQuery();
-			$this->query->flatNames();
+
+			$this->query = $queryBuilder->getQuery($flatConvention);
 			$stmt = $this->query->getPrepared($database);
 			$queryBuilder->bindId($stmt, $scopeId);
 			$stmt->execute();
 			$r = $stmt->fetch();
-			$record = new Record($r, TRUE);
+			$record = new Record($r, $flatConvention);
 		} else {
 			$record = NULL;
 			$scopeChain = new \ArrayIterator([]);
@@ -100,11 +100,6 @@ final class ScopeController implements IteratorAggregate {
 				}
 			}
 			if($backLinks = $entityLink->backLinks()) {
-				if($parameters['group'] == $entity->id()) {
-					$groupingLinks = $backLinks;
-					array_pop($groupingLinks);
-					$this->grouping = new QueryGrouping($groupingLinks);
-				}
 				$this->queryScope = new QueryScope($backLinks, $entity->idColumns());
 			}
 			break;
@@ -126,9 +121,6 @@ final class ScopeController implements IteratorAggregate {
 	public function buildQueryAfter($queryBuilder) {
 		if($this->queryScope) {
 			$queryBuilder->scope($this->queryScope);
-		}
-		if($this->grouping) {
-			$queryBuilder->group($this->grouping);
 		}
 	}
 

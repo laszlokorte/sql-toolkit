@@ -64,9 +64,9 @@ final class EntityQueryBuilder {
 		$this->sortOrderAscending = $asc;
 	}
 
-	public function getQuery() {
+	public function getQuery($convention = NULL) {
 		$table = $this->entity->id();
-		$query = new EntityQuery($table);
+		$query = new EntityQuery($table, $convention);
 
 		foreach($this->entity->idColumns() AS $idCol) {
 			$query->includeColumn(new OwnColumnPath($table, $idCol));

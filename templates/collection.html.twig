@@ -30,18 +30,14 @@
                             {% if scope.active %}
                                 {{ scope.entity.displayTemplateCompiled.render(scope.record, templateRenderer) | raw}}
                                 {% if scope.parent %}
-                                    <a href="?{{ controller.params.remove('page').remove('group').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)) }}">
+                                    <a href="?{{ controller.params.remove('page').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)) }}">
                                         [x]
                                     </a>
                                 {% else %}
-                                    <a href="?{{ controller.params.remove('page').remove('scope').remove('group') }}">
+                                    <a href="?{{ controller.params.remove('page').remove('scope') }}">
                                         [x]
                                     </a>
                                 {% endif %}
-                            {% elseif controller.params['group']|default(null) == scope.entity.id %}
-                                <a href="?{{ controller.params.remove('page').remove('group') }}">
-                                    [Ungroup]
-                                </a>
                             {% endif %}
                         </span>
                         <ul class="dropdown-body">
@@ -50,23 +46,9 @@
                                     <strong>{{ scope.entity.title }}:</strong>
                                 </li>
                             {% endif %}
-                            <li>
-                                <a href="">
-                                    {% if scope.parent %}
-                                        <a href="?{{ controller.params.remove('page').remove('group').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)).replace('group', scope.entity.id) }}">
-                                            <em>Group By</em>
-                                        </a>
-                                    {% else %}
-                                        <a href="?{{ controller.params.remove('page').remove('scope').replace('group',scope.entity.id) }}">
-                                            <em>Group By</em>
-                                        </a>
-                                    {% endif %}
-                                </a>
-                                <hr>
-                            </li>
                             {% for scopeChoice in scope.choices %}
                                 <li>
-                                    <a href="?{{ controller.params.remove('page').remove('group').replace(['scope','entity'], scope.entity.id).replace(['scope','id'], scopeChoice.id(scope.entity)) }}">
+                                    <a href="?{{ controller.params.remove('page').replace(['scope','entity'], scope.entity.id).replace(['scope','id'], scopeChoice.id(scope.entity)) }}">
                                         {{ scope.entity.displayTemplateCompiled.render(scopeChoice, templateRenderer) | raw}}
                                     </a>
                                 </li>
@@ -208,7 +190,7 @@
                         {% if field.isVisibleInCollection and (not field.isSecret) %}
                         <td>
                             {% if field.isLinked %}
-                                <a href="{{ path('table_detail', {'entity':entity.id, 'id':record.id(entity)}) }}">
+                                <a data-max href="{{ path('table_detail', {'entity':entity.id, 'id':record.id(entity)}) }}">
                             {% endif %}
                             
                             {{  attribute(fields, field.typeTemplate, [field, record, templateRenderer])|trim|default('-')|raw }}
