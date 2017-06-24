@@ -17,11 +17,11 @@ final class ChainLink {
 		return $this->index === 0;
 	}
 
-	public function isLast() {
+	public function isLeaf() {
 		return $this->index === $this->chain->length();
 	}
 
-	public function source() {
+	public function parent() {
 		if($this->isRoot()) {
 			return null;
 		} else {
@@ -29,8 +29,8 @@ final class ChainLink {
 		}
 	}
 
-	public function target() {
-		if($this->isLast()) {
+	public function entity() {
+		if($this->isLeaf()) {
 			return $this->chain->getTarget();
 		} else {
 			return $this->chain->getSegment($this->index)->getTargetEntity();

@@ -208,7 +208,7 @@ final class EntityQueryBuilder {
 
 	private function expandDisplayPath($entity, Path $base) {
 		if($base instanceof TablePath) {
-			$otherEnt = $entity->otherEntity($base->getTarget());
+			$otherEnt = $entity->graph()->entity($base->getTarget());
 			return array_map(function($p) use ($base) {
 				return $p->relativeTo($base);
 			}, $this->expandDisplayPaths($otherEnt, $otherEnt->getDisplayPaths()));

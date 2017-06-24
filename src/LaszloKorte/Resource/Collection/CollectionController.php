@@ -1,6 +1,6 @@
 <?php
 
-namespace LaszloKorte\Resource\Controllers;
+namespace LaszloKorte\Resource\Collection;
 
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
@@ -15,18 +15,16 @@ final class CollectionController {
 	private $database;
 	private $queryBuilder;
 	private $entity;
-	private $scope;
 	private $scopes;
 	private $parameters;
 	private $result = null;
 	private $page = 0;
 	private $export = false;
 
-	public function __construct(PDO $db, Entity $entity, $parameters, $scope = NULL, $export = false) {
+	public function __construct(PDO $db, Entity $entity, $parameters, $export = false) {
 		$this->database = $db;
 		$this->entity = $entity;
 		$this->queryBuilder = new EntityQueryBuilder($entity);
-		$this->scope = $scope;
 		$this->parameters = $parameters;
 
 		$this->page = $parameters['page'] ?? 1;
@@ -100,5 +98,9 @@ final class CollectionController {
 
 	public function sqlString() {
 		return $this->getQuery();
+	}
+
+	public function getCollection() {
+		return new Collection();
 	}
 }

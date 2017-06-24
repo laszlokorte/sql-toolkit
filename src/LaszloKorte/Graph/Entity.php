@@ -21,8 +21,8 @@ class Entity {
 		return $this->graphDef->getEntity($this->entityId);
 	}
 
-	public function otherEntity(Identifier $id) {
-		return new self($this->graphDef, $id);
+	public function graph() {
+		return new Graph($this->graphDef);
 	}
 
 	public function id() {

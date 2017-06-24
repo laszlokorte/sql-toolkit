@@ -3,6 +3,7 @@
 namespace LaszloKorte\Resource\Scope;
 
 use LaszloKorte\Resource\IdConverter;
+use LaszloKorte\Graph\Graph;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Graph\Identifier;
 use LaszloKorte\Graph\Path\TablePath;
@@ -16,44 +17,51 @@ use IteratorAggregate;
 use ArrayIterator;
 
 final class ScopeController implements IteratorAggregate {
+	const PARAM_NAME = 'scope';
+	const PARAM_ENTITY = 'entity';
+	const PARAM_ID = 'id';
 
 	private $database;
-	private $scopes;
-	private $scopeRecord;
-	private $queryScope;
-	private $query;
+	private $graph;
+	private $idConverter;
 
-	public function __construct(PDO $database, Entity $entity, $parameters) {
+	public function __construct(PDO $database, Graph $graph, $idConverter) {
 		$this->database = $database;
-		$this->entity = $entity;
-		$this->parameters = $parameters;
+		$this->graph = $graph;
+		$this->idConverter = $idConverter;
+	}
 
-		if(isset($parameters['scope']['entity'])) {
-			$idConverter = new IdConverter();
-			$scopeId = $idConverter->convert($parameters['scope']['id']);
-			$scopeEntity = $entity->otherEntity(new Identifier($parameters['scope']['entity']));
-			$scopeChain = $scopeEntity->getTreeChain();
-			
+	public function getRealScope($parameters) {
+		if(isset($parameters[self::PARAM_NAME]['entity'])) {
 			$flatConvention = new FlatConvention();
-			$queryBuilder = new EntityQueryBuilder($scopeEntity);
+
+			$entityId = new Identifier($parameters[self::PARAM_NAME][self::PARAM_ENTITY]);
+			$recordId = $this->idConverter->convert($parameters[self::PARAM_NAME][self::PARAM_ID]);
+			$focus = new Focus($entityId, $recordId);
+			
+			$entity = $this->graph->entity((string)$entityId);
+			$scopeChain = $entity->getTreeChain();
+			
+			$queryBuilder = new EntityQueryBuilder($entity);
 			$queryBuilder->oneById();
 			$queryBuilder->includeParents();
 			$queryBuilder->includeDisplayColumns();
 
-			$this->query = $queryBuilder->getQuery($flatConvention);
-			$stmt = $this->query->getPrepared($database);
-			$queryBuilder->bindId($stmt, $scopeId);
+			$scopesQuery = $queryBuilder->getQuery($flatConvention);
+			$stmt = $scopesQuery->getPrepared($database);
+			$queryBuilder->bindId($stmt, $recordId);
 			$stmt->execute();
-			$r = $stmt->fetch();
-			$record = new Record($r, $flatConvention);
+			$row = $stmt->fetch();
+
+			return new RealScope($focus, $row, $scopesQuery, $flatConvention);
 		} else {
-			$record = NULL;
-			$scopeChain = new \ArrayIterator([]);
+			return NULL;
 		}
-		$this->scopeRecord = $record;
+	}
 
-		$entityChain = $entity->getTreeChain();
-
+	public function getVirtualScopeFor(RealScope $real, Identifier $entityId) {
+		$entityChain = $this->graph->entity($entityId)->getTreeChain();
+		$scopeChain = $this->graph->entity($real->getEntityId())->getTreeChain();
 
 		$scopes = [];
 
@@ -64,14 +72,14 @@ final class ScopeController implements IteratorAggregate {
 			) AS 
 			list($entityLink, $scopeLink)
 		) {
-			$entity = $entityLink->target();
-			if($entityLink->isLast()) {
+			$entity = $entityLink->entity();
+			if($entityLink->isLeaf()) {
 				if ($backLinks = $entityLink->backLinks()) {
-					$this->queryScope = new QueryScope($backLinks, $entity->idColumns());
+					$queryScope = new QueryScope($backLinks, $entity->idColumns());
 				}
 				break;
 			}
-			$source = $entityLink->source();
+			$source = $entityLink->parent();
 			$queryBuilder = new EntityQueryBuilder($entity);
 			$queryBuilder->includeDisplayColumns();
 			if($source) {
@@ -91,7 +99,7 @@ final class ScopeController implements IteratorAggregate {
 			if($scopeLink === NULL) {
 				$scopes[]= new ScopeItem($entity, $record, $scopeChoices, $query, false);
 			} else {
-				$scopeTarget = $scopeLink->target();
+				$scopeTarget = $scopeLink->entity();
 				if($entity->id() != $scopeTarget->id()) {
 					$scopes[]= new ScopeItem($entity, $record, $scopeChoices, $query, false);
 				} else {
@@ -100,12 +108,10 @@ final class ScopeController implements IteratorAggregate {
 				}
 			}
 			if($backLinks = $entityLink->backLinks()) {
-				$this->queryScope = new QueryScope($backLinks, $entity->idColumns());
+				$queryScope = new QueryScope($backLinks, $entity->idColumns());
 			}
 			break;
 		}
-
-		$this->scopes = $scopes;
 	}
 
 	public function getIterator() {
@@ -114,7 +120,7 @@ final class ScopeController implements IteratorAggregate {
 
 	public function prepare($queryBuilder, $stmt) {
 		if($this->queryScope) {
-			$queryBuilder->bindScope($stmt, $this->scopeRecord->id($this->entity->otherEntity($this->queryScope->getTargetTable()), true));
+			$queryBuilder->bindScope($stmt, $this->scopeRecord->id($this->entity->graph()->entity((string)$this->queryScope->getTargetTable()), true));
 		}
 	}
 

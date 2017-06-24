@@ -15,6 +15,7 @@ use LaszloKorte\Resource\EntityConverter;
 use LaszloKorte\Resource\TableConverter;
 use LaszloKorte\Resource\ParameterBag;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
+use LaszloKorte\Resource\Scene\CollectionScene;
 use LaszloKorte\Resource\Controllers\CollectionController;
 use LaszloKorte\Resource\Controllers\FormController;
 use LaszloKorte\Resource\Controllers\DeletionController;
@@ -188,12 +189,13 @@ $silex->extend('twig', function($twig, $silex) {
 
 $silex->get('/table/{entity}', function (SilexApp $silex, Request $request, Entity $entity) {
 
-    return new Response($silex['twig']->render('collection.html.twig', [
-        'graph' => $silex['graph'],
-        'entity' => $entity,
-        'controller' => new CollectionController($silex['db.connection'], $entity, new ParameterBag($_GET), null),
-        'templateRenderer' => new HtmlRenderer(),
-    ]),
+    $scene = new CollectionScene($silex['db.connection'], new HtmlRenderer(), new IdConverter());
+
+    return new Response(
+        $silex['twig']->render(
+            'collection.html.twig', 
+            $scene->load($entity, new ParameterBag($_GET))
+        ),
     200);
 })
 ->assert('entity', '[a-z\_]+')
@@ -215,7 +217,7 @@ $silex->get('/table/{entity}.{format}', function (SilexApp $silex, Request $requ
     return new Response($silex['twig']->render('collection.'.$format.'.twig', [
         'graph' => $silex['graph'],
         'entity' => $entity,
-        'controller' => new CollectionController($silex['db.connection'], $entity, new ParameterBag($_GET), null, true),
+        'controller' => new CollectionController($silex['db.connection'], $entity, new ParameterBag($_GET), true),
         'templateRenderer' => new TextRenderer(),
     ]),
     200,
