@@ -9,60 +9,12 @@
     <div class='menu'>
     	{% include 'header.html.twig' %}
 
-		{% include 'navigation.html.twig' with {'groups': graph.groups, 'entity': entity, 'ungrouped':graph.ungroupedEntities, 'params': controller.params} only %}
+		{% include 'navigation.html.twig' with {'navigation': navigation, 'entity': entity} only %}
     </div>
 
     <div class="content">
-        {% if controller.scopes.query %}
-            <div class="sql debug">{{ controller.scopes.query }}</div>
-        {% endif %}
 
-        <ul class="breadcrumb-list">
-            {% for scope in controller.scopes %}
-                {% if scope.choices|length %}
-                <li class="breadcrumb-list-item">
-                    <span class="dropdown">
-                        <span class="dropdown-head">
-                            {% if not scope.active %}
-                                All {{ scope.entity.title(true) }}
-                            {% endif %}
-
-                            {% if scope.active %}
-                                {{ scope.entity.displayTemplateCompiled.render(scope.record, templateRenderer) | raw}}
-                                {% if scope.parent %}
-                                    <a href="?{{ controller.params.remove('page').replace(['scope','entity'], scope.parent.id).replace(['scope','id'], scope.record.id(scope.parent)) }}">
-                                        [x]
-                                    </a>
-                                {% else %}
-                                    <a href="?{{ controller.params.remove('page').remove('scope') }}">
-                                        [x]
-                                    </a>
-                                {% endif %}
-                            {% endif %}
-                        </span>
-                        <ul class="dropdown-body">
-                            {% if scope.active %}
-                                <li>
-                                    <strong>{{ scope.entity.title }}:</strong>
-                                </li>
-                            {% endif %}
-                            {% for scopeChoice in scope.choices %}
-                                <li>
-                                    <a href="?{{ controller.params.remove('page').replace(['scope','entity'], scope.entity.id).replace(['scope','id'], scopeChoice.id(scope.entity)) }}">
-                                        {{ scope.entity.displayTemplateCompiled.render(scopeChoice, templateRenderer) | raw}}
-                                    </a>
-                                </li>
-                            {% else %}
-                                <li><em>---</em></li>
-                            {% endfor %}
-                        </ul>
-                    </span>
-                    <div class="sql debug">{{ scope.query }}</div>
-                </li>
-
-                {% endif %}
-            {% endfor %}
-        </ul>
+        {% include 'scope_selector.html.twig' with {scopeSelector: scopeSelector, params: params} only %}
 
     	<h1>{{ entity.title(true) }}</h1>
 
@@ -78,7 +30,7 @@
 
         <p>
         {% if entity.id == 'registration' %}
-                <a href="{{ path('export_all_badges', {'conference': 1}) }}">🖨 Print Badges</a> | 
+            <a href="{{ path('export_all_badges', {'conference': 1}) }}">🖨 Print Badges</a> | 
         {% endif %}
         Export:
         <a href="{{ path('table_export', {'entity':entity.id,'format':'xml'}) }}">XML</a> |
@@ -86,23 +38,9 @@
         <a href="{{ path('table_export', {'entity':entity.id,'format':'json'}) }}">JSON</a>
         </p>
 
-        <div class="sql debug">{{ controller.sqlString }}</div>
+        <div class="sql debug">{{ collectionView.query }}</div>
 
-        {% if controller.hasPrevPage or controller.hasNextPage %}
-            {% if controller.hasPrevPage %}
-                <a href="?{{ controller.params.replace('page', controller.page - 1) }}">« Back</a>
-            {% else %}
-                « Back
-            {% endif %}
-
-             | Page {{ controller.page }} | 
-
-            {% if controller.hasNextPage %}
-                <a href="?{{ controller.params.replace('page', controller.page + 1) }}">Next »</a>
-            {% else %}
-                Next »
-            {% endif %}
-        {% endif %}
+        {% include 'paginator.html.twig' with {pagination: collectionView.pagination, params: params} only %}
 
         {% if entity.isSearchable %}
             <input type="search"><button>Search</button>
@@ -113,43 +51,18 @@
     			<tr>
                     {% if entity.serialColumn %}
                         <th>
-                            <a href="?{{ controller.params.replace(['order','dir'], controller.isOrderedBy(null, 'desc') ? 'asc' : 'desc').remove('page').remove(['order','field']) }}">{{ entity.serialColumn }}</a>
-                            <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove('page').remove(['order','field']) }}">
-                                {%- if controller.isOrderedBy(null, 'asc') -%}
-                                    ▲
-                                {%- else -%}
-                                    △
-                                {%- endif -%}
-                            </a><a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove('page').remove(['order','field']) }}">
-                                {%- if controller.isOrderedBy(null, 'desc') -%}
-                                    ▼
-                                {%- else -%}
-                                    ▽
-                                {%- endif -%}
-                            </a>
+                            <a href="?{{ collectionView.toggleSerialOrderParams(params) }}">{{ entity.serialColumn }}</a>
+                            <a href="?{{ collectionView.serialOrderParams(params, 'asc') }}" class="sort">{% if collectionView.isSerialOrderBy('asc') %}▲{% else %}△{% endif %}</a>{#
+                          #}<a href="?{{ collectionView.serialOrderParams(params, 'desc') }}" class="sort">{% if collectionView.isSerialOrderBy('desc') %}▼{% else %}▽{% endif %}</a>
+                            
                         </th>
                     {% endif %}
-    				{% for field in entity.fields %}
-    					{% if field.isVisibleInCollection and (not field.isSecret) %}
+    				{% for column in collectionView.columns %}
 						<th>
-                        <a href="?{{ controller.params.replace(['order','dir'], 
-                            controller.isOrderedBy(field, 'desc') ? 'asc' : 'desc'
-                        ).replace(['order','field'], field.id).remove('page') }}">{{ field.title }}</a>
-                        <a class="sort" href="?{{ controller.params.replace(['order','dir'], 'asc').remove('page').replace(['order','field'], field.id) }}">
-                            {%- if controller.isOrderedBy(field, 'asc') %}
-                                ▲
-                            {%- else -%}
-                                △
-                            {%- endif -%}
-                        </a><a class="sort" href="?{{ controller.params.replace(['order','dir'], 'desc').remove('page').replace(['order','field'], field.id) }}">
-                            {%- if controller.isOrderedBy(field, 'desc') -%}
-                                ▼
-                            {%- else -%}
-                                ▽
-                            {%- endif -%}
-                        </a>
-						</th>
-    					{% endif %}
+                        <a href="?{{ column.toggleOrderParams(params) }}">{{ column.title }}</a>
+                        <a href="?{{ column.orderParams(params, 'asc') }}" class="sort">{% if column.isOrderBy('asc') %}▲{% else %}△{% endif %}</a>{#
+                      #}<a href="?{{ column.orderParams(params, 'desc') }}" class="sort">{% if column.isOrderBy('desc') %}▼{% else %}▽{% endif %}</a>
+                        </th>
     				{% endfor %}
                     <th>Actions</th>
                     <th class="fill-label"><label><input type="checkbox" data-select='all'></label></th>
@@ -160,11 +73,9 @@
                     {% if entity.serialColumn %}
                         <th></th>
                     {% endif %}
-                    {% for field in entity.fields %}
-                        {% if field.isVisibleInCollection and (not field.isSecret) %}
+                    {% for column in collectionView.columns %}
                         <td>
                         </td>
-                        {% endif %}
                     {% endfor %}
                     <td></td>
                     <td>
@@ -177,7 +88,7 @@
                 </tr>
             </tfoot>
             <tbody>
-                {% for record in controller.records %}
+                {% for record in collectionView.records %}
                     <tr>
                     {% if entity.serialColumn %}
                         <td>
@@ -186,20 +97,18 @@
                             </a>
                         </td>
                     {% endif %}
-                    {% for field in entity.fields %}
-                        {% if field.isVisibleInCollection and (not field.isSecret) %}
+                    {% for column in collectionView.columns %}
                         <td>
-                            {% if field.isLinked %}
+                            {% if column.isLinked %}
                                 <a data-max href="{{ path('table_detail', {'entity':entity.id, 'id':record.id(entity)}) }}">
                             {% endif %}
                             
-                            {{  attribute(fields, field.typeTemplate, [field, record, templateRenderer])|trim|default('-')|raw }}
+                            {{  attribute(fields, column.field.typeTemplate, [column.field, record, templateRenderer])|trim|default('-')|raw }}
                             
-                            {% if field.isLinked %}
+                            {% if column.isLinked %}
                                 </a>
                             {% endif %}
                         </td>
-                        {% endif %}
                     {% endfor %}
                         <td>
                             <a title="edit" href='{{ path('table_edit', {"entity": entity.id, "id": record.id(entity)}) }}'>&#x270E;</a>
@@ -213,12 +122,12 @@
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="{{ entity.fields|length + 2 + (entity.serialColumn ? 1 : 0) }}">
+                        <td colspan="{{ collectionView.fields|length + 2 + (entity.serialColumn ? 1 : 0) }}">
                             <center class='no-data'>
                                 No Data
-                                {% if controller.params.scope %}
+                                {% if scope.isSpecified %}
                                     <br>
-                                    <a href="?{{ controller.params.remove('scope') }}">Try to remove the scope</a>
+                                    <a href="?">Try to remove the scope</a>
                                 {% endif %}
                             </center>
                         </td>

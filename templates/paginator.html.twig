@@ -1,0 +1,15 @@
+{% if pagination.hasPrevPage or pagination.hasNextPage %}
+    {% if pagination.hasPrevPage %}
+        <a href="?{{ pagination.buildParams(params, pagination.prevPage) }}">« Back</a>
+    {% else %}
+        « Back
+    {% endif %}
+
+     | Page {{ pagination.page }} | 
+
+    {% if pagination.hasNextPage %}
+        <a href="?{{ pagination.buildParams(params, pagination.nextPage) }}">Next »</a>
+    {% else %}
+        Next »
+    {% endif %}
+{% endif %}

@@ -1,0 +1,26 @@
+{% if scopeSelector.query %}
+    <div class="sql debug">{{ scopeSelector.query }}</div>
+{% endif %}
+
+
+{% if scopeSelector.isAvailable %}
+<ul class="breadcrumb-list">
+	{% for item in scopeSelector.scopeItems %}
+	    <li class="breadcrumb-list-item">
+	    	<div class="dropdown">
+	    		<span class="dropdown-head">{{ item.title }}</span>
+	    		<ul class="dropdown-body">
+	    			{% for choice in item.choices %}
+	    			    <li>
+	    			    	<a href="?{{ item.paramsForChoice(params, choice) }}">{{ choice.title }}</a>
+	    			    </li>
+	    			{% endfor %}
+	    		</ul>
+	    		{% if item.isSet %}
+					<a href="?{{ choice.paramsForParent(params) }}">[x]</a>
+	    		{% endif %}
+	    	</div>
+	    </li>
+	{% endfor %}
+</ul>
+{% endif %}

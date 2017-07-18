@@ -22,7 +22,11 @@ class Graph {
 	}
 
 	public function entity($name) {
-		return new Entity($this->graphDefinition, new Identifier($name));
+		return $this->entityById(new Identifier($name));
+	}
+
+	public function entityById($id) {
+		return new Entity($this->graphDefinition, $id);
 	}
 
 	public function hasEntity($name) {

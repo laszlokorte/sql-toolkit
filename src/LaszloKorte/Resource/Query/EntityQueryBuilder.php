@@ -21,6 +21,7 @@ final class EntityQueryBuilder {
 	private $sortOrderAscending = TRUE;
 	private $oneById = FALSE;
 	private $scope = NULL;
+	private $scopeId = NULL;
 	private $group = NULL;
 
 	public function __construct(Entity $entity) {
@@ -31,12 +32,13 @@ final class EntityQueryBuilder {
 		return $this->entity;
 	}
 
-	public function oneById() {
-		$this->oneById = TRUE;
+	public function oneById($id) {
+		$this->oneById = $id;
 	}
 
-	public function scope(Scope $scope) {
+	public function scope(Scope $scope, $id) {
 		$this->scope = $scope;
+		$this->scopeId = $id;
 	}
 
 	public function group(Grouping $group) {
@@ -172,13 +174,22 @@ final class EntityQueryBuilder {
 		return $query;
 	}
 
-	public function bindId($stmt, $id) {
+	public function bind($stmt) {
+		if($this->oneById) {
+			$this->bindId($stmt, $this->oneById);
+		}
+		if($this->scope) {
+			$this->bindScope($stmt, $this->scopeId);
+		}
+	}
+
+	private function bindId($stmt, $id) {
 		foreach($this->entity->idColumns() AS $idx => $colId) {
 			$stmt->bindValue(sprintf('key_%s', $colId), $id[$idx]);
 		}
 	}
 
-	public function bindScope($stmt, $id) {
+	private function bindScope($stmt, $id) {
 		foreach($this->scope->getColumnNames() AS $idx => $colId) {
 			$stmt->bindValue(sprintf('scope_%s', $colId), $id[$idx]);
 		}

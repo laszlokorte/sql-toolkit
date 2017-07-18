@@ -13,10 +13,8 @@ use LaszloKorte\Resource\Query\Scope as QueryScope;
 use LaszloKorte\Resource\Query\Naming\FlatConvention;
 
 use PDO;
-use IteratorAggregate;
-use ArrayIterator;
 
-final class ScopeController implements IteratorAggregate {
+final class ScopeController {
 	const PARAM_NAME = 'scope';
 	const PARAM_ENTITY = 'entity';
 	const PARAM_ID = 'id';
@@ -32,14 +30,14 @@ final class ScopeController implements IteratorAggregate {
 	}
 
 	public function getRealScope($parameters) {
-		if(isset($parameters[self::PARAM_NAME]['entity'])) {
+		if(isset($parameters[self::PARAM_NAME][self::PARAM_ENTITY])) {
 			$flatConvention = new FlatConvention();
 
 			$entityId = new Identifier($parameters[self::PARAM_NAME][self::PARAM_ENTITY]);
 			$recordId = $this->idConverter->convert($parameters[self::PARAM_NAME][self::PARAM_ID]);
 			$focus = new Focus($entityId, $recordId);
 			
-			$entity = $this->graph->entity((string)$entityId);
+			$entity = $this->graph->entityById($entityId);
 			$scopeChain = $entity->getTreeChain();
 			
 			$queryBuilder = new EntityQueryBuilder($entity);
@@ -55,13 +53,16 @@ final class ScopeController implements IteratorAggregate {
 
 			return new RealScope($focus, $row, $scopesQuery, $flatConvention);
 		} else {
-			return NULL;
+			return new RealScope(null, null, null, null);
 		}
 	}
 
 	public function getVirtualScopeFor(RealScope $real, Identifier $entityId) {
-		$entityChain = $this->graph->entity($entityId)->getTreeChain();
-		$scopeChain = $this->graph->entity($real->getEntityId())->getTreeChain();
+		if(!$real->isSpecified()) {
+			return new VirtualScope($real, null);
+		}
+		$entityChain = $this->graph->entityById($entityId)->getTreeChain();
+		$scopeChain = $this->graph->entityById($real->getFocus()->getEntityId())->getTreeChain();
 
 		$scopes = [];
 
@@ -114,23 +115,7 @@ final class ScopeController implements IteratorAggregate {
 		}
 	}
 
-	public function getIterator() {
-		return new ArrayIterator($this->scopes);
-	}
-
-	public function prepare($queryBuilder, $stmt) {
-		if($this->queryScope) {
-			$queryBuilder->bindScope($stmt, $this->scopeRecord->id($this->entity->graph()->entity((string)$this->queryScope->getTargetTable()), true));
-		}
-	}
-
-	public function buildQueryAfter($queryBuilder) {
-		if($this->queryScope) {
-			$queryBuilder->scope($this->queryScope);
-		}
-	}
-
-	public function getQuery() {
-		return $this->query;
+	public function getScopeSelector(VirtualScope $virtualScope) {
+		return new ScopeSelector($virtualScope->getRealScope()->getQuery());
 	}
 }

@@ -2,6 +2,7 @@
 
 namespace LaszloKorte\Resource\Collection;
 
+use LaszloKorte\Graph\Graph;
 use LaszloKorte\Graph\Entity;
 use LaszloKorte\Resource\Query\EntityQueryBuilder;
 use LaszloKorte\Resource\Query\Record;
@@ -13,94 +14,47 @@ use PDO;
 final class CollectionController {
 
 	private $database;
-	private $queryBuilder;
-	private $entity;
-	private $scopes;
-	private $parameters;
-	private $result = null;
-	private $page = 0;
-	private $export = false;
+	private $graph;
+	private $paginationController;
+	private $orderingController;
 
-	public function __construct(PDO $db, Entity $entity, $parameters, $export = false) {
+	public function __construct(PDO $db, Graph $graph, $paginationController, $orderingController) {
 		$this->database = $db;
-		$this->entity = $entity;
-		$this->queryBuilder = new EntityQueryBuilder($entity);
-		$this->parameters = $parameters;
-
-		$this->page = $parameters['page'] ?? 1;
-		$this->export = $export;
-
-		$this->queryBuilder->includeFieldColumns();
-		$this->scopes = new ScopeController($db, $entity, $parameters);
+		$this->graph = $graph;
+		$this->paginationController = $paginationController;
+		$this->orderingController = $orderingController;
 	}
 
-	public function getParams() {
-		return $this->parameters;
-	}
-
-	private function getQuery() {
+	public function getCollection($entityId, $virtualScope, $parameters) {
+		$entity = $this->graph->entityById($entityId);
+		$paginator = $this->paginationController->getPaginator($entityId, $parameters);
+		$ordering = $this->orderingController->getOrdering($entityId, $parameters);
 		
-		if(isset($this->parameters['order']['field'])) {
-			$this->queryBuilder->sortByField($this->parameters['order']['field'], $this->parameters['order']['dir'] === 'asc');
-		} else {
-			$this->queryBuilder->sortDefault(($this->parameters['order']['dir']??null) === 'asc');
-		}
-		$this->scopes->buildQueryAfter($this->queryBuilder);
-		$query = $this->queryBuilder->getQuery();
+		list($query, $records) = $this->loadRecords($entityId, $virtualScope, $paginator, $ordering);
 
-		if(!$this->export) {
-			$query->limit(21);
-			$query->offset(($this->page - 1) * 20);
-		}
+		$pagination = $this->paginationController->getPagination($paginator, $records);
 
-		return $query;
+		return new Collection($records, $pagination, $ordering, $query);
 	}
 
-	public function isOrderedBy($field, $dir = 'asc') {
-		return ($this->parameters['order']['dir']??null) === $dir && 
-		($field === null && !isset($this->parameters['order']['field']) ||
-		($field !== null && ($this->parameters['order']['field'] ?? null) == $field->id()));
-	}
-
-	public function records() {
-		if($this->result === null) {
-			$stmt = $this->getQuery()->getPrepared($this->database);
-			$this->scopes->prepare($this->queryBuilder, $stmt);
-			$stmt->execute();
-
-			$this->result = array_map(function($c) {
-				return new Record($c);
-			}, $stmt->fetchAll());
-
-			if(empty($this->result) && $this->page > 1) {
-				throw new NotFoundException();
-			}
-		}
+	private function loadRecords($entityId, $virtualScope, $paginator, $ordering) {
+		$queryBuilder = new EntityQueryBuilder($this->graph->entityById($entityId));
+		$queryBuilder->includeFieldColumns();
+		$virtualScope->modifyQueryBuilder($queryBuilder);
+		$paginator->modifyQueryBuilder($queryBuilder);
+		$ordering->modifyQueryBuilder($queryBuilder);
+		$query = $queryBuilder->getQuery();
+		$paginator->modifyQuery($query);
+		$ordering->modifyQuery($query);
+		$stmt = $query->getPrepared($this->database);
 		
-		return $this->result;
-	}
+		$queryBuilder->bind($stmt);
+		$stmt->execute();
 
-	public function scopes() {
-		return $this->scopes;
-	}
-
-	public function hasPrevPage() {
-		return $this->page > 1;
-	}
-
-	public function hasNextPage() {
-		return count($this->records()) > 20;
-	}
-
-	public function getPage() {
-		return $this->page;
-	}
-
-	public function sqlString() {
-		return $this->getQuery();
-	}
-
-	public function getCollection() {
-		return new Collection();
+		return [$query, array_map(function($c) {
+			return new Record($c);
+		}, $ordering->transformResult(
+			$paginator->transformResult($stmt->fetchAll())
+		))];
 	}
 }

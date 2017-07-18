@@ -29,7 +29,7 @@ final class DetailController {
 		$this->parameters = $parameters;
 
 		$this->queryBuilder->includeFieldColumns();
-		$this->queryBuilder->oneById();
+		$this->queryBuilder->oneById($id);
 		$this->queryBuilder->includeDisplayColumns();
 
 	}
@@ -40,7 +40,6 @@ final class DetailController {
 
 	private function getQuery() {
 		$query = $this->queryBuilder->getQuery();
-		$query->limit(1);
 
 		return $query;
 	}
@@ -49,7 +48,7 @@ final class DetailController {
 		if($this->result === null) {
 			$stmt = $this->getQuery()->getPrepared($this->database);
 
-			$this->queryBuilder->bindId($stmt, $this->id);
+			$this->queryBuilder->bind($stmt);
 			$stmt->execute();
 
 			$this->result = new Record($stmt->fetch());

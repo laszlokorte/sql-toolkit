@@ -5,7 +5,6 @@ namespace LaszloKorte\Graph;
 use LaszloKorte\Graph\Identifier;
 use LaszloKorte\Graph\Path\OwnColumnPath;
 use LaszloKorte\Graph\Association\ParentAssociation;
-use LaszloKorte\Graph\Tree\Chain;
 
 
 class Entity {
@@ -93,18 +92,6 @@ class Entity {
 
 	public function hasParentEntity() {
 		return $this->def()->getParentId() !== NULL;
-	}
-
-	public function getTreeChain() {
-		$entity = $this;
-		$segments = [];
-		while($entity->hasParentEntity()) {
-			$parentAssoc = $entity->parentAssociation();
-			$entity = $parentAssoc->getTargetEntity();
-			$segments[] = $parentAssoc;
-		}
-
-		return new Chain($this->graphDef, $this->entityId, array_reverse($segments));
 	}
 
 	public function getDisplayTemplateCompiled() {

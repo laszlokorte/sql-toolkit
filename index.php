@@ -23,8 +23,11 @@ use LaszloKorte\Resource\Controllers\DetailController;
 use LaszloKorte\Resource\Controllers\UserProvider;
 use LaszloKorte\Resource\Renderer\HtmlRenderer;
 use LaszloKorte\Resource\Renderer\TextRenderer;
+use LaszloKorte\Resource\Navigation\NavigationController;
+
 
 use LaszloKorte\Configurator\ConfigurationBuilder;
+use LaszloKorte\Graph\Identifier;
 use LaszloKorte\Graph\GraphBuilder;
 use LaszloKorte\Graph\Graph;
 use LaszloKorte\Graph\Entity;
@@ -187,19 +190,18 @@ $silex->extend('twig', function($twig, $silex) {
     return $twig;
 });
 
-$silex->get('/table/{entity}', function (SilexApp $silex, Request $request, Entity $entity) {
+$silex->get('/table/{entity}', function (SilexApp $silex, Request $request, $entity) {
 
-    $scene = new CollectionScene($silex['db.connection'], new HtmlRenderer(), new IdConverter());
+    $scene = new CollectionScene($silex['db.connection'], $silex['graph'], new HtmlRenderer(), new IdConverter());
 
     return new Response(
         $silex['twig']->render(
             'collection.html.twig', 
-            $scene->load($entity, new ParameterBag($_GET))
+            $scene->load(new Identifier($entity), new ParameterBag($_GET))
         ),
     200);
 })
 ->assert('entity', '[a-z\_]+')
-->convert('entity', 'converter.entity:convert')
 ->bind('table_list');
 
 $silex->get('/table/{entity}.{format}', function (SilexApp $silex, Request $request, Entity $entity, $format) {
@@ -233,20 +235,28 @@ $silex->get('/table/{entity}.{format}', function (SilexApp $silex, Request $requ
 
 
 $silex->get('/table/{entity}/new', function (SilexApp $silex, Request $request, $entity) {
+    $navigationController = new NavigationController($silex['graph']);
+    $navigation = $navigationController->getNavigation($entity->id(), null, null);
+
     return $silex['twig']->render('form.html.twig', [
         'graph' => $silex['graph'],
         'entity' => $entity,
         'controller' => new FormController(),
+        'navigation' => $navigation,
     ]);
 })
 ->convert('entity', 'converter.entity:convert')
 ->bind('table_new');
 
 $silex->get('/table/{entity}/{id}.{format}', function (SilexApp $silex, Request $request, $entity, $id) {
-	return $silex['twig']->render('detail.html.twig', [
+	$navigationController = new NavigationController($silex['graph']);
+    $navigation = $navigationController->getNavigation($entity->id(), null, null);
+
+    return $silex['twig']->render('detail.html.twig', [
         'graph' => $silex['graph'],
         'id' => $id,
         'entity' => $entity,
+        'navigation' => $navigation,
         'controller' => new DetailController($silex['db.connection'], $entity, $id, new ParameterBag($_GET)),
         'templateRenderer' => new HtmlRenderer(),
     ]);
@@ -300,9 +310,13 @@ $silex->put('/table/{table}/{id}', function (SilexApp $silex, Request $request, 
 ->bind('table_update');
 
 $silex->get('/table/{entity}/{id}/delete', function (SilexApp $silex, Request $request, $entity, $id) {
+    $navigationController = new NavigationController($silex['graph']);
+    $navigation = $navigationController->getNavigation($entity->id(), null, null);
+
     return $silex['twig']->render('deletion.html.twig', [
         'graph' => $silex['graph'],
         'entity' => $entity,
+        'navigation' => $navigation,
         'controller' => new DeletionController(),
     ]);
 })
@@ -336,9 +350,13 @@ $silex->get('/password/{password}', function(SilexApp $silex, $password) {
 });
 
 $silex->get('/', function (SilexApp $silex, Request $request) {
+    $navigationController = new NavigationController($silex['graph']);
+    $navigation = $navigationController->getNavigation(null, null, null);
+
     return $silex['twig']->render('index.html.twig', [
         'graph' => $silex['graph'],
         'params' => new ParameterBag($_GET),
+        'navigation' => $navigation,
     ]);
 })
 ->bind('root')

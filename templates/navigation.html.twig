@@ -1,25 +1,16 @@
-{% macro item(entity, current, params) %}
-    <li><a href="{{ path('table_list', {'entity':entity.id}) }}?{{ params.only('scope') }}" class="nav-table{% if current is defined and current == entity %} state-active{% endif %}">{{ entity.title(true) }}</a></li>
+{% macro item(item, current, params) %}
+    <li><a href="{{ path('table_list', {'entity':item.entityId}) }}" class="nav-table{% if item.isActive %} state-active{% endif %}">{{ item.label }}</a></li>
 {% endmacro %}
 
 <a href="{{ path('logout') }}" rel="nofollow">Logout</a> | 
 <label><input type="checkbox" onChange="document.body.classList.toggle('debug', this.checked)"/> Debug</label>
 <hr>
 
-{% for group in groups %}
-<h3 class="nav-group-title">{{ group.title }}</h3>
+{% for group in navigation.groups %}
+<h3 class="nav-group-title">{{ group.label }}</h3>
 <ul class="nav-list">
-	{% for e in group.entities %}
-		{{ _self.item(e, entity, params) }}
+	{% for i in group.items %}
+		{{ _self.item(i) }}
 	{% endfor %}
 </ul>
 {% endfor %}
-
-{% if ungrouped %}
-<h3 class="nav-group-title">Other</h3>
-<ul class="nav-list">
-	{% for e in ungrouped %}
-		{{ _self.item(e, entity, params) }}
-	{% endfor %}
-</ul>
-{% endif %}
