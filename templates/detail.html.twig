@@ -25,15 +25,6 @@
 		: {{ entity.displayTemplateCompiled.render(controller.record, templateRenderer) | raw}}
     	{% endif %}
     	</h1>
-    	
-    	<p>
-    	{% if entity.id == 'registration' %}
-    	        <a href="{{ path('export_single_badge', {'id': controller.record.id(entity)}) }}">🖨&nbsp; Print Badge</a>
-    	        |
-    	        <a href="{{ path('export_single_invoice', {'id': controller.record.id(entity)}) }}">🖨&nbsp; Print Invoice</a>
-    	{% endif %}
-		</p>
-
 
 		<span class="not-implemented">
 		    Das hier ist noch nicht fertig.
