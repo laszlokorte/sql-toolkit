@@ -107,7 +107,7 @@ $silex['builder.schema'] = function() {
 };
 $silex['db.name'] = 'ishl';
 $silex['db.connection'] = function() {
-	return new PDO('mysql:host=directus.dev;port=3306;dbname=ishl;charset=utf8', 'ishl', 'ishl', [
+	return new PDO('mysql:host=directus.test;port=3306;dbname=ishl;charset=utf8', 'ishl', 'ishl', [
 			PDO::ATTR_TIMEOUT => 2,
 			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 			PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
