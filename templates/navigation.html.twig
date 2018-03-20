@@ -6,6 +6,10 @@
 <label><input type="checkbox" onChange="document.body.classList.toggle('debug', this.checked)"/> Debug</label>
 <hr>
 
+<form class="debug" method="post" action="{{ path('cache_clear') }}">
+	<button>Clear Cache</button>
+</form>
+
 {% for group in navigation.groups %}
 <h3 class="nav-group-title">{{ group.label }}</h3>
 <ul class="nav-list">

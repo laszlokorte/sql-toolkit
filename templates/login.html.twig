@@ -3,29 +3,36 @@
 {% block body %}
 
 <div class="login-panel-outer">
-	<div class=login-panel>
-		<h1 class=login-title>Login</h1>
+	<div class="login-panel">
+		<h1 class="login-title">Login</h1>
 		<form action="{{ path('login_check') }}" method="post">
 
 		{% if error %}
-		<p>
+		<div class="login-error">
 			{{ error }}
-		</p>
+		</div>
 		{% endif %}
 
 		<dl class="prop-list">
-			<dt>E-Mail</dt>
-			<dd>
-				<input name="_username" type="text" value="{{ last_username }}" />
+			<dt class="prop-list-key">
+				<label class="prop-list-label" for="login-username">E-Mail</label>
+			</dt>
+			<dd class="prop-list-value">
+				<input class="form-field" name="_username" type="text" id="login-username" value="{{ last_username }}" />
 			</dd>
 
-			<dt>Password</dt>
-			<dd>
-				<input name="_password" type="password" />
+			<dt class="prop-list-key">
+				<label class="prop-list-label" for="login-password">Password</label>
+			</dt>
+			<dd class="prop-list-value">
+				<input class="form-field" name="_password" id="login-password" type="password" />
+			</dd>
+			<dt class="prop-list-key ghost">Actions</dt>
+			<dd class="prop-list-value">
+				<button class="form-button login">Sign in</button>
 			</dd>
 		</dl>
 
-		<button>Sign in</button>
 		</form>
 	</div>
 </div>

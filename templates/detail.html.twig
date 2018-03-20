@@ -41,10 +41,10 @@
 
     	<dl class="prop-list">
     		{% for field in entity.fields %}
-    		<dt>
-    			{{ field.title }}
+    		<dt class="prop-list-key">
+    			<span class="prop-list-label">{{- field.title -}}</span>
     		</dt>
-		    <dd>
+		    <dd class="prop-list-value">
 		        {% if field.secret %}
 					*******
 				{% else %}

@@ -111,7 +111,7 @@ $silex['builder.schema'] = function() {
 };
 $silex['db.name'] = 'ishl';
 $silex['db.connection'] = function() {
-	return new PDO('mysql:host=directus.dev;port=3306;dbname=ishl;charset=utf8', 'ishl', 'ishl', [
+	return new PDO('mysql:host=directus.test;port=3306;dbname=ishl;charset=utf8', 'ishl', 'ishl', [
 			PDO::ATTR_TIMEOUT => 2,
 			PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
 			PDO::MYSQL_ATTR_INIT_COMMAND => 'SET NAMES utf8',
@@ -281,10 +281,14 @@ $silex->post('/table/{table}', function (SilexApp $silex, Request $request, $tab
 ->bind('table_create');
 
 $silex->get('/table/{entity}/{id}/edit', function (SilexApp $silex, Request $request, $entity, $id) {
+    $navigationController = new NavigationController($silex['graph']);
+    $navigation = $navigationController->getNavigation($entity->id(), null, null);
+
     return $silex['twig']->render('form.html.twig', [
         'graph' => $silex['graph'],
         'entity' => $entity,
         'controller' => new FormController(),
+        'navigation' => $navigation,
     ]);
 })
 ->convert('entity', 'converter.entity:convert')
@@ -361,6 +365,13 @@ $silex->get('/', function (SilexApp $silex, Request $request) {
 })
 ->bind('root')
 ;
+
+$silex->post('/cache/clear', function(SilexApp $silex, Request $request) {
+    unlink($silex['graphDefinition.cached.file']);
+    unlink($silex['schemaDef.cached.file']);
+
+    return $silex->redirect('/');
+})->bind('cache_clear');
 
 $silex->mount('/badges', new BadgeExportController());
 $silex->mount('/invoice', new InvoiceExportController());

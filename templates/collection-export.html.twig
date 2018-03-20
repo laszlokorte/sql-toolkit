@@ -1,0 +1,96 @@
+<div class="tabs">
+    <h2 style="margin: 0;">Export</h2>
+    <input class="tab-radio" name="export-tab" id="export-tab" checked type="radio">
+    <div class="tab">
+        <ul class="inline-list">
+            <li><label class="tab-label" for="export-tab-csv">CSV</label></li>
+            <li><label class="tab-label" for="export-tab-xml">XML</label></li>
+            <li><label class="tab-label" for="export-tab-json">JSON</label></li>
+        </ul>
+    </div>
+    <input class="tab-radio" name="export-tab" id="export-tab-csv" type="radio">
+    <div class="tab">
+        <ul class="inline-list">
+            <li><label class="tab-label state-active" for="export-tab">CSV</label></li>
+            <li><label class="tab-label" for="export-tab-xml">XML</label></li>
+            <li><label class="tab-label" for="export-tab-json">JSON</label></li>
+        </ul>
+
+        <div class="tab-body">
+            <form action="" method="get">
+                <dl class="prop-list">
+                    <dt class="prop-list-key">Delemiter</dt>
+                    <dd class="prop-list-value">
+                        <label><input type="radio" name="csv_delemiter" value=";" checked /> Semicolon</label>
+                        <label><input type="radio" name="csv_delemiter" value="," /> Comma</label>
+                    </dd>
+                    <dt class="prop-list-key ghost">Action</dt>
+                    <dd class="prop-list-value">
+                        <button class="form-button download">
+                            <svg class="icon small button" viewBox="0 0 32 32" preserveAspectRatio="xMidYMid">
+                                <use href="#icon-download" />
+                            </svg>
+                            Download CSV
+                        </button>
+                    </dd>
+                </dl>
+            </form>
+        </div>
+    </div>
+    <input class="tab-radio" name="export-tab" id="export-tab-xml" type="radio">
+    <div class="tab">
+        <ul class="inline-list">
+            <li><label class="tab-label" for="export-tab-csv">CSV</label></li>
+            <li><label class="tab-label state-active" for="export-tab">XML</label></li>
+            <li><label class="tab-label" for="export-tab-json">JSON</label></li>
+        </ul>
+
+        <div class="tab-body">
+            <form action="" method="get">
+                <dl class="prop-list">
+                    <dt class="prop-list-key">Depth</dt>
+                    <dd class="prop-list-value">
+                        <input type="number" min="0" max="4" value="0" />
+                    </dd>
+                    <dt class="prop-list-key ghost">Action</dt>
+                    <dd class="prop-list-value">
+                        <button class="form-button download">
+                            <svg class="icon small button" viewBox="0 0 32 32" preserveAspectRatio="xMidYMid">
+                    <use href="#icon-download" />
+                </svg>
+                            Download XML
+                        </button>
+                    </dd>
+                </dl>                   
+            </form>
+        </div>
+    </div>
+    <input class="tab-radio" name="export-tab" id="export-tab-json" type="radio">
+    <div class="tab">
+        <ul class="inline-list">
+            <li><label class="tab-label" for="export-tab-csv">CSV</label></li>
+            <li><label class="tab-label" for="export-tab-xml">XML</label></li>
+            <li><label class="tab-label state-active" for="export-tab">JSON</label></li>
+        </ul>
+
+        <div class="tab-body">
+            <form action="" method="get">
+                <dl class="prop-list">
+                    <dt class="prop-list-key">Depth</dt>
+                    <dd class="prop-list-value">
+                        <input type="number" min="0" max="4" value="0" />
+                    </dd>
+                    <dt class="prop-list-key ghost">Action</dt>
+                    <dd class="prop-list-value">
+                        <button class="form-button download">
+                            <svg class="icon small button" viewBox="0 0 32 32" preserveAspectRatio="xMidYMid">
+                    <use href="#icon-download" />
+                </svg>
+                            Download JSON
+                        </button>
+                    </dd>
+                </dl>
+            </form>
+        </div>
+    </div>
+</div>

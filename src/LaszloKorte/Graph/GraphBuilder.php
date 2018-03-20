@@ -283,7 +283,7 @@ final class GraphBuilder {
 			case TA\Title::class:
 				$entityBuilder->requireUnique($tblAnn);
 				$singular = $tblAnn->singular;
-				$plural = $tblAnn->plural;
+				$plural = $tblAnn->plural ?? $this->pluralize($tblAnn->singular);
 				$entityBuilder->setTitle($singular, $plural);
 				break;
 			case TA\Visible::class:

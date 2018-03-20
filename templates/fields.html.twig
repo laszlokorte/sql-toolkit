@@ -62,7 +62,7 @@
 {% endmacro %}
 
 {% macro color(field, record) %}
-    <span class="swatch" style="color: {{ record[field.column('value')]|default('rgba(0,0,0,0.1)') }}"></span>
+    <span class="swatch" style="color: {{ record[field.column('value')]|default('rgba(0,0,0,0.1)') }}" data-tooltip="{{ record[field.column('value')]|default('rgba(0,0,0,0.1)') }}"></span>
 {% endmacro %}
 
 {% macro toggle(field, record) %}

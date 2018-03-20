@@ -21,25 +21,30 @@
     	<form action="">
             <dl class="prop-list">
                 {% for field in entity.fields %}
-                <dt>
-                    {{ field.title }}
-                    {% if field.isRequired %}*{% endif %}
+                <dt class="prop-list-key">
+                    <label for="field-{{field.id}}" class="prop-list-label
+                    {%- if field.isRequired %} required{% endif -%}
+                    ">{{ field.title }}</label>
+                    
                     {% if field.description %}
-                    <br>{{ field.description }}
+                    <p>{{ field.description }}</p>
                     {% endif %}
                 </dt>
-                <dd>
-                    <input />
+                <dd class="prop-list-value">
+                    <input id="field-{{field.id}}" class="form-field" />
                 </dd>
                 {% endfor %}
+
+                <dt class="prop-list-key ghost">Actions</dt>
+                <dd class="prop-list-value">
+                    <ul class="inline-list">
+                        <li><button class="form-button create">Save</button></li>
+                        <li><a class="form-button cancel" href="">Cancel</a></li>
+                    </ul>
+                </dd>
             </dl> 
 
-            <p>
-                <button>Save</button>
-            </p> 
-            <p>
-                <a href="">Cancel</a>
-            </p> 
+            
         </form>
 
     	

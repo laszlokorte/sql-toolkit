@@ -25,18 +25,15 @@
     	{% endif %}
 
         <p>
-            <a href="{{ path('table_new', {'entity':entity.id}) }}">+ Create new {{ entity.title }}</a>
+            <a class="form-button new" href="{{ path('table_new', {'entity':entity.id}) }}">
+                <svg class="icon small button" viewBox="0 0 32 32" preserveAspectRatio="xMidYMid">
+                    <use href="#icon-new" />
+                </svg>
+                Create new {{ entity.title }}
+            </a>
         </p>
 
-        <p>
-        {% if entity.id == 'registration' %}
-            <a href="{{ path('export_all_badges', {'conference': 1}) }}">🖨 Print Badges</a> | 
-        {% endif %}
-        Export:
-        <a href="{{ path('table_export', {'entity':entity.id,'format':'xml'}) }}">XML</a> |
-        <a href="{{ path('table_export', {'entity':entity.id,'format':'csv'}) }}">CSV</a> |
-        <a href="{{ path('table_export', {'entity':entity.id,'format':'json'}) }}">JSON</a>
-        </p>
+        {% include "collection-export.html.twig" %}
 
         <div class="sql debug">{{ collectionView.query }}</div>
 
@@ -92,7 +89,7 @@
                     <tr>
                     {% if entity.serialColumn %}
                         <td>
-                            <a href="{{ path('table_detail', {'entity':entity.id, 'id':record.id(entity)}) }}">
+                            <a class="column-serial" href="{{ path('table_detail', {'entity':entity.id, 'id':record.id(entity)}) }}">
                                 {{ record[entity.column(entity.serialColumn)] }}
                             </a>
                         </td>
@@ -110,10 +107,30 @@
                             {% endif %}
                         </td>
                     {% endfor %}
-                        <td>
-                            <a title="edit" href='{{ path('table_edit', {"entity": entity.id, "id": record.id(entity)}) }}'>&#x270E;</a>
-                            <a title="delete" href='{{ path('table_delete', {"entity": entity.id, "id": record.id(entity)}) }}'>&#x2715;</a>
-                            <a title="copy" href='{{ path('table_new', {"entity": entity.id, "copy": record.id(entity)}) }}'>&#x2398;</a>
+                        <td class="cell-centered">
+                            <ul class="inline-list-flex">
+                                <li>
+                                    <a title="edit" href='{{ path('table_edit', {"entity": entity.id, "id": record.id(entity)}) }}'>
+                                        <svg class="icon small edit" viewBox="0 0 32 32" preserveAspectRatio="xMidYMid">
+                                            <use href="#icon-edit" />
+                                        </svg>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a title="delete" href='{{ path('table_delete', {"entity": entity.id, "id": record.id(entity)}) }}'>
+                                        <svg class="icon small delete" viewBox="0 0 32 32" preserveAspectRatio="xMidYMid">
+                                            <use href="#icon-delete" />
+                                        </svg>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a title="copy" href='{{ path('table_new', {"entity": entity.id, "copy": record.id(entity)}) }}'>
+                                        <svg class="icon small copy" viewBox="0 0 32 32" preserveAspectRatio="xMidYMid">
+                                            <use href="#icon-copy" />
+                                        </svg>
+                                    </a>
+                                </li>
+                            </ul>
                         </td>
 
                         <td class="fill-label">
@@ -125,7 +142,7 @@
                         <td colspan="{{ collectionView.fields|length + 2 + (entity.serialColumn ? 1 : 0) }}">
                             <center class='no-data'>
                                 No Data
-                                {% if scope.isSpecified %}
+                                {% if scopeSelector.isAvailable and scopeSelector.isScoped %}
                                     <br>
                                     <a href="?">Try to remove the scope</a>
                                 {% endif %}
